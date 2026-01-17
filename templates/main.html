@@ -1,0 +1,105 @@
+{{template "html-start" .}}
+<div class="section" id="1">
+  <div class="description">
+      <h1>Секционные ворота<br/> от производителя SAGA</h1>
+    <div class="cta-block">
+      <h2>Узнайте стоимость ваших ворот</h2>
+      <a class="primary-button" href="/gate_type"><span>Онлайн калькулятор</span> </a>
+      <p class="hint">Быстрый расчет по вашим параметрам</p>
+      <a class="primary-button">Позвонить нам</a>
+      <p class="hint">Бесплатная консультация менеджера</p>
+    </div>
+  </div>
+  <div class="logo">
+    <img src="/assets/images/logo_with_name.png" alt="Логотип" />
+    <div
+      class="decoration"
+      style="transform: translate(-16%, -16%); background-color: #ccd49c"
+    ></div>
+    <div
+      class="decoration"
+      style="transform: translate(16%, 16%); background-color: #bfc3ab"
+    ></div>
+    <div
+      class="decoration"
+      style="transform: translate(32%, -32%); background-color: #b4ba83"
+    ></div>
+    <div
+      class="decoration"
+      style="transform: translate(-32%, 32%); background-color: #dde1c9"
+    ></div>
+  </div>
+</div>
+
+<div class="section" id="2">
+  <div class="products">
+    <h2>Автоматика</h2>
+    <div class="card">
+      <img src="" alt="" />
+    </div>
+    <div class="card">
+      <img src="" alt="" />
+    </div>
+    <div class="card">
+      <img src="" alt="" />
+    </div>
+    <a href="" class="primary-button" style="align-self: center;">Перейти в каталог</a>
+  </div>
+  <div class="calc">
+    <h2>Калькулятор</h2>
+    <p>Что позволяет сделать калькулятор:</p>
+    <ul>
+      <li>Рассчитать точную цену на ворота по вашим параметрам</li>
+      <li>Узнать стоимость сразу, без необходимости звонить менеджерам</li>
+      <li>Получить готовый расчёт за пару минут</li>
+    </ul>
+    <a href="/gate_type" class="primary-button" style="align-self: center;">Рассчитать стоимость</a>
+  </div>
+</div>
+
+<div class="section" id="3">
+  <div class="description">
+    <div style="width: 75%; margin-top: -2rem">
+      <h1>Станьте частью нашей дилерской сети</h1>
+      <ul class="benefits">
+        <li>Финансовые выгода и условия</li>
+        <li>Маркетинговая и финансовая поддержка</li>
+        <li>Отлаженная логистика по всей стране</li>
+      </ul>
+    </div>
+  </div>
+  <div class="form">
+    <form action="/reg" method="post">
+      <input type="hidden" name="accountType" value="dealer">
+      <label for="fullname">ФИО</label><br />
+      <input type="text" name="fullname" id="fullname" />
+      <label for="company">Название компании</label><br />
+      <input type="text" name="company" id="company" />
+      <label for="phone">Номер телефона</label><br />
+      <input type="tel" name="phone" id="phone" />
+      <label for="email">Почта</label><br />
+      <input type="email" name="email" id="email" />
+      <div style="display: flex; align-items: center">
+        <input type="checkbox" required />
+        <p>Согласие на обработку данных</p>
+      </div>
+      <button type="submit" class="primary-button">Отправить заявку</button>
+    </form>
+  </div>
+</div>
+<div style="margin: 6rem 0;" id="4">
+  <h1 style="text-align: center; margin-top: 0;">
+    Приезжайте в наш офис для консультации
+  </h1>
+  <div class="map-container">
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2180.5252176136796!2d60.60797707706551!3d56.87123707351868!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x43c16de12f3e96a1%3A0xdc7c9ae2899ebafc!2z0L_RgC4g0JrQvtGB0LzQvtC90LDQstGC0L7QsiwgMTUsINCV0LrQsNGC0LXRgNC40L3QsdGD0YDQsywg0KHQstC10YDQtNC70L7QstGB0LrQsNGPINC-0LHQuy4sIDYyMDAxNw!5e0!3m2!1sru!2sru!4v1764951697983!5m2!1sru!2sru"
+      width="100%"
+      height="400"
+      allowfullscreen=""
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
+  </div>
+</div>
+{{template "html-end"}}

@@ -1,0 +1,133 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap");
+@import url("/assets/styles/values.css");
+
+body {
+  margin: 0;
+  background-color: white;
+  font-family: "Rubik", sans-serif;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+main {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+button {
+  font-size: 16px;
+  background-color: var(--button-static);
+  border: none;
+  color: black;
+  padding: 1rem;
+  transition: var(--my-transition);
+}
+
+button:hover {
+  transform: scale(1.15);
+  background-color: var(--button-hover);
+}
+
+::-webkit-scrollbar {
+  width: 0;
+}
+
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav li {
+  display: inline-block;
+  padding: 1rem;
+  margin-right: 0.5rem;
+  transition: var(--my-transition);
+}
+
+nav li:hover {
+  background-color: var(--href-hover);
+  transform: scale(1.15);
+}
+
+nav a {
+  color: white;
+}
+
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4rem;
+  display: flex;
+  background-color: var(--dark-grey);
+}
+
+nav img {
+  max-height: 4rem;
+  width: auto;
+  height: 100%;
+}
+
+nav .nav-div {
+  display: flex;
+  align-items: center;
+}
+
+.button-cart {
+  background-color: var(--dark-grey);
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2px solid white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 28px;
+  margin: 0 0.5rem;
+}
+
+.button-cart:hover {
+  border: none;
+  color: rgb(255, 255, 255);
+  background-color: var(--href-hover);
+  font-size: 32px;
+}
+
+.primary-button {
+  background-color: var(--button-static);
+  color: var(--dark-grey);
+  text-decoration: none;
+  padding: 0.75rem;
+  margin: 0 1rem 0 1rem;
+  display: inline-block;
+  transition: var(--my-transition);
+  border: 2px solid transparent;
+}
+
+.primary-button:hover {
+  background-color: #ffc800;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(27, 27, 27, 0.2);
+  border-color: var(--dark-grey);
+}
+
+.button-catalog p {
+  margin-left: 5px;
+  font-size: 16px;
+}
+footer {
+  flex-shrink: 0;
+  background-color: var(--dark-grey);
+  color: white;
+  padding: 2rem 1rem;
+}

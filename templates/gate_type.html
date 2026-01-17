@@ -1,0 +1,5 @@
+{{template "html-start" .}}
+{{range .gateTypes}}
+<a href="/calculator?gateType={{.ID}}">{{.Name}}</a>
+{{end}}
+{{template "html-end"}}

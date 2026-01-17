@@ -1,0 +1,11 @@
+{{template "html-start" .}}
+<h1>Все заказы пользователя</h1>
+{{range .orders}}
+<a href="/orders/{{.ID}}">
+  <div>
+    <p>Заказ #{{.ID}}</p>
+    <p>Клиент: {{.Client.Fullname}} ({{.Client.PhoneNumber}})</p>
+    <p>Менеджер: {{.Manager.Fullname}} ({{.Manager.Email}})</p>
+  </div>
+</a>
+{{end}} {{template "html-end"}}

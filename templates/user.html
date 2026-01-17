@@ -1,0 +1,19 @@
+{{template "html-start" .}}
+<div id="user-info">
+  <h1 class="full-name">{{.user.Fullname}}</h1>
+  <ul style="list-style-type: none">
+    <li>
+      <span style="font-weight: 200">ID: </span>
+      <span class="user-id">{{.user.ID}}</span>
+    </li>
+    <li>
+      <span style="font-weight: 200">Email: </span>
+      <span class="email">{{.user.Email}}</span>
+    </li>
+    <li>
+      <span style="font-weight: 200">Phone: </span>
+      <span class="phone">{{.user.PhoneNumber}}</span>
+    </li>
+  </ul>
+</div>
+{{template "html-end"}}

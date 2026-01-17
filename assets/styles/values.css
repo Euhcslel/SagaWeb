@@ -1,0 +1,8 @@
+:root {
+  --my-transition: all 0.5s ease-out;
+  --button-static: #ffec69;
+  --button-hover: #e6c200;
+  --href-hover: #959593;
+  --dark-grey: #2c2d28;
+  --light-grey: #E5E5E4;
+}

@@ -1,0 +1,149 @@
+{{template "html-start" .}}
+<form method="POST" class="myForm" id="myForm">
+  <!--Панель выбора элементов заказа-->
+  <div class="tab">
+    <button
+      type="button"
+      class="tablinks"
+      onclick="showItem(event, 'mainConfig')"
+    >
+      Конфигурация
+    </button>
+    <button type="button" class="tablinks" onclick="showItem(event, 'options')">
+      Дополнительные опции
+    </button>
+    <button
+      type="button"
+      class="tablinks"
+      onclick="showItem(event, 'products')"
+    >
+      Товары
+    </button>
+  </div>
+
+  <!--Блок для настройки конфигурации ворот-->
+  <div id="mainConfig" class="tabItem">
+    <!--Тип ворот-->
+    <input type="text" style="display: none" class="gateType" name="gateType" />
+    <!--Ширина-->
+    <label for="width">Ширина</label>
+    <input
+      name="width"
+      id="width"
+      oninput="updateSizePrice()"
+      type="number"
+      min="{{.cfg.WidthParams.MinWidth}}"
+      max="{{.cfg.WidthParams.MaxWidth}}"
+      value="{{.cfg.WidthParams.MinWidth}}"
+    />
+    <!--Высота-->
+    <label for="height">Высота</label>
+    <input
+      name="height"
+      id="height"
+      oninput="updateSizePrice()"
+      type="number"
+      min="{{.cfg.HeightParams.MinHeight}}"
+      max="{{.cfg.HeightParams.MaxHeight}}"
+      value="{{.cfg.HeightParams.MinHeight}}"
+    />
+
+    <!--Тип подъема-->
+    <select name="liftType" oninput="updateSizePrice()">
+      {{if or (eq .user.Role.Name "dealer") (eq .user.Role.Name "manager") (eq
+      .user.Role.Name "admin")}} {{range .cfg.LiftTypes}}
+      <option data-id="{{.ID}}" data-markup="{{.WholesaleMarkup}}">
+        {{.Name}}
+      </option>
+      {{end}} {{else}} {{range .cfg.LiftTypes}}
+      <option data-id="{{.ID}}" data-markup="{{.RetailMarkup}}">
+        {{.Name}}
+      </option>
+      {{end}} {{end}}
+    </select>
+
+    <!--Количество циклов-->
+    <select name="cycleAmount" oninput="updateSizePrice()">
+      {{if or (eq .user.Role.Name "dealer") (eq .user.Role.Name "manager") (eq
+      .user.Role.Name "admin")}} {{range .cfg.CycleAmounts}}
+      <option data-id="{{.ID}}" data-markup="{{.WholesaleMarkup}}">
+        {{.Amount}}
+      </option>
+      {{end}} {{else}} {{range .cfg.CycleAmounts}}
+      <option data-id="{{.ID}}" data-markup="{{.RetailMarkup}}">
+        {{.Amount}}
+      </option>
+      {{end}} {{end}}
+    </select>
+
+    <!--Цвет ворот внутри-->
+    <select name="colorIn">
+      {{range .cfg.Colors}}
+      <option data-id="{{.ID}}">{{.Code}}</option>
+      {{end}}
+    </select>
+
+    <!--Цвет ворот снаружи-->
+    <select name="colorOut">
+      {{range .cfg.Colors}}
+      <option data-id="{{.ID}}">{{.Code}}</option>
+      {{end}}
+    </select>
+
+    <!--Привод-->
+    {{if or (eq .user.Role.Name "dealer") (eq .user.Role.Name "manager") (eq
+    .user.Role.Name "admin")}} {{if .cfg.IndustrialDrives}}
+
+    <select name="drive" class="industrial" oninput="updateSizePrice()">
+      {{range .cfg.IndustrialDrives}}
+      <option data-id="{{.ID}}" data-price="{{.WholesalePrice}}">
+        {{.Name}}
+      </option>
+      {{end}}
+    </select>
+
+    {{else}}
+
+    <select name="drive" class="residential" oninput="updateSizePrice()">
+      {{range .cfg.ResidentialDrives}}
+      <option data-id="{{.ID}}" data-price="{{.WholesalePrice}}">
+        {{.Name}}
+      </option>
+      {{end}}
+    </select>
+    {{end}} {{else}} {{if .cfg.IndustrialDrives}}
+
+    <select name="drive" class="industrial" oninput="updateSizePrice()">
+      {{range .cfg.IndustrialDrives}}
+      <option data-id="{{.ID}}" data-price="{{.RetailPrice}}">{{.Name}}</option>
+      {{end}}
+    </select>
+
+    {{else}}
+
+    <select name="drive" class="residential" oninput="updateSizePrice()">
+      {{range .cfg.ResidentialDrives}}
+      <option data-id="{{.ID}}" data-price="{{.RetailPrice}}">{{.Name}}</option>
+      {{end}}
+    </select>
+    {{end}} {{end}}
+    <input type="button" onclick="addInOrder()" value="Добавить в заказ" />
+  </div>
+  <!--Блок для выбора дополнительных опций к воротам-->
+  <div id="options" class="tabItem">
+    <p>Дополнительные опции</p>
+     <input type="button" onclick="addGateOption()" value="Добавить в заказ" />
+  </div>
+  <!--Блок для выбора товаров-->
+  <div id="products" class="tabItem">
+    <p>Товары</p>
+     <input type="button" onclick="addProductInOrder()" value="Добавить в заказ" />
+  </div>
+  <br />
+  <input type="button" onclick="placeOrder()" value="Оформить заказ" />
+</form>
+<!--Стоимость заказа-->
+<h1 class="totalPrice">0</h1>
+<script defer src="../assets/scripts/calculator.js"></script>
+<script src="../assets/scripts/tab.js"></script>
+{{template "html-end"}}

@@ -1,0 +1,29 @@
+.myForm {
+  width: auto;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  padding: 2rem;
+}
+.tab {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.tablinks {
+  margin-left: 2rem;
+}
+
+.tabItem {
+  display: none;
+}
+
+input[type="number"], input[type="text"], select {
+display: block;
+  width: 20%;
+}
+
+#mainConfig {
+  display: block;
+}

@@ -1,0 +1,6 @@
+{{template "html-start" .}}
+{{range .tables}}
+<a href="/tables/{{.}}">{{.}}</a>
+<br>
+{{end}}
+{{template "html-end"}}

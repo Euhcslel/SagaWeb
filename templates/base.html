@@ -1,0 +1,59 @@
+{{define "html-start"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/assets/styles/base.css" />
+    <link rel="icon" href="/assets/images/favicon.ico" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icons=shopping_cart+shelves"
+    />
+    {{if .css}}
+    <link rel="stylesheet" href="{{.css}}" />
+    {{end}}
+    <title>{{block "title" .}}Saga Doors{{end}}</title>
+  </head>
+  <body>
+    <nav>
+      <div class="nav-div">
+        <img src="/assets/images/logo.png" alt="Логотип" />
+        <ul>
+          <li><a href="/#1">О нас</a></li>
+          <li><a href="/#2">Покупателям</a></li>
+          <li><a href="/#3">Дилерам</a></li>
+          <li><a href="/#4">Контакты</a></li>
+        </ul>
+      </div>
+      <div class="nav-div">
+        <a
+          class="primary-button"
+          style="display: flex; justify-content: center; align-items: center"
+        >
+          <span class="material-symbols-outlined" style="margin-right: 4px">
+            shelves
+          </span>
+          Автоматика
+        </a>
+        <button class="button-cart">
+          <span class="material-symbols-outlined"> shopping_cart </span>
+        </button>
+        {{if not .user.ID}}
+        <a class="primary-button" href="/log">Войти</a>
+        {{end}}
+      </div>
+    </nav>
+    <main>{{end}} {{define "html-end"}}</main>
+    <footer>
+      <div>
+        <p>+7 (343) 343-96-99</p>
+        <p>г. Березовский</p>
+      </div>
+      <div>
+        <p>© ООО "Сага Дорс"</p>
+      </div>
+    </footer>
+  </body>
+</html>
+{{end}}
