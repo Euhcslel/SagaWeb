@@ -5,7 +5,12 @@
   <div>
     <p>Заказ #{{.ID}}</p>
     <p>Клиент: {{.Client.Fullname}} ({{.Client.PhoneNumber}})</p>
+    {{if .Manager}}
     <p>Менеджер: {{.Manager.Fullname}} ({{.Manager.Email}})</p>
+
+    {{else}}
+    <p>Менеджер не привязан</p>
+    {{end}}
   </div>
 </a>
 {{end}} {{template "html-end"}}

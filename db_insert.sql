@@ -74,3 +74,12 @@ INSERT INTO industrial_gate_drives (name, unit_id, wholesale_price, retail_price
 
 insert into roles (name) values
 ('admin'), ('client'), ('dealer');
+
+INSERT INTO options (name, unit_id, wholesale_price, retail_price, for_sale, condition) VALUES
+('Калитка для секционных ворот, порог 100-150мм (в компл. с мех. замком и доводчиком)', (SELECT id FROM units WHERE name = 'шт.'), 57750, 69300, true, ''),
+('Окно 660х330', (SELECT id FROM units WHERE name = 'шт.'), 5400, 6700, true, '');
+
+INSERT INTO products (name, unit_id, wholesale_price, retail_price) VALUES
+('Устройство защиты от обрыва троса', (SELECT id FROM units WHERE name = 'комплект'), 3500, 5400),
+('Устройство защиты от обрыва пружины', (SELECT id FROM units WHERE name = 'комплект'), 3500, 5400);
+

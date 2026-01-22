@@ -1,5 +1,7 @@
-{{template "html-start" .}} {{range .orders.Gates}}
-<h2>Ворота №{{.Gate.RowNumber}}</h2>
+{{template "html-start" .}}
+<a href="/orders">Вернуться к заказам</a>
+{{range .orders.Gates}}
+<a href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}">Ворота №{{.Gate.RowNumber}}</a>
 <ul>
   <li>{{.Gate.Width}}</li>
   <li>{{.Gate.Height}}</li>

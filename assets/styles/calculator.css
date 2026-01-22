@@ -3,9 +3,11 @@
   display: flex;
   justify-content: center;
   flex-direction: column;
-  padding: 2rem;
+  padding: 1rem;
 }
+
 .tab {
+  margin-top: 2rem;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -17,13 +19,70 @@
 
 .tabItem {
   display: none;
-}
-
-input[type="number"], input[type="text"], select {
-display: block;
-  width: 20%;
+  position: relative;
 }
 
 #mainConfig {
+  display: flex;
+  flex-direction: row;
+}
+
+.list {
+  width: 50%;
+}
+
+.totalDealerPrice::before {
+  content: "Стоимость для дилера: ";
+}
+
+.totalClientPrice::before {
+ content: "Стоимость для клиента: ";
+}
+
+.totalPrice::before {
+  content: "Итоговая стоимость: "
+}
+
+hr {
+  margin: 2rem 0;
+}
+
+.addButton {
+  position: absolute;
+  top: -2rem;
+  right: 0;
+}
+
+/* Inputs */
+input, select {
+  border: 1px solid black;
+  border-radius: 0;
+}
+
+input[type="number"],
+input[type="text"],
+select {
   display: block;
+  width: 75%;
+  height: 2rem;
+  margin: 1rem;
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--dark-grey);
+   position: relative;
+}
+
+input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  width: 6px;
+  height: 12px;
+  border: solid var(--dark-grey);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }

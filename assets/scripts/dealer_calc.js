@@ -1,31 +1,47 @@
 // Переменная, хранящая начальную стоимость ворот по ширине и высоте (без выбранной комлектации)
-let sizePrice = 0;
+let dealerSizePrice = 0;
+let clientSizePrice = 0;
 // Переменная, хранящая полную стоимость конфигурации ворот
-let gatePrice = 0;
+let dealerGatePrice = 0;
+let clientGatePrice = 0;
 
 // Функция, высчитывающая полную стоимость заказа
 function updateTotalPrice() {
-  var totalPriceElement = document.querySelector(".totalPrice");
+  var totalDealerPriceElement = document.querySelector(".totalDealerPrice");
+  var totalClientPriceElement = document.querySelector(".totalClientPrice");
+
   var liftTypeSelect = document.getElementsByName("liftType")[0];
   var selectedLiftType = liftTypeSelect.options[liftTypeSelect.selectedIndex];
+  var liftTypeDealerMarkup =
+    (dealerSizePrice * parseFloat(selectedLiftType.dataset.markup)) / 100;
+  var liftTypeClientMarkup =
+    (clientSizePrice * parseFloat(selectedLiftType.dataset.retail)) / 100;
+
   var cycleAmountSelect = document.getElementsByName("cycleAmount")[0];
   var selectedCycleAmount =
     cycleAmountSelect.options[cycleAmountSelect.selectedIndex];
+  var cycleAmountDealerMarkup =
+    (dealerSizePrice * parseFloat(selectedCycleAmount.dataset.markup)) / 100;
+  var cycleAmountClientMarkup =
+    (clientSizePrice * parseFloat(selectedCycleAmount.dataset.retail)) / 100;
+
   var drivesSelect = document.getElementsByName("drive")[0];
   var selectedDrive = drivesSelect.options[drivesSelect.selectedIndex];
 
-  var liftTypeMarkup =
-    (sizePrice * parseFloat(selectedLiftType.dataset.markup)) / 100;
-  var cycleAmountMarkup =
-    (sizePrice * parseFloat(selectedCycleAmount.dataset.markup)) / 100;
-
-  gatePrice =
-    sizePrice +
-    liftTypeMarkup +
-    cycleAmountMarkup +
+  var dealerGatePrice =
+    dealerSizePrice +
+    liftTypeDealerMarkup +
+    cycleAmountDealerMarkup +
     parseFloat(selectedDrive.dataset.price);
 
-  totalPriceElement.textContent = gatePrice;
+  var clientGatePrice =
+    clientSizePrice +
+    liftTypeClientMarkup +
+    cycleAmountClientMarkup +
+    parseFloat(selectedDrive.dataset.retail);
+
+  totalDealerPriceElement.textContent = dealerGatePrice;
+  totalClientPriceElement.textContent = clientGatePrice;
 }
 
 // Функция, определяющая начальную стоимость ворот по ширине и высоте
@@ -34,7 +50,8 @@ async function updateSizePrice() {
   const gateType = url.searchParams.get("gateType");
 
   if (gateType === null) {
-    sizePrice = 0;
+    dealerSizePrice = 0;
+    clientSizePrice = 0;
     updateTotalPrice();
     return;
   }
@@ -57,7 +74,8 @@ async function updateSizePrice() {
     );
 
     const data = await response.json();
-    sizePrice = data.price;
+    dealerSizePrice = data.dealer_price;
+    clientSizePrice = data.client_price;
     updateTotalPrice();
   }
 }
@@ -93,15 +111,14 @@ function addInOrder() {
     height: document.getElementById("height").value,
     liftType:
       document.querySelector('[name="liftType"]').selectedOptions[0].dataset.id,
-    colorIn:
-      document.querySelector('[name="colorIn"]').selectedOptions[0].dataset.id,
-    colorOut:
-      document.querySelector('[name="colorOut"]').selectedOptions[0].dataset.id,
+    colorIn: document.querySelector('input[name="colorIn"]:checked').dataset.id,
+    colorOut: document.querySelector('input[name="colorOut"]:checked').dataset
+      .id,
     drive:
       document.querySelector('[name="drive"]').selectedOptions[0].dataset.id,
     cycleAmount: document.querySelector('[name="cycleAmount"]')
       .selectedOptions[0].dataset.id,
-    gatePrice: gatePrice,
+    gatePrice: dealerGatePrice,
   };
 
   orderGates.push(config);

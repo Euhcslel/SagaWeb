@@ -1,11 +1,11 @@
 @import url("/assets/styles/values.css");
 
-.section {
+section {
   height: 92vh;
   display: flex;
 }
 
-.section[id] {
+section[id] {
   scroll-margin-top: 4rem;
 }
 
@@ -37,7 +37,7 @@ input[type="checkbox"] {
   margin-bottom: 0;
 }
 
-.section[id="3"] {
+section[id="3"] {
   background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.75)),
     url("/assets/images/gates.jpg");
   background-size: cover;
@@ -52,18 +52,18 @@ input[type="checkbox"] {
   flex-direction: column;
 }
 
-.section[id="3"] .description {
+section[id="3"] .description {
   width: 50%;
   color: white;
   align-items: center;
   justify-content: center;
 }
 
-.section[id="1"] .description {
+section[id="1"] .description {
   justify-content: space-between;
 }
 
-.section[id="1"] .description h1 {
+section[id="1"] .description h1 {
   text-align: center;
   margin-top: 5rem;
   padding: 2rem;
@@ -148,7 +148,7 @@ input[type="checkbox"] {
   content: "*";
 }
 
-.section[id="2"] h2 {
+section[id="2"] h2 {
   text-align: center;
 }
 

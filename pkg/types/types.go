@@ -13,41 +13,44 @@ type HeightParams struct {
 }
 
 type Config struct {
-	CycleAmounts []models.CycleAmount
-	LiftTypes    []models.LiftType
-	Colors       []models.Color
-	MontageTypes []models.MontageType
-	IndustrialDrives []models.IndustrialGateDrive
+	CycleAmounts      []models.CycleAmount
+	LiftTypes         []models.LiftType
+	Colors            []models.Color
+	MontageTypes      []models.MontageType
+	IndustrialDrives  []models.IndustrialGateDrive
 	ResidentialDrives []models.ResidentialGateDrive
-	WidthParams  WidthParams
-	HeightParams HeightParams
+	WidthParams       WidthParams
+	HeightParams      HeightParams
+	Options           []models.Option
+	Products          []models.Product
 }
 
 type Gate struct {
-	Gate models.SalesAndGate
+	Gate    models.SalesAndGate
 	Options []models.Option
 }
 
 type Order struct {
-	Gates []Gate
+	Gates    []Gate
 	Products []models.Product
 }
 
 type GateConfig struct {
-    GateType   string  `json:"gateType"`
-    Width      int     `json:"width,string"`
-    Height     int     `json:"height,string"`
-    LiftType   string  `json:"liftType"`
-    ColorIn    string  `json:"colorIn"`
-    ColorOut   string  `json:"colorOut"`
-    Drive      string  `json:"drive"`
-    CycleAmount string `json:"cycleAmount"`
-    GatePrice  float64 `json:"gatePrice"`
+	GateType    string  `json:"gateType"`
+	Width       int     `json:"width,string"`
+	Height      int     `json:"height,string"`
+	LiftType    string  `json:"liftType"`
+	ColorIn     string  `json:"colorIn"`
+	ColorOut    string  `json:"colorOut"`
+	Drive       string  `json:"drive"`
+	CycleAmount string  `json:"cycleAmount"`
+	Options     []string   `json:"options"`
+	GatePrice   float64 `json:"gatePrice"`
 }
 
 type Products map[string]any
 
 type OrderRequest struct {
-    OrderGates []GateConfig `json:"orderGates"`
-    Products   Products     `json:"products"`
+	OrderGates []GateConfig `json:"orderGates"`
+	Products   Products     `json:"products"`
 }

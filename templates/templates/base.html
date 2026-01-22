@@ -44,7 +44,9 @@
         {{end}}
       </div>
     </nav>
-    <main>{{end}} {{define "html-end"}}</main>
+    <main>{{end}}
+
+{{define "html-end"}}</main>
     <footer>
       <div>
         <p>+7 (343) 343-96-99</p>
@@ -56,4 +58,8 @@
     </footer>
   </body>
 </html>
+{{end}}
+
+{{define "no-footer-end"}}
+</main>
 {{end}}

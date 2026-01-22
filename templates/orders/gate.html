@@ -1,0 +1,22 @@
+{{template "html-start" .}}
+<a href="/orders/{{.gate.SaleID}}">Вернуться назад</a>
+<!--Тип подъема-->
+<label for="liftType">Тип подъема</label>
+<select name="liftType" oninput="updateTotalPrice()">
+  {{range .cfg.LiftTypes}}
+  <option data-id="{{.ID}}" data-markup="{{.RetailMarkup}}"
+  {{if eq .ID $.gate.LiftTypeID}}selected{{end}}>{{.Name}}</option>
+  {{end}}
+</select>
+<p>{{.gate.GateType.Name}}</p>
+<p>{{.gate.ColorIn.Code}}</p>
+<p>{{.gate.ColorOut.Code}}</p>
+<p>{{.gate.CycleAmount.Amount}}</p>
+<p>{{.gate.Status.Name}}</p>
+<p>{{.gate.TotalPrice}}</p>
+<ul>
+  {{range .options}}
+  <li>{{.Option.Name}}</li>
+  {{end}}
+</ul>
+{{template "html-end"}}
