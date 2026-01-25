@@ -1,4 +1,5 @@
 {{template "html-start" .}}
+
 <!--Панель выбора элементов заказа-->
 <div class="tab">
   <button
@@ -14,7 +15,11 @@
   <button type="button" class="tablinks" onclick="showItem(event, 'products')">
     Товары
   </button>
-    <button type="button" class="tablinks" onclick="showItem(event, 'standartCfg')">
+  <button
+    type="button"
+    class="tablinks"
+    onclick="showItem(event, 'standartCfg')"
+  >
     Стандартная конфигурация
   </button>
 </div>
@@ -58,7 +63,16 @@
       <label for="liftType">Тип подъема</label>
       <select name="liftType" oninput="updateTotalPrice()">
         {{range .cfg.LiftTypes}}
-        <option data-id="{{.ID}}" data-markup="{{.RetailMarkup}}">
+        <option
+          data-id="{{.ID}}"
+          {{if
+          $.isDealer}}
+          data-markup="{{.WholesaleMarkup}}"
+          data-retail="{{.RetailMarkup}}"
+          {{else}}
+          data-markup="{{.RetailMarkup}}"
+          {{end}}
+        >
           {{.Name}}
         </option>
         {{end}}
@@ -68,7 +82,16 @@
       <label for="cycleAmount">Количество циклов</label>
       <select name="cycleAmount" oninput="updateTotalPrice()">
         {{range .cfg.CycleAmounts}}
-        <option data-id="{{.ID}}" data-markup="{{.RetailMarkup}}">
+        <option
+          data-id="{{.ID}}"
+          {{if
+          $.isDealer}}
+          data-markup="{{.WholesaleMarkup}}"
+          data-retail="{{.RetailMarkup}}"
+          {{else}}
+          data-markup="{{.RetailMarkup}}"
+          {{end}}
+        >
           {{.Amount}}
         </option>
         {{end}}
@@ -80,12 +103,13 @@
       <div>
         <label for="colorIn">Цвет ворот внутри</label>
         <br />
-        {{range .cfg.Colors}}
+        {{range $index, $color := .cfg.Colors}}
         <input
           name="colorIn"
-          data-id="{{.ID}}"
+          data-id="{{$color.ID}}"
           type="checkbox"
-          style="background-color: #{{.Hex}};"
+          style="background-color: #{{$color.Hex}};"
+          {{if eq $index 0}}checked{{end}}
         />
         {{end}}
       </div>
@@ -94,12 +118,13 @@
       <div>
         <label for="colorOut">Цвет ворот снаружи</label>
         <br />
-        {{range .cfg.Colors}}
+        {{range $index, $color := .cfg.Colors}}
         <input
           name="colorOut"
           data-id="{{.ID}}"
           type="checkbox"
           style="background-color: #{{.Hex}};"
+          {{if eq $index 0}}checked{{end}}
         />
         {{end}}
       </div>
@@ -109,7 +134,16 @@
       {{if .cfg.IndustrialDrives}}
       <select name="drive" class="industrial" oninput="updateTotalPrice()">
         {{range .cfg.IndustrialDrives}}
-        <option data-id="{{.ID}}" data-price="{{.RetailPrice}}">
+        <option
+          data-id="{{.ID}}"
+          {{if
+          $.isDealer}}
+          data-price="{{.WholesalePrice}}"
+          data-retail="{{.RetailPrice}}"
+          {{else}}
+          data-price="{{.RetailPrice}}"
+          {{end}}
+        >
           {{.Name}}
         </option>
         {{end}}
@@ -117,7 +151,16 @@
       {{else}}
       <select name="drive" class="residential" oninput="updateTotalPrice()">
         {{range .cfg.ResidentialDrives}}
-        <option data-id="{{.ID}}" data-price="{{.RetailPrice}}">
+        <option
+          data-id="{{.ID}}"
+          {{if
+          $.isDealer}}
+          data-price="{{.WholesalePrice}}"
+          data-retail="{{.RetailPrice}}"
+          {{else}}
+          data-price="{{.RetailPrice}}"
+          {{end}}
+        >
           {{.Name}}
         </option>
         {{end}}
@@ -131,13 +174,33 @@
 
   <!--Блок для выбора дополнительных опций к воротам-->
   <template id="optionTemplate">
-    <select name="option" oninput="updateTotalPrice()">
-      {{range .cfg.Options}}
-      <option value="{{.Name}}" data-price="{{.RetailPrice}}" data-id="{{.ID}}">
-        {{.Name}}
-      </option>
-      {{end}}
-    </select>
+    <div class="option-div">
+      <select name="option" oninput="updateTotalPrice()">
+        {{range .cfg.Options}}
+        <option
+          value="{{.Name}}"
+          {{if
+          $.isDealer}}
+          data-price="{{.WholesalePrice}}"
+          data-retail="{{.RetailPrice}}"
+          {{else}}
+          data-price="{{.RetailPrice}}"
+          {{end}}
+          data-id="{{.ID}}"
+        >
+          {{.Name}}
+        </option>
+        {{end}}
+      </select>
+      <input
+        type="number"
+        name="amount"
+        oninput="updateTotalPrice()"
+        min="1"
+        value="1"
+      />
+      <button onclick="deleteItem(this, '.option-div')">-</button>
+    </div>
   </template>
 
   <div id="options" class="tabItem">
@@ -149,11 +212,33 @@
 
   <!--Блок для выбора товаров-->
   <template id="productTemplate">
-    <select name="product" oninput="updateTotalPrice()">
-      {{range .cfg.Products}}
-      <option value="{{.Name}}" data-price="{{.RetailPrice}}" data-id="{{.ID}}">{{.Name}}</option>
-      {{end}}
-    </select>
+    <div class="product-div">
+      <select name="product" oninput="updateTotalPrice()">
+        {{range .cfg.Products}}
+        <option
+          value="{{.Name}}"
+          {{if
+          $.isDealer}}
+          data-price="{{.WholesalePrice}}"
+          data-retail="{{.RetailPrice}}"
+          {{else}}
+          data-price="{{.RetailPrice}}"
+          {{end}}
+          data-id="{{.ID}}"
+        >
+          {{.Name}}
+        </option>
+        {{end}}
+      </select>
+      <input
+        type="number"
+        name="amount"
+        oninput="updateTotalPrice()"
+        min="1"
+        value="1"
+      />
+      <button onclick="deleteItem(this, '.product-div')">-</button>
+    </div>
   </template>
 
   <div id="products" class="tabItem">
@@ -183,6 +268,10 @@
   </div>
 </form>
 
+{{if not $.isDealer}}
 <script src="../assets/scripts/client_calc.js"></script>
+{{else}}
+<script src="../assets/scripts/dealer_calc.js"></script>
+{{end}}
 <script src="../assets/scripts/tab.js"></script>
 {{template "no-footer-end"}}

@@ -9,6 +9,10 @@ function showItem(evt, item) {
     for (i = 0; i < tablinks.length; i++) {
       tablinks[i].className = tablinks[i].className.replace(" active", "");
     }*/
+  if (item === "mainConfig") {
+    document.getElementById(item).style.display = "flex";
+    return;
+  }
   document.getElementById(item).style.display = "block";
   //evt.currentTarget.className += " active";
 }

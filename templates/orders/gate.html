@@ -1,22 +1,92 @@
 {{template "html-start" .}}
-<a href="/orders/{{.gate.SaleID}}">Вернуться назад</a>
-<!--Тип подъема-->
-<label for="liftType">Тип подъема</label>
-<select name="liftType" oninput="updateTotalPrice()">
-  {{range .cfg.LiftTypes}}
-  <option data-id="{{.ID}}" data-markup="{{.RetailMarkup}}"
-  {{if eq .ID $.gate.LiftTypeID}}selected{{end}}>{{.Name}}</option>
-  {{end}}
-</select>
-<p>{{.gate.GateType.Name}}</p>
-<p>{{.gate.ColorIn.Code}}</p>
-<p>{{.gate.ColorOut.Code}}</p>
-<p>{{.gate.CycleAmount.Amount}}</p>
-<p>{{.gate.Status.Name}}</p>
-<p>{{.gate.TotalPrice}}</p>
-<ul>
-  {{range .options}}
-  <li>{{.Option.Name}}</li>
-  {{end}}
-</ul>
+<a class="back-button" href="/orders/{{.gate.SaleID}}">Вернуться назад</a>
+<form action="">
+  <div class="config">
+    <!--Тип ворот-->
+    <p>Тип ворот: {{.gate.GateType.Name}}</p>
+    <!--Тип подъема-->
+    <label for="liftType">Тип подъема</label>
+    <select name="liftType" oninput="updateTotalPrice()" class="custom-select">
+      {{range .cfg.LiftTypes}}
+      <option
+        data-id="{{.ID}}"
+        data-markup="{{.RetailMarkup}}"
+        {{if
+        eq
+        .ID
+        $.gate.LiftTypeID}}selected{{end}}
+      >
+        {{.Name}}
+      </option>
+      {{end}}
+    </select>
+    <!--Цвет внутри-->
+    <div>
+      <label for="colorIn">Цвет ворот внутри</label>
+      <br />
+      {{range .cfg.Colors}}
+      <input
+        name="colorIn"
+        data-id="{{.ID}}"
+        type="checkbox"
+        style="background-color: #{{.Hex}};"
+        {{if
+        eq
+        .ID
+        $.gate.ColorInID}}checked{{end}}
+      />
+      {{end}}
+    </div>
+    <!--Цвет снаружи-->
+    <div>
+      <label for="colorOut">Цвет ворот снаружи</label>
+      <br />
+      {{range .cfg.Colors}}
+      <input
+        name="colorOut"
+        data-id="{{.ID}}"
+        type="checkbox"
+        style="background-color: #{{.Hex}};"
+        {{if
+        eq
+        .ID
+        $.gate.ColorOutID}}checked{{end}}
+      />
+      {{end}}
+    </div>
+    <!--Количество циклов-->
+    <label for="cycleAmount">Количество циклов</label>
+    <select name="cycleAmount" oninput="updateTotalPrice()">
+      {{range .cfg.CycleAmounts}}
+      <option
+        data-id="{{.ID}}"
+        data-markup="{{.RetailMarkup}}"
+        {{if
+        eq
+        .ID
+        $.gate.CycleAmountID}}selected{{end}}
+      >
+        {{.Amount}}
+      </option>
+      {{end}}
+    </select>
+    <!--Статус-->
+    <label for="status">Статус заказа</label>
+    <select name="status" oninput="updateTotalPrice()">
+      {{range .statuses}}
+      <option data-id="{{.ID}}" {{if eq .ID $.gate.StatusID}}selected{{end}}>
+        {{.Name}}
+      </option>
+      {{end}}
+    </select>
+  </div>
+  <div class="options">
+    <ul>
+      {{range .options}}
+      <li>{{.Option.Name}} x {{.Amount}}</li>
+      {{end}}
+    </ul>
+  </div>
+</form>
+<p class="totalPrice">Полная стоимость: {{.gate.TotalPrice}}</p>
 {{template "html-end"}}

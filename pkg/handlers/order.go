@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"project/pkg/database"
 	"project/pkg/helpers"
@@ -25,12 +26,12 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 	token := sessionToken.Value
 	user := helpers.GetUserBySessionToken(token)
 
+	// Вернуть limit потом
 	var orders []models.Sale
 	err = database.DB.
 		Preload("Client").
 		Preload("Manager").
 		Where("client_id = ?", user.ID).
-		Limit(5).
 		Find(&orders).Error
 	if err != nil {
 		helpers.WriteErrorDebug(w, err, http.StatusInternalServerError)
@@ -40,6 +41,7 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 	data := map[string]any{
 		"css":    "",
 		"orders": orders,
+		"user":   user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "list.html", data); err != nil {
@@ -59,6 +61,14 @@ func GetAllUserOrdersAPI(w http.ResponseWriter, r *http.Request) {
 func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	orderId := vars["order_id"]
+
+	sessionToken, err := r.Cookie("session_token")
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+	token := sessionToken.Value
+	user := helpers.GetUserBySessionToken(token)
 
 	// Получаем все ворота выбранного заказа
 	var orderGates []models.SalesAndGate
@@ -94,7 +104,7 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 	// Группируем в gates
 	order := types.Order{
 		Gates:    []types.Gate{},
-		Products: []models.Product{},
+		Products: []models.SalesAndProduct{},
 	}
 	for _, og := range orderGates {
 		order.Gates = append(order.Gates, types.Gate{
@@ -103,9 +113,15 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	if err = database.DB.Preload("Product").Where("sale_id = ?", orderId).Find(&order.Products).Error; err != nil {
+		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		return
+	}
+
 	data := map[string]any{
-		"css":    "",
-		"orders": order,
+		"css":   cssPath + "/order.css",
+		"order": order,
+		"user":  user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "order.html", data); err != nil {
@@ -117,18 +133,26 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 // Route: /orders/{order_id}/{gate_id}
 // Method: GET
 func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
+	sessionToken, err := r.Cookie("session_token")
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+	token := sessionToken.Value
+	user := helpers.GetUserBySessionToken(token)
+
 	vars := mux.Vars(r)
 
 	var gate models.SalesAndGate
 	if err := database.DB.Model(models.SalesAndGate{}).
-	Preload("GateType").
-	Preload("LiftType").
-	Preload("ColorIn").
-	Preload("ColorOut").
-	Preload("CycleAmount").
-	Preload("Status").
-	Where("sale_id = ? and row_number = ?", vars["order_id"], vars["gate_id"]).
-	Find(&gate).Error; err != nil {
+		Preload("GateType").
+		Preload("LiftType").
+		Preload("ColorIn").
+		Preload("ColorOut").
+		Preload("CycleAmount").
+		Preload("Status").
+		Where("sale_id = ? and row_number = ?", vars["order_id"], vars["gate_id"]).
+		Find(&gate).Error; err != nil {
 		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -146,11 +170,19 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var statuses []models.Status
+	if err := database.DB.Model(models.Status{}).Find(&statuses).Error; err != nil {
+		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		return
+	}
+
 	data := map[string]any{
-		"css":     "",
+		"css":      cssPath + "gate.css",
 		"gate":     gate,
-		"options": options,
-		"cfg": cfg,
+		"options":  options,
+		"cfg":      cfg,
+		"statuses": statuses,
+		"user":     user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "gate.html", data); err != nil {
@@ -225,7 +257,6 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 		database.DB.Create(&order)
 	}
 
-
 	orderGatesJSON := r.FormValue("orderGates")
 	productsJSON := r.FormValue("products")
 
@@ -239,6 +270,21 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 	if err := json.Unmarshal([]byte(productsJSON), &orderRequest.Products); err != nil {
 		http.Error(w, fmt.Sprintf("Failed to parse products: %v", err), http.StatusBadRequest)
 		return
+	}
+
+	log.Println(orderRequest.OrderGates[0].Options)
+
+	for productID, amount := range orderRequest.Products {
+		productID, _ := strconv.ParseInt(productID, 10, 32)
+		amount := int32(amount)
+
+		salesAndProduct := models.SalesAndProduct{
+			SaleID:    order.ID,
+			ProductID: int32(productID),
+			Amount:    amount,
+		}
+
+		database.DB.Create(&salesAndProduct)
 	}
 
 	var wg sync.WaitGroup
@@ -269,15 +315,18 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			database.DB.Create(&orderDetails)
 		})
 
-		if len(gate.Options) == 0 {continue}
+		if len(gate.Options) == 0 {
+			continue
+		}
+
 		var gateAndSalesOptions []models.GatesAndSalesOption
-		for _, option := range gate.Options {
+		for option, amount := range gate.Options {
 			optionId, _ := strconv.ParseInt(option, 10, 32)
 			gateAndSalesOption := models.GatesAndSalesOption{
 				SaleID:    order.ID,
 				RowNumber: int64(i + 1),
 				OptionID:  int32(optionId),
-				Amount:    1,
+				Amount:    int32(amount),
 			}
 
 			gateAndSalesOptions = append(gateAndSalesOptions, gateAndSalesOption)

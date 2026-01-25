@@ -8,7 +8,7 @@
     <link rel="icon" href="/assets/images/favicon.ico" />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icons=shopping_cart+shelves"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icons=shopping_cart+shelves+account_circle+calculate"
     />
     {{if .css}}
     <link rel="stylesheet" href="{{.css}}" />
@@ -27,6 +27,9 @@
         </ul>
       </div>
       <div class="nav-div">
+        <a href="/gate_type" class="button-cart">
+          <span class="material-symbols-outlined"> calculate </span>
+        </a>
         <a
           class="primary-button"
           style="display: flex; justify-content: center; align-items: center"
@@ -41,6 +44,10 @@
         </button>
         {{if not .user.ID}}
         <a class="primary-button" href="/log">Войти</a>
+        {{else}}
+          <a href="/user" class="button-cart">
+            <span class="material-symbols-outlined"> account_circle </span>
+          </a>
         {{end}}
       </div>
     </nav>

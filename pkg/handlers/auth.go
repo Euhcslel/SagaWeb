@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 	"project/pkg/database"
 	"project/pkg/helpers"
 	"project/pkg/models"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -12,6 +15,12 @@ import (
 // Route: /log
 // Method: GET
 func GetSignInForm(w http.ResponseWriter, r *http.Request) {
+	_, err := r.Cookie("session_token")
+	if err == nil {
+		http.Redirect(w, r, "/user", http.StatusSeeOther)
+		return
+	}
+
 	data := map[string]any{
 		"css": cssPath + "auth.css",
 	}
@@ -58,6 +67,12 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 // Route: /reg
 // Method: GET
 func GetSignUpFrom(w http.ResponseWriter, r *http.Request) {
+	_, err := r.Cookie("session_token")
+	if err == nil {
+		http.Redirect(w, r, "/user", http.StatusSeeOther)
+		return
+	}
+
 	data := map[string]any{
 		"css": cssPath + "auth.css",
 	}
@@ -124,6 +139,36 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 		helpers.SetSession(w, user.ID)
 	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+// Route: /log_out
+// Method: POST
+func LogOut(w http.ResponseWriter, r *http.Request) {
+	sessionToken, err := r.Cookie("session_token")
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
+	token := sessionToken.Value
+	hash := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(hash[:])
+
+	if err := database.DB.Where("token_hash = ?", tokenHash).Delete(models.Session{}).Error; err != nil {
+		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+	})
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

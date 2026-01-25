@@ -16,9 +16,11 @@ import (
 func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 	sessionToken, err := r.Cookie("session_token")
 	var user models.User
+	var role string
 	if err == nil {
 		token := sessionToken.Value
 		user = helpers.GetUserBySessionToken(token)
+		role = user.Role.Name
 	}
 
 	query := r.URL.Query()
@@ -30,21 +32,20 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	isDealer := false
+	if role == "dealer" || role == "admin" || role == "manager" {
+		isDealer = true
+	}
+
 	data := map[string]any{
 		"css":  "/assets/styles/calculator.css",
 		"cfg":  cfg,
 		"user": user,
+		"isDealer": isDealer,
 	}
 
-	role := user.Role.Name
-	if role == "dealer" || role == "admin" || role == "manager" {
-		if err := templates.ExecuteTemplate(w, "dealer_calc.html", data); err != nil {
-			helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
-		}
-	} else {
-		if err := templates.ExecuteTemplate(w, "client_calc.html", data); err != nil {
-			helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
-		}
+	if err := templates.ExecuteTemplate(w, "calc.html", data); err != nil {
+		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
 	}
 }
 

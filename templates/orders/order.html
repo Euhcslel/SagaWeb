@@ -1,16 +1,31 @@
 {{template "html-start" .}}
 <a href="/orders">Вернуться к заказам</a>
-{{range .orders.Gates}}
-<a href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}">Ворота №{{.Gate.RowNumber}}</a>
-<ul>
-  <li>{{.Gate.Width}}</li>
-  <li>{{.Gate.Height}}</li>
-  <li>{{.Gate.GateType.Name}}</li>
-  <li>{{.Gate.LiftType.Name}}</li>
-  <li>{{.Gate.ColorIn.Code}}</li>
-  <li>{{.Gate.ColorOut.Code}}</li>
-  <li>{{.Gate.CycleAmount.Amount}}</li>
-  <li>{{.Gate.Status.Name}}</li>
-  <li>{{.Gate.TotalPrice}}</li>
-</ul>
-{{end}} {{template "html-end"}}
+<div class="order-content">
+  <div class="gates">
+    {{range .order.Gates}}
+    <a href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}">Ворота №{{.Gate.RowNumber}}</a>
+    <ul>
+      <li>{{.Gate.Width}}</li>
+      <li>{{.Gate.Height}}</li>
+      <li>{{.Gate.GateType.Name}}</li>
+      <li>{{.Gate.LiftType.Name}}</li>
+      <li>{{.Gate.ColorIn.Code}}</li>
+      <li>{{.Gate.ColorOut.Code}}</li>
+      <li>{{.Gate.CycleAmount.Amount}}</li>
+      <li>{{.Gate.Status.Name}}</li>
+      <li>{{.Gate.TotalPrice}}</li>
+    </ul>
+    {{end}}
+  </div>
+  <div class="products">
+    <p>Товары</p>
+    <ul>
+      {{range .order.Products}}
+      <li>
+        {{.Product.Name}} x {{.Amount}}
+      </li>
+      {{end}}
+    </ul>
+  </div>
+</div>
+{{template "html-end"}}

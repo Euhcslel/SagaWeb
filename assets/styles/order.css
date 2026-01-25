@@ -1,0 +1,7 @@
+.products, .gates {
+    width: 50%;
+}
+
+.order-content {
+    display: flex;
+}

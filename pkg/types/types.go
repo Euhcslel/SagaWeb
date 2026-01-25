@@ -32,7 +32,7 @@ type Gate struct {
 
 type Order struct {
 	Gates    []Gate
-	Products []models.Product
+	Products []models.SalesAndProduct
 }
 
 type GateConfig struct {
@@ -44,13 +44,11 @@ type GateConfig struct {
 	ColorOut    string  `json:"colorOut"`
 	Drive       string  `json:"drive"`
 	CycleAmount string  `json:"cycleAmount"`
-	Options     []string   `json:"options"`
+	Options     map[string]int   `json:"options"`
 	GatePrice   float64 `json:"gatePrice"`
 }
 
-type Products map[string]any
-
 type OrderRequest struct {
 	OrderGates []GateConfig `json:"orderGates"`
-	Products   Products     `json:"products"`
+	Products   map[string]int     `json:"products"`
 }

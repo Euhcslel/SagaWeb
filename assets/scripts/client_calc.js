@@ -3,9 +3,6 @@ let sizePrice = 0;
 // Переменная, хранящая полную стоимость конфигурации ворот
 let gatePrice = 0;
 
-var optionsPrice = 0;
-var productsPrice = 0;
-
 // Функция, высчитывающая полную стоимость заказа
 function updateTotalPrice() {
   var totalPriceElement = document.querySelector(".totalPrice");
@@ -22,20 +19,34 @@ function updateTotalPrice() {
   var cycleAmountMarkup =
     (sizePrice * parseFloat(selectedCycleAmount.dataset.markup)) / 100;
 
-  optionsPrice = 0;
-  var optionSelects = document.getElementsByName("option");
-  optionSelects.forEach((select) => {
-    var selectedOption = select.options[select.selectedIndex];
-    var price = selectedOption.dataset.price;
-    optionsPrice += parseInt(price);
+  var optionsPrice = 0;
+  var optionDivs = document.querySelectorAll(".option-div");
+  optionDivs.forEach((div) => {
+    var select = div.querySelector('select[name="option"]');
+    var amountInput = div.querySelector('input[type="number"]');
+
+    if (select && amountInput) {
+      var selectedOption = select.options[select.selectedIndex];
+      var price = parseFloat(selectedOption.dataset.price) || 0;
+      var amount = parseInt(amountInput.value) || 0;
+
+      optionsPrice += price * amount;
+    }
   });
 
-  productsPrice = 0;
-  var productSelects = document.getElementsByName("product");
-  productSelects.forEach((select) => {
-    var selectedProduct = select.options[select.selectedIndex];
-    var price = selectedProduct.dataset.price;
-    productsPrice += parseInt(price);
+  var productsPrice = 0;
+  var productDivs = document.querySelectorAll(".product-div");
+  productDivs.forEach((div) => {
+    var select = div.querySelector('select[name="product"]');
+    var amountInput = div.querySelector('input[type="number"]');
+
+    if (select && amountInput) {
+      var selectedProduct = select.options[select.selectedIndex];
+      var price = parseFloat(selectedProduct.dataset.price) || 0;
+      var amount = parseInt(amountInput.value) || 0;
+
+      productsPrice += price * amount;
+    }
   });
 
   gatePrice =
@@ -91,9 +102,6 @@ document.addEventListener("DOMContentLoaded", function () {
 // Массив для хранения объектов с конфигурацией ворот
 var orderGates = [];
 
-// Массив, хранящий выбранные товары (автоматику)
-var productsList = [];
-
 // Текущий URL адрес
 const url = new URL(window.location.href);
 
@@ -106,14 +114,26 @@ gateTypeInput = document.getElementsByClassName("gateType")[0];
 // Присвоение значения типа ворот в соответствующий элемент формы
 gateTypeInput.value = gateType;
 
+function getObjectWithAmount(divName, selectName) {
+  var itemsList = {};
+
+  var divs = document.getElementsByClassName(divName);
+  Array.from(divs).forEach((div) => {
+    var select = div.querySelector('select[name=' + selectName + ']');
+    var selectedOption = select.options[select.selectedIndex];
+    var optionId = selectedOption.dataset.id;
+    var amountInput = div.querySelector('input[type="number"]');
+    var amount = parseInt(amountInput.value) || 0;
+
+    itemsList[optionId] = (itemsList[optionId] || 0) + amount;
+  });
+
+  return itemsList;
+}
+
 // Функция, добавляющая конфигурацию ворот в заказ
 function addInOrder() {
-  var optionsList = [];
-  var optionSelects = document.getElementsByName("option");
-  optionSelects.forEach((select) => {
-    var selectedOption = select.options[select.selectedIndex];
-    optionsList.push(selectedOption.dataset.id);
-  });
+  var optionsList = getObjectWithAmount("option-div", "option");
 
   const config = {
     gateType: document.querySelector(".gateType").value,
@@ -133,7 +153,6 @@ function addInOrder() {
   };
 
   orderGates.push(config);
-  console.log(orderGates)
 }
 
 // Функция, добавляющая дополнительную комплектацию к конфигурации ворот
@@ -154,20 +173,18 @@ function addProductInOrder() {
 
 // Функция для оформления заказа
 async function placeOrder() {
-  var productSelects = document.getElementsByName("product");
-  productSelects.forEach((select) => {
-    var selectedProduct = select.options[select.selectedIndex];
-    productsList.push(selectedProduct.dataset.id);
-  });
+  var productsList = getObjectWithAmount("product-div", "product");
 
   if (orderGates.length == 0) {
     addInOrder();
   }
   const fd = new FormData();
-  //const form = document.getElementById("myForm");
 
   fd.append("orderGates", JSON.stringify(orderGates));
-  fd.append("products", JSON.stringify(products));
+  fd.append("products", JSON.stringify(productsList));
+
+  console.log(orderGates)
+    console.log(productsList)
 
   var response = await fetch("/orders", {
     method: "POST",
@@ -175,5 +192,13 @@ async function placeOrder() {
   });
   if (response.ok && response.redirected) {
     window.location.href = "/orders";
+  }
+}
+
+function deleteItem(button, divName) {
+  const optionDiv = button.closest(divName);
+  if (optionDiv) {
+    optionDiv.remove();
+    updateTotalPrice();
   }
 }

@@ -1,3 +1,5 @@
+@import url("/assets/styles/custom-checkbox.css");
+
 .myForm {
   width: auto;
   display: flex;
@@ -68,21 +70,22 @@ select {
   margin: 1rem;
 }
 
-input[type="checkbox"] {
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--dark-grey);
-   position: relative;
+.product-div, .option-div {
+  display: flex;
 }
 
-input[type="checkbox"]:checked::after {
-  content: "";
-  position: absolute;
-  left: 5px;
-  width: 6px;
-  height: 12px;
-  border: solid var(--dark-grey);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
+select[name="product"], select[name="option"] {
+  display: block;
+  width: 50%;
+}
+
+input[name="amount"] {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+}
+
+input[name="amount"]::-webkit-inner-spin-button,
+input[name="amount"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
 }

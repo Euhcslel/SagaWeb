@@ -45,6 +45,7 @@ func main() {
 	r.HandleFunc("/log", handlers.SignIn).Methods("POST")
 	r.HandleFunc("/reg", handlers.GetSignUpFrom).Methods("GET")
 	r.HandleFunc("/reg", handlers.SignUp).Methods("POST")
+	r.HandleFunc("/log_out", handlers.LogOut).Methods("POST")
 
 	// Аккаунт
 	r.HandleFunc("/user", handlers.GetUserInfo).Methods("GET")
