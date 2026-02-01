@@ -21,12 +21,12 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css":  cssPath + "user.css",
+		"css":  "user.css",
 		"user": user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "info.html", data); err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
 }
 
@@ -45,7 +45,7 @@ func GetUserDealers(w http.ResponseWriter, r *http.Request) {
 	if role == "manager" {
 		var dealers []models.ManagerAndDealer
 		if err := database.DB.Model(models.ManagerAndDealer{}).Preload("Dealer").Where("manager_id = ?", user.ID).Find(&dealers).Error; err != nil {
-			helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+			helpers.WriteError(w, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -56,7 +56,7 @@ func GetUserDealers(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err := templates.ExecuteTemplate(w, "dealers.html", data); err != nil {
-			helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+			helpers.WriteError(w, err, http.StatusInternalServerError)
 		}
 	} else {
 		http.Redirect(w, r, "/", http.StatusForbidden)

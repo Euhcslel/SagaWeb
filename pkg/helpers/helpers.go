@@ -19,24 +19,25 @@ func GetUserBySessionToken(token string) models.User {
 		Where("token_hash = ?", tokenHash).
 		First(&session).Error
 	if err != nil {
+		// исправить на ошибку
 		return models.User{}
 	}
+
 	return session.User
 }
 
 func SetSession(w http.ResponseWriter, userId int64) {
-	// Генерация токена
+	// Переспросить про генерацию
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
-		WriteErrorDebug(w, err, http.StatusInternalServerError)
+		WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 	// Хэширование для куки
 	token := base64.RawURLEncoding.EncodeToString(b)
 
 	// Хэширование для БД
-	hash := sha256.Sum256([]byte(token))
-	tokenHash := hex.EncodeToString(hash[:])
+	tokenHash := sha256.Sum256([]byte(token))
 
 	session := models.Session{
 		UserID:    userId,
@@ -44,7 +45,7 @@ func SetSession(w http.ResponseWriter, userId int64) {
 	}
 	err := database.DB.Create(&session).Error
 	if err != nil {
-		WriteErrorRelease(w, err, http.StatusInternalServerError)
+		WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 

@@ -7,10 +7,10 @@ import (
 const TableNameSalesAndBill = "sales_and_bills"
 
 type SalesAndBill struct {
-	SaleID     int64     `gorm:"column:sale_id;primaryKey" json:"sale_id"`
-	BillNumber string    `gorm:"column:bill_number;primaryKey" json:"bill_number"`
-	Path       string    `gorm:"column:path;not null" json:"path"`
-	CreatedAt  time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP" json:"created_at"`
+	SaleID     int64     `gorm:"column:sale_id;primaryKey"`
+	BillNumber string    `gorm:"column:bill_number;primaryKey"`
+	Path       string    `gorm:"column:path;not null"`
+	CreatedAt  time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP"`
 }
 
 func (*SalesAndBill) TableName() string {

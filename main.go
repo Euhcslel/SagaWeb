@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"project/pkg/database"
 	"project/pkg/handlers"
+	"project/pkg/helpers"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -20,19 +22,19 @@ func main() {
 	db := database.InitDB()
 	database.AutoMigrateAll(db)
 
+	logFile, err := os.Create("error.log")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer logFile.Close()
+	helpers.LogFile = logFile
+
 	r := mux.NewRouter()
 
-	http.Handle("/assets/scripts/",
-		http.StripPrefix("/assets/scripts/",
-			http.FileServer(http.Dir("./assets/scripts"))))
-
-	http.Handle("/assets/images/",
-		http.StripPrefix("/assets/images/",
-			http.FileServer(http.Dir("./assets/images"))))
-
-	http.Handle("/assets/styles/",
-		http.StripPrefix("/assets/styles/",
-			http.FileServer(http.Dir("./assets/styles"))))
+	http.Handle("/assets/",
+		http.StripPrefix("/assets/",
+			http.FileServer(http.Dir("./assets"))),
+	)
 
 	// Главная страница
 	r.HandleFunc("/", handlers.MainHandler).Methods("GET")
@@ -41,10 +43,10 @@ func main() {
 	r.HandleFunc("/contacts", handlers.ContactsHandler).Methods("GET")
 
 	// Аутентификация
-	r.HandleFunc("/log", handlers.GetSignInForm).Methods("GET")
-	r.HandleFunc("/log", handlers.SignIn).Methods("POST")
-	r.HandleFunc("/reg", handlers.GetSignUpFrom).Methods("GET")
-	r.HandleFunc("/reg", handlers.SignUp).Methods("POST")
+	r.HandleFunc("/sign_in", handlers.SignInForm).Methods("GET")
+	r.HandleFunc("/sign_in", handlers.SignIn).Methods("POST")
+	r.HandleFunc("/sign_up", handlers.SignUpFrom).Methods("GET")
+	r.HandleFunc("/sign_up", handlers.SignUp).Methods("POST")
 	r.HandleFunc("/log_out", handlers.LogOut).Methods("POST")
 
 	// Аккаунт
@@ -82,6 +84,6 @@ func main() {
 	r.HandleFunc("/tables", handlers.GetDataBaseTableList).Methods("GET")
 
 	http.Handle("/", r)
-	err_start := http.ListenAndServe(":8080", nil)
+	err_start := http.ListenAndServe(":8080", nil) //http.NewCrossOriginProtection().Handler(r)
 	log.Fatal(err_start)
 }

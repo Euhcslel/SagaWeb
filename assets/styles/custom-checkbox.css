@@ -1,12 +1,19 @@
-input[type="checkbox"] {
+@property --color-checkbox {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: white;
+}
+
+input[type="checkbox"].colored {
   appearance: none;
   width: 20px;
   height: 20px;
   border: 2px solid var(--dark-grey);
-   position: relative;
+  position: relative;
+  background-color: var(--color-checkbox);
 }
 
-input[type="checkbox"]:checked::after {
+input[type="checkbox"].colored:checked::after {
   content: "";
   position: absolute;
   left: 5px;

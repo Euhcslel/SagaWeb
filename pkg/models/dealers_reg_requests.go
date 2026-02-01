@@ -3,12 +3,13 @@ package models
 const TableNameDealerRegRequest = "dealers_reg_requests"
 
 type DealerRegRequest struct {
-	ID          int64  `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	Company     string `gorm:"column:company;not null" json:"company"`
-	Fullname    string `gorm:"column:fullname;not null" json:"fullname"`
-	Email       string `gorm:"column:email;not null" json:"email"`
-	PhoneNumber string `gorm:"column:phone_number;not null" json:"phone_number"`
-	StatusID    int64  `gorm:"column:status_id;not null" json:"status_id"`
+	ID          int64  `gorm:"column:id;primaryKey;autoIncrement:true"`
+	Company     string `gorm:"column:company;not null"`
+	Fullname    string `gorm:"column:fullname;not null"`
+	Email       string `gorm:"column:email;not null"`
+	PhoneNumber string `gorm:"column:phone_number;not null"`
+	Password    []byte `gorm:"column:password_hash;not null"`
+	StatusID    int64  `gorm:"column:status_id;not null"`
 
 	Status Status `gorm:"foreignKey:StatusID;references:ID"`
 }

@@ -48,7 +48,7 @@ func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
 	migrator := database.DB.Migrator()
 	tables, err := migrator.GetTables()
 	if err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
 
 	data := map[string]any{
@@ -58,6 +58,6 @@ func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := templates.ExecuteTemplate(w, "tables.html", data); err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
 }

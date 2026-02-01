@@ -12,6 +12,7 @@ require (
 	github.com/xuri/excelize/v2 v2.10.0 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	golang.org/x/net v0.46.0 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )
 
 require (

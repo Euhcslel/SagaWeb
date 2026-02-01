@@ -42,9 +42,9 @@
         id="width"
         oninput="updateSizePrice()"
         type="number"
-        min="{{.cfg.WidthParams.MinWidth}}"
-        max="{{.cfg.WidthParams.MaxWidth}}"
-        value="{{.cfg.WidthParams.MinWidth}}"
+        min="{{.cfg.WidthParams.MinValue}}"
+        max="{{.cfg.WidthParams.MaxValue}}"
+        value="{{.cfg.WidthParams.MinValue}}"
       />
 
       <!--Высота-->
@@ -54,9 +54,9 @@
         id="height"
         oninput="updateSizePrice()"
         type="number"
-        min="{{.cfg.HeightParams.MinHeight}}"
-        max="{{.cfg.HeightParams.MaxHeight}}"
-        value="{{.cfg.HeightParams.MinHeight}}"
+        min="{{.cfg.HeightParams.MinValue}}"
+        max="{{.cfg.HeightParams.MaxValue}}"
+        value="{{.cfg.HeightParams.MinValue}}"
       />
 
       <!--Тип подъема-->
@@ -99,21 +99,6 @@
     </div>
 
     <div class="list">
-      <!--Цвет ворот внутри (реализация через checkbox button)-->
-      <div>
-        <label for="colorIn">Цвет ворот внутри</label>
-        <br />
-        {{range $index, $color := .cfg.Colors}}
-        <input
-          name="colorIn"
-          data-id="{{$color.ID}}"
-          type="checkbox"
-          style="background-color: #{{$color.Hex}};"
-          {{if eq $index 0}}checked{{end}}
-        />
-        {{end}}
-      </div>
-
       <!--Цвет ворот снаружи (реализация через checkbox button)-->
       <div>
         <label for="colorOut">Цвет ворот снаружи</label>
@@ -123,8 +108,12 @@
           name="colorOut"
           data-id="{{.ID}}"
           type="checkbox"
-          style="background-color: #{{.Hex}};"
-          {{if eq $index 0}}checked{{end}}
+          class="colored"
+          style="--color-checkbox: #{{$color.Hex}};"
+          {{if
+          eq
+          $index
+          0}}checked{{end}}
         />
         {{end}}
       </div>
@@ -267,11 +256,12 @@
     </button>
   </div>
 </form>
-
-{{if not $.isDealer}}
-<script src="../assets/scripts/client_calc.js"></script>
-{{else}}
-<script src="../assets/scripts/dealer_calc.js"></script>
-{{end}}
+<script src="https://cdn.jsdelivr.net/npm/protobufjs@7/dist/protobuf.min.js"></script>
+<script
+  src="/assets/scripts/order_pb.json"
+  type="application/json"
+  id="order-proto"
+></script>
 <script src="../assets/scripts/tab.js"></script>
+<script src="../assets/scripts/client_calc.js"></script>
 {{template "no-footer-end"}}

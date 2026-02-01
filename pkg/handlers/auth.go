@@ -14,7 +14,7 @@ import (
 
 // Route: /log
 // Method: GET
-func GetSignInForm(w http.ResponseWriter, r *http.Request) {
+func SignInForm(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie("session_token")
 	if err == nil {
 		http.Redirect(w, r, "/user", http.StatusSeeOther)
@@ -22,10 +22,10 @@ func GetSignInForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css": cssPath + "auth.css",
+		"css": "auth.css",
 	}
 
-	if err := templates.ExecuteTemplate(w, "log.html", data); err != nil {
+	if err := templates.ExecuteTemplate(w, "sign_in.html", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -35,7 +35,7 @@ func GetSignInForm(w http.ResponseWriter, r *http.Request) {
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		helpers.WriteErrorDebug(w, err, http.StatusBadRequest)
+		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -48,7 +48,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		First(&user).
 		Error
 	if err != nil {
-		helpers.WriteErrorDebug(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 	userId := user.ID
@@ -56,7 +56,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
 	if err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -66,7 +66,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 // Route: /reg
 // Method: GET
-func GetSignUpFrom(w http.ResponseWriter, r *http.Request) {
+func SignUpFrom(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie("session_token")
 	if err == nil {
 		http.Redirect(w, r, "/user", http.StatusSeeOther)
@@ -74,9 +74,9 @@ func GetSignUpFrom(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css": cssPath + "auth.css",
+		"css": "auth.css",
 	}
-	if err := templates.ExecuteTemplate(w, "reg.html", data); err != nil {
+	if err := templates.ExecuteTemplate(w, "sign_up.html", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
@@ -86,59 +86,37 @@ func GetSignUpFrom(w http.ResponseWriter, r *http.Request) {
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusBadRequest)
+		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	accountType := r.FormValue("accountType")
+	fullname := r.FormValue("fullname")
+	company := r.FormValue("company")
+	phone := r.FormValue("phone")
+	email := r.FormValue("email")
+	password := r.FormValue("password")
 
-	switch accountType {
-	case "dealer":
-		fullname := r.FormValue("fullname")
-		company := r.FormValue("company")
-		phone := r.FormValue("phone")
-		email := r.FormValue("email")
-
-		var status models.Status
-		if err := database.DB.Model(&models.Status{}).Where("name = ?", "Ожидает подтверждения").Find(&status).Error; err != nil {
-			helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		request := models.DealerRegRequest{
-			Company:     company,
-			Fullname:    fullname,
-			PhoneNumber: phone,
-			Email:       email,
-			StatusID:    int64(status.ID),
-		}
-		database.DB.Create(&request)
-
-	case "client":
-		username := r.FormValue("username")
-		fullname := r.FormValue("fullname")
-		phone := r.FormValue("phone")
-		email := r.FormValue("email")
-		password := r.FormValue("password")
-
-		var role models.Role
-		if err := database.DB.Model(&models.Role{}).Where("name = ?", "client").Find(&role).Error; err != nil {
-			helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		user := models.User{
-			Fullname:    fullname,
-			PhoneNumber: phone,
-			Email:       email,
-			Password:    password,
-			Username:    username,
-			RoleID:      role.ID,
-		}
-		database.DB.Create(&user)
-
-		helpers.SetSession(w, user.ID)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
 	}
+
+	var status models.Status
+	if err := database.DB.Model(&models.Status{}).Where("name = ?", "Ожидает подтверждения").Find(&status).Error; err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	request := models.DealerRegRequest{
+		Company:     company,
+		Fullname:    fullname,
+		PhoneNumber: phone,
+		Email:       email,
+		Password:    passwordHash,
+		StatusID:    int64(status.ID),
+	}
+	database.DB.Create(&request)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -156,7 +134,7 @@ func LogOut(w http.ResponseWriter, r *http.Request) {
 	tokenHash := hex.EncodeToString(hash[:])
 
 	if err := database.DB.Where("token_hash = ?", tokenHash).Delete(models.Session{}).Error; err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -168,6 +146,7 @@ func LogOut(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)

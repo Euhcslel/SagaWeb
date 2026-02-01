@@ -28,24 +28,21 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 
 	cfg, err := getGateCfg(gateType)
 	if err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	isDealer := false
-	if role == "dealer" || role == "admin" || role == "manager" {
-		isDealer = true
-	}
+	isDealer := (role == "dealer" || role == "admin" || role == "manager")
 
 	data := map[string]any{
-		"css":  "/assets/styles/calculator.css",
-		"cfg":  cfg,
-		"user": user,
+		"css":      "calculator.css",
+		"cfg":      cfg,
+		"user":     user,
 		"isDealer": isDealer,
 	}
 
 	if err := templates.ExecuteTemplate(w, "calc.html", data); err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
 }
 
@@ -73,7 +70,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 			Limit(1).
 			Order("width asc, height asc").
 			Find(&size).Error; err != nil {
-			helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+			helpers.WriteError(w, err, http.StatusInternalServerError)
 			return
 		}
 		json.NewEncoder(w).Encode(map[string]any{
@@ -89,7 +86,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 			Limit(1).
 			Order("width asc, height asc").
 			Pluck("RetailPrice", &price).Error; err != nil {
-			helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+			helpers.WriteError(w, err, http.StatusInternalServerError)
 			return
 		}
 		json.NewEncoder(w).Encode(map[string]any{
@@ -103,13 +100,12 @@ func getGateCfg(gateType string) (types.Config, error) {
 	cfg := types.Config{
 		LiftTypes:    []models.LiftType{},
 		Colors:       []models.Color{},
-		WidthParams:  types.WidthParams{},
-		HeightParams: types.HeightParams{},
+		WidthParams:  types.SizeParams{},
+		HeightParams: types.SizeParams{},
 		Options:      []models.Option{},
 		Products:     []models.Product{},
 	}
 
-	var returnErr error
 	var gateTypes []models.GateType
 	if err := database.DB.Find(&gateTypes).Error; err != nil {
 		return types.Config{}, err
@@ -121,75 +117,134 @@ func getGateCfg(gateType string) (types.Config, error) {
 	}
 
 	var wg sync.WaitGroup
-	gateTypeInt, _ := strconv.ParseInt(gateType, 10, 32)
+	var mutex sync.Mutex
+	errChan := make(chan error, 8)
+	gateTypeInt, err := strconv.ParseInt(gateType, 10, 32)
+	if err != nil {
+		return cfg, err
+	}
+
 	switch gateTypesMap[int32(gateTypeInt)] {
 	case "Промышленные ворота":
 		wg.Go(func() {
-			cfg.IndustrialDrives = []models.IndustrialGateDrive{}
-			if err := database.DB.Find(&cfg.IndustrialDrives).Error; err != nil {
-				returnErr = err
+			var drives []models.IndustrialGateDrive
+			if err := database.DB.Find(&drives).Error; err != nil {
+				errChan <- err
+				return
 			}
+			mutex.Lock()
+			cfg.IndustrialDrives = drives
+			mutex.Unlock()
 		})
 	case "Бытовые ворота":
 		wg.Go(func() {
-			cfg.ResidentialDrives = []models.ResidentialGateDrive{}
-			if err := database.DB.Find(&cfg.ResidentialDrives).Error; err != nil {
-				returnErr = err
+			var drives []models.ResidentialGateDrive
+			if err := database.DB.Find(&drives).Error; err != nil {
+				errChan <- err
+				return
 			}
+			mutex.Lock()
+			cfg.ResidentialDrives = drives
+			mutex.Unlock()
 		})
 	}
 
 	wg.Go(func() {
-		if err := database.DB.Find(&cfg.LiftTypes).Error; err != nil {
-			returnErr = err
+		var liftTypes []models.LiftType
+		if err := database.DB.Find(&liftTypes).Error; err != nil {
+			errChan <- err
+			return
 		}
+		mutex.Lock()
+		cfg.LiftTypes = liftTypes
+		mutex.Unlock()
 	})
 
 	wg.Go(func() {
-		if err := database.DB.Find(&cfg.Colors).Error; err != nil {
-			returnErr = err
+		var colors []models.Color
+		if err := database.DB.Find(&colors).Error; err != nil {
+			errChan <- err
+			return
 		}
+		mutex.Lock()
+		cfg.Colors = colors
+		mutex.Unlock()
 	})
 
 	wg.Go(func() {
-		if err := database.DB.Find(&cfg.CycleAmounts).Error; err != nil {
-			returnErr = err
+		var amounts []models.CycleAmount
+		if err := database.DB.Find(&amounts).Error; err != nil {
+			errChan <- err
+			return
 		}
+		mutex.Lock()
+		cfg.CycleAmounts = amounts
+		mutex.Unlock()
 	})
 
 	wg.Go(func() {
+		var params types.SizeParams
 		if err := database.DB.
 			Model(&models.Size{}).
-			Select("MAX(width) as max_width, MIN(width) as min_width").
+			Select("MAX(width) as max_value, MIN(width) as min_value").
 			Where("gate_type_id = ?", gateType).
-			Scan(&cfg.WidthParams).Error; err != nil {
-			returnErr = err
+			Scan(&params).Error; err != nil {
+			errChan <- err
+			return
 		}
+
+		mutex.Lock()
+		cfg.WidthParams = params
+		mutex.Unlock()
 	})
 
 	wg.Go(func() {
+		var params types.SizeParams
 		if err := database.DB.
 			Model(&models.Size{}).
-			Select("MAX(height) as max_height, MIN(height) as min_height").
+			Select("MAX(height) as max_value, MIN(height) as min_value").
 			Where("gate_type_id = ?", gateType).
-			Scan(&cfg.HeightParams).Error; err != nil {
-			returnErr = err
+			Scan(&params).Error; err != nil {
+			errChan <- err
+			return
 		}
+
+		mutex.Lock()
+		cfg.HeightParams = params
+		mutex.Unlock()
 	})
 
 	wg.Go(func() {
-		if err := database.DB.Find(&cfg.Products).Error; err != nil {
-			returnErr = err
+		var products []models.Product
+		if err := database.DB.Find(&products).Error; err != nil {
+			errChan <- err
+			return
 		}
+		mutex.Lock()
+		cfg.Products = products
+		mutex.Unlock()
 	})
 
 	wg.Go(func() {
-		if err := database.DB.Find(&cfg.Options).Error; err != nil {
-			returnErr = err
+		var options []models.Option
+		if err := database.DB.Find(&options).Error; err != nil {
+			errChan <- err
+			return
 		}
+		mutex.Lock()
+		cfg.Options = options
+		mutex.Unlock()
 	})
 
 	wg.Wait()
+	close(errChan)
 
-	return cfg, returnErr
+	var firstErr error
+	for err := range errChan {
+		if firstErr == nil {
+			firstErr = err
+		}
+	}
+
+	return cfg, firstErr
 }

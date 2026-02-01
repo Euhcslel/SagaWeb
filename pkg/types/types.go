@@ -2,25 +2,19 @@ package types
 
 import "project/pkg/models"
 
-type WidthParams struct {
-	MinWidth uint64
-	MaxWidth uint64
-}
-
-type HeightParams struct {
-	MinHeight uint64
-	MaxHeight uint64
+type SizeParams struct {
+	MinValue uint64
+	MaxValue uint64
 }
 
 type Config struct {
 	CycleAmounts      []models.CycleAmount
 	LiftTypes         []models.LiftType
 	Colors            []models.Color
-	MontageTypes      []models.MontageType
 	IndustrialDrives  []models.IndustrialGateDrive
 	ResidentialDrives []models.ResidentialGateDrive
-	WidthParams       WidthParams
-	HeightParams      HeightParams
+	WidthParams       SizeParams
+	HeightParams      SizeParams
 	Options           []models.Option
 	Products          []models.Product
 }
@@ -33,22 +27,4 @@ type Gate struct {
 type Order struct {
 	Gates    []Gate
 	Products []models.SalesAndProduct
-}
-
-type GateConfig struct {
-	GateType    string  `json:"gateType"`
-	Width       int     `json:"width,string"`
-	Height      int     `json:"height,string"`
-	LiftType    string  `json:"liftType"`
-	ColorIn     string  `json:"colorIn"`
-	ColorOut    string  `json:"colorOut"`
-	Drive       string  `json:"drive"`
-	CycleAmount string  `json:"cycleAmount"`
-	Options     map[string]int   `json:"options"`
-	GatePrice   float64 `json:"gatePrice"`
-}
-
-type OrderRequest struct {
-	OrderGates []GateConfig `json:"orderGates"`
-	Products   map[string]int     `json:"products"`
 }

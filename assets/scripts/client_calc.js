@@ -119,7 +119,7 @@ function getObjectWithAmount(divName, selectName) {
 
   var divs = document.getElementsByClassName(divName);
   Array.from(divs).forEach((div) => {
-    var select = div.querySelector('select[name=' + selectName + ']');
+    var select = div.querySelector("select[name=" + selectName + "]");
     var selectedOption = select.options[select.selectedIndex];
     var optionId = selectedOption.dataset.id;
     var amountInput = div.querySelector('input[type="number"]');
@@ -136,20 +136,24 @@ function addInOrder() {
   var optionsList = getObjectWithAmount("option-div", "option");
 
   const config = {
-    gateType: document.querySelector(".gateType").value,
-    width: document.getElementById("width").value,
-    height: document.getElementById("height").value,
-    liftType:
+    gateTypeId: parseInt(document.querySelector(".gateType").value),
+    width: parseInt(document.getElementById("width").value),
+    height: parseInt(document.getElementById("height").value),
+    liftTypeId: parseInt(
       document.querySelector('[name="liftType"]').selectedOptions[0].dataset.id,
-    colorIn: document.querySelector('input[name="colorIn"]:checked').dataset.id,
-    colorOut: document.querySelector('input[name="colorOut"]:checked').dataset
-      .id,
-    drive:
+    ),
+    colorOutId: parseInt(
+      document.querySelector('input[name="colorOut"]:checked').dataset.id,
+    ),
+    driveId: parseInt(
       document.querySelector('[name="drive"]').selectedOptions[0].dataset.id,
-    cycleAmount: document.querySelector('[name="cycleAmount"]')
-      .selectedOptions[0].dataset.id,
+    ),
+    cycleAmountId: parseInt(
+      document.querySelector('[name="cycleAmount"]').selectedOptions[0].dataset
+        .id,
+    ),
     options: optionsList,
-    gatePrice: gatePrice,
+    gatePrice: parseInt(gatePrice),
   };
 
   orderGates.push(config);
@@ -173,26 +177,30 @@ function addProductInOrder() {
 
 // Функция для оформления заказа
 async function placeOrder() {
-  var productsList = getObjectWithAmount("product-div", "product");
+  const root = await protobuf.load("/assets/scripts/order.proto");
+  const OrderRequest = root.lookupType("proto.OrderRequest");
 
+  var productsList = getObjectWithAmount("product-div", "product");
   if (orderGates.length == 0) {
     addInOrder();
   }
-  const fd = new FormData();
+  console.log(orderGates, productsList);
+  const payload = {
+    orderGates: orderGates,
+    products: productsList,
+  };
 
-  fd.append("orderGates", JSON.stringify(orderGates));
-  fd.append("products", JSON.stringify(productsList));
+  const err = OrderRequest.verify(payload);
+  if (err) throw new Error(err);
 
-  console.log(orderGates)
-    console.log(productsList)
+  const message = OrderRequest.create(payload);
+  const buffer = OrderRequest.encode(message).finish();
 
-  var response = await fetch("/orders", {
+  await fetch("/orders", {
     method: "POST",
-    body: fd,
+    headers: { "Content-Type": "application/x-protobuf" },
+    body: buffer,
   });
-  if (response.ok && response.redirected) {
-    window.location.href = "/orders";
-  }
 }
 
 function deleteItem(button, divName) {

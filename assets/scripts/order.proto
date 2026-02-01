@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "project/proto";
+
+message GateConfig {
+  int32 gateTypeId = 1;
+  int32 width = 2;
+  int32 height = 3;
+  int64 liftTypeId = 4;
+  int64 colorOutId = 5;
+  int32 driveId = 6;
+  int64 cycleAmountId = 7;
+  map<int32, int32> options = 8;
+  int32 gatePrice = 9;
+  int32 headroom = 10;
+}
+
+message OrderRequest {
+  repeated GateConfig orderGates = 1;
+  map<int32, int32> products = 2;
+}

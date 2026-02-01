@@ -9,7 +9,6 @@ import (
 )
 
 var templates = template.Must(template.ParseGlob("templates/**/*.html"))
-var cssPath = "/assets/styles/"
 
 // Route: /
 // Method: GET
@@ -24,12 +23,12 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css":  cssPath+"main.css",
+		"css":  "main.css",
 		"user": user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "main.html", data); err != nil {
-		helpers.WriteErrorDebug(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
 }
 
@@ -47,7 +46,7 @@ func GetGateTypesList(w http.ResponseWriter, r *http.Request) {
 	var gateTypes []models.GateType
 	err := database.DB.Find(&gateTypes).Error
 	if err != nil {
-		helpers.WriteErrorDebug(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -57,6 +56,6 @@ func GetGateTypesList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := templates.ExecuteTemplate(w, "gate_type.html", data); err != nil {
-		helpers.WriteErrorRelease(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
 }
