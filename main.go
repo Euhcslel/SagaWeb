@@ -31,9 +31,16 @@ func main() {
 
 	r := mux.NewRouter()
 
-	http.Handle("/assets/",
-		http.StripPrefix("/assets/",
-			http.FileServer(http.Dir("./assets"))),
+	assets := http.StripPrefix(
+		"/assets/",
+		http.FileServer(http.Dir("./assets")),
+	)
+
+	r.PathPrefix("/assets/").Handler(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
+			assets.ServeHTTP(w, r)
+		}),
 	)
 
 	// Главная страница
@@ -83,7 +90,6 @@ func main() {
 	r.HandleFunc("/tables/{table_name}", handlers.GetDataBaseRedactor).Methods("GET")
 	r.HandleFunc("/tables", handlers.GetDataBaseTableList).Methods("GET")
 
-	http.Handle("/", r)
-	err_start := http.ListenAndServe(":8080", nil) //http.NewCrossOriginProtection().Handler(r)
+	err_start := http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(r))
 	log.Fatal(err_start)
 }
