@@ -1,18 +1,20 @@
 // Функция для отображения плавильного item у tab
 function showItem(e, item) {
-  var tabContent = document.getElementsByClassName("tabItem");
-  tabContent.forEach((content) => {
+  document.querySelectorAll(".tabItem").forEach((content) => {
     content.style.display = "none";
   });
 
-  var tabLinks = document.getElementsByClassName("tablinks");
-  tabLinks.forEach((tabLink) => {
+  document.querySelectorAll(".tablinks").forEach((tabLink) => {
     tabLink.classList.remove("active");
   });
+
+  const el = document.getElementById(item);
+
   if (item === "mainConfig") {
-    document.getElementById(item).style.display = "flex";
+    el.style.display = "flex";
     return;
   }
-  document.getElementById(item).style.display = "block";
+
+  el.style.display = "block";
   e.currentTarget.classList.add("active");
 }

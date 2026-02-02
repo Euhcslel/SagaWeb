@@ -22,7 +22,7 @@ func main() {
 	db := database.InitDB()
 	database.AutoMigrateAll(db)
 
-	logFile, err := os.Create("error.log")
+	logFile, err := os.Create("logs/error.log")
 	if err != nil {
 		log.Fatal(err)
 	}
