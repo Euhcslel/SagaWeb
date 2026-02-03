@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"project/pkg/database"
 	"project/pkg/helpers"
-
 	//"github.com/gorilla/mux"
 )
 
@@ -17,7 +16,11 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := sessionToken.Value
-	user := helpers.GetUserBySessionToken(token)
+	user, err := helpers.GetUserBySessionToken(token)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
 	role := user.Role.Name
 	if role != "admin" {
 		http.Redirect(w, r, "/", http.StatusForbidden)
@@ -38,7 +41,11 @@ func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := sessionToken.Value
-	user := helpers.GetUserBySessionToken(token)
+	user, err := helpers.GetUserBySessionToken(token)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
 	role := user.Role.Name
 	if role != "admin" {
 		http.Redirect(w, r, "/", http.StatusForbidden)

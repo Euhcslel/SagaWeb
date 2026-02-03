@@ -25,8 +25,8 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := sessionToken.Value
-	user := helpers.GetUserBySessionToken(token)
-	if user == (models.User{}) {
+	user, err := helpers.GetUserBySessionToken(token)
+	if err != nil {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
@@ -73,7 +73,11 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := sessionToken.Value
-	user := helpers.GetUserBySessionToken(token)
+	user, err := helpers.GetUserBySessionToken(token)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusUnauthorized)
+		return
+	}
 
 	// Получаем все ворота выбранного заказа
 	var orderGates []models.SalesAndGate
@@ -143,7 +147,11 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := sessionToken.Value
-	user := helpers.GetUserBySessionToken(token)
+	user, err := helpers.GetUserBySessionToken(token)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
 
 	vars := mux.Vars(r)
 
@@ -233,7 +241,11 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := sessionToken.Value
-	user := helpers.GetUserBySessionToken(token)
+	user, err := helpers.GetUserBySessionToken(token)
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusUnauthorized)
+		return
+	}
 	role := user.Role.Name
 
 	var order models.Sale
@@ -276,7 +288,6 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 
 		database.DB.Create(&salesAndProduct)
 	}
-
 
 	var wg sync.WaitGroup
 	for i, gate := range orderData.OrderGates {

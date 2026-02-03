@@ -15,11 +15,15 @@ import (
 // Method: GET
 func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 	sessionToken, err := r.Cookie("session_token")
-	var user models.User
+	var user *models.User
 	var role string
 	if err == nil {
 		token := sessionToken.Value
-		user = helpers.GetUserBySessionToken(token)
+		user, err = helpers.GetUserBySessionToken(token)
+		if err != nil {
+			http.Redirect(w, r, "/", http.StatusUnauthorized)
+			return
+		}
 		role = user.Role.Name
 	}
 
@@ -58,7 +62,11 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 	var role string
 	if err == nil {
 		token := sessionToken.Value
-		user := helpers.GetUserBySessionToken(token)
+		user, err := helpers.GetUserBySessionToken(token)
+		if err != nil {
+			http.Redirect(w, r, "/", http.StatusUnauthorized)
+			return
+		}
 		role = user.Role.Name
 	}
 
@@ -74,7 +82,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		json.NewEncoder(w).Encode(map[string]any{
-			"price": size.WholesalePrice,
+			"price":        size.WholesalePrice,
 			"client_price": size.RetailPrice,
 		})
 	} else {

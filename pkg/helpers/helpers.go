@@ -8,18 +8,17 @@ import (
 	"github.com/samborkent/uuidv7"
 )
 
-func GetUserBySessionToken(token string) models.User {
+func GetUserBySessionToken(token string) (*models.User, error) {
 	var session models.Session
 	err := database.DB.
 		Preload("User").Preload("User.Role").
 		Where("token = ?", token).
 		First(&session).Error
 	if err != nil {
-		// исправить на ошибку
-		return models.User{}
+		return nil, err
 	}
 
-	return session.User
+	return &session.User, nil
 }
 
 func SetSession(w http.ResponseWriter, userId int64) {
