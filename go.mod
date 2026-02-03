@@ -7,6 +7,7 @@ require gorm.io/driver/postgres v1.6.0
 require (
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
+	github.com/samborkent/uuidv7 v0.0.0-20231110121620-f2e19d87e48b // indirect
 	github.com/tiendc/go-deepcopy v1.7.1 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/excelize/v2 v2.10.0 // indirect

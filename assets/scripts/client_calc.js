@@ -55,7 +55,7 @@ function updateTotalPrice() {
     sizePrice +
     liftTypeMarkup +
     cycleAmountMarkup +
-    parseFloat(selectedDrive.dataset.price);
+    parseFloat(selectedDrive.dataset.price)
 
   totalPriceElement.textContent = gatePrice;
 }
@@ -136,6 +136,7 @@ function addInOrder() {
   var optionsList = getObjectWithAmount("option-div", "option");
 
   const config = {
+    headroom: 100,
     gateTypeId: parseInt(document.querySelector(".gateType").value),
     width: parseInt(document.getElementById("width").value),
     height: parseInt(document.getElementById("height").value),
@@ -177,7 +178,7 @@ function addProductInOrder() {
 
 // Функция для оформления заказа
 async function placeOrder() {
-  const root = await protobuf.load("/assets/scripts/order.proto");
+  const root = await protobuf.load("/assets/proto_files/order.proto");
   const OrderRequest = root.lookupType("proto.OrderRequest");
 
   var productsList = getObjectWithAmount("product-div", "product");

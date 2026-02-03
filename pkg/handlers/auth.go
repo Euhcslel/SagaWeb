@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"net/http"
 	"project/pkg/database"
 	"project/pkg/helpers"
@@ -12,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Route: /log
+// Route: /sign_in
 // Method: GET
 func SignInForm(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie("session_token")
@@ -30,7 +28,7 @@ func SignInForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Route: /log
+// Route: /sign_in
 // Method: POST
 func SignIn(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -64,7 +62,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Route: /reg
+// Route: /sign_up
 // Method: GET
 func SignUpFrom(w http.ResponseWriter, r *http.Request) {
 	_, err := r.Cookie("session_token")
@@ -81,7 +79,7 @@ func SignUpFrom(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Route: /reg
+// Route: /sign_up
 // Method: POST
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -114,26 +112,24 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		PhoneNumber: phone,
 		Email:       email,
 		Password:    passwordHash,
-		StatusID:    int64(status.ID),
+		StatusID:    status.ID,
 	}
 	database.DB.Create(&request)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Route: /log_out
+// Route: /sign_out
 // Method: POST
-func LogOut(w http.ResponseWriter, r *http.Request) {
+func SignOut(w http.ResponseWriter, r *http.Request) {
 	sessionToken, err := r.Cookie("session_token")
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusUnauthorized)
 		return
 	}
 	token := sessionToken.Value
-	hash := sha256.Sum256([]byte(token))
-	tokenHash := hex.EncodeToString(hash[:])
 
-	if err := database.DB.Where("token_hash = ?", tokenHash).Delete(models.Session{}).Error; err != nil {
+	if err := database.DB.Where("token = ?", token).Delete(models.Session{}).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}

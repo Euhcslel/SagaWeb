@@ -74,7 +74,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		json.NewEncoder(w).Encode(map[string]any{
-			"dealer_price": size.WholesalePrice,
+			"price": size.WholesalePrice,
 			"client_price": size.RetailPrice,
 		})
 	} else {

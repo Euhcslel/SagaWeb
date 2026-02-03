@@ -20,23 +20,6 @@
       </option>
       {{end}}
     </select>
-    <!--Цвет внутри-->
-    <div>
-      <label for="colorIn">Цвет ворот внутри</label>
-      <br />
-      {{range .cfg.Colors}}
-      <input
-        name="colorIn"
-        data-id="{{.ID}}"
-        type="checkbox"
-        style="background-color: #{{.Hex}};"
-        {{if
-        eq
-        .ID
-        $.gate.ColorInID}}checked{{end}}
-      />
-      {{end}}
-    </div>
     <!--Цвет снаружи-->
     <div>
       <label for="colorOut">Цвет ворот снаружи</label>

@@ -1,22 +1,18 @@
 package helpers
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
 	"net/http"
 	"project/pkg/database"
 	"project/pkg/models"
+
+	"github.com/samborkent/uuidv7"
 )
 
 func GetUserBySessionToken(token string) models.User {
-	hash := sha256.Sum256([]byte(token))
-	tokenHash := hex.EncodeToString(hash[:])
 	var session models.Session
 	err := database.DB.
 		Preload("User").Preload("User.Role").
-		Where("token_hash = ?", tokenHash).
+		Where("token = ?", token).
 		First(&session).Error
 	if err != nil {
 		// исправить на ошибку
@@ -27,21 +23,11 @@ func GetUserBySessionToken(token string) models.User {
 }
 
 func SetSession(w http.ResponseWriter, userId int64) {
-	// Переспросить про генерацию
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		WriteError(w, err, http.StatusInternalServerError)
-		return
-	}
-	// Хэширование для куки
-	token := base64.RawURLEncoding.EncodeToString(b)
-
-	// Хэширование для БД
-	tokenHash := sha256.Sum256([]byte(token))
+	token := uuidv7.New().String()
 
 	session := models.Session{
 		UserID:    userId,
-		TokenHash: tokenHash,
+		Token: 	token,
 	}
 	err := database.DB.Create(&session).Error
 	if err != nil {

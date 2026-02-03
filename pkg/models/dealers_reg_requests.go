@@ -9,7 +9,7 @@ type DealerRegRequest struct {
 	Email       string `gorm:"column:email;not null"`
 	PhoneNumber string `gorm:"column:phone_number;not null"`
 	Password    []byte `gorm:"column:password_hash;not null"`
-	StatusID    int64  `gorm:"column:status_id;not null"`
+	StatusID    int32  `gorm:"column:status_id;not null"`
 
 	Status Status `gorm:"foreignKey:StatusID;references:ID"`
 }
