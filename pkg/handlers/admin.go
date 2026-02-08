@@ -10,17 +10,11 @@ import (
 // Route: /tables/{table_name}
 // Method: GET
 func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
+	user := helpers.GetUserBySessionToken(w, r)
+	if user == nil {
 		return
 	}
-	token := sessionToken.Value
-	user, err := helpers.GetUserBySessionToken(token)
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-		return
-	}
+
 	role := user.Role.Name
 	if role != "admin" {
 		http.Redirect(w, r, "/", http.StatusForbidden)
@@ -35,17 +29,11 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 // Route: /tables
 // Method: GET
 func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
+	user := helpers.GetUserBySessionToken(w, r)
+	if user == nil {
 		return
 	}
-	token := sessionToken.Value
-	user, err := helpers.GetUserBySessionToken(token)
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-		return
-	}
+
 	role := user.Role.Name
 	if role != "admin" {
 		http.Redirect(w, r, "/", http.StatusForbidden)

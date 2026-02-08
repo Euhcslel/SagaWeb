@@ -14,16 +14,9 @@ import (
 // Route: /calculator
 // Method: GET
 func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
-	sessionToken, err := r.Cookie("session_token")
-	var user *models.User
-	var role string
-	if err == nil {
-		token := sessionToken.Value
-		user, err = helpers.GetUserBySessionToken(token)
-		if err != nil {
-			http.Redirect(w, r, "/", http.StatusUnauthorized)
-			return
-		}
+	user := helpers.GetUserBySessionToken(w, r)
+	role := "client"
+	if user != nil {
 		role = user.Role.Name
 	}
 
@@ -53,22 +46,16 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 // Route: /sizes
 // Method: GET
 func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
+	user := helpers.GetUserBySessionToken(w, r)
+	role := "client"
+	if user != nil {
+		role = user.Role.Name
+	}
+
 	query := r.URL.Query()
 	width := query.Get("width")
 	height := query.Get("height")
 	gateType := query.Get("gateType")
-
-	sessionToken, err := r.Cookie("session_token")
-	var role string
-	if err == nil {
-		token := sessionToken.Value
-		user, err := helpers.GetUserBySessionToken(token)
-		if err != nil {
-			http.Redirect(w, r, "/", http.StatusUnauthorized)
-			return
-		}
-		role = user.Role.Name
-	}
 
 	if role == "dealer" || role == "manager" || role == "admin" {
 		var size models.Size

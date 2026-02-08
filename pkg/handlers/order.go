@@ -19,21 +19,14 @@ import (
 // Route: /orders
 // Method: GET
 func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-		return
-	}
-	token := sessionToken.Value
-	user, err := helpers.GetUserBySessionToken(token)
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
+	user := helpers.GetUserBySessionToken(w, r)
+	if user == nil {
 		return
 	}
 
 	// Вернуть limit потом
 	var orders []models.Sale
-	err = database.DB.
+	err := database.DB.
 		Preload("Client").
 		Preload("Manager").
 		Where("client_id = ?", user.ID).
@@ -67,15 +60,8 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	orderId := vars["order_id"]
 
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-		return
-	}
-	token := sessionToken.Value
-	user, err := helpers.GetUserBySessionToken(token)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusUnauthorized)
+	user := helpers.GetUserBySessionToken(w, r)
+	if user == nil {
 		return
 	}
 
@@ -121,7 +107,7 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	if err = database.DB.Preload("Product").Where("sale_id = ?", orderId).Find(&order.Products).Error; err != nil {
+	if err := database.DB.Preload("Product").Where("sale_id = ?", orderId).Find(&order.Products).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -141,15 +127,8 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 // Route: /orders/{order_id}/{gate_id}
 // Method: GET
 func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-		return
-	}
-	token := sessionToken.Value
-	user, err := helpers.GetUserBySessionToken(token)
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
+	user := helpers.GetUserBySessionToken(w, r)
+	if user == nil {
 		return
 	}
 
@@ -235,15 +214,8 @@ func AddNewGateInOrder(w http.ResponseWriter, r *http.Request) {
 // Route: /orders
 // Method: POST
 func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-		return
-	}
-	token := sessionToken.Value
-	user, err := helpers.GetUserBySessionToken(token)
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
+	user := helpers.GetUserBySessionToken(w, r)
+	if user == nil {
 		return
 	}
 	role := user.Role.Name

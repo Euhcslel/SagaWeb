@@ -10,18 +10,9 @@ import (
 // Route: /user
 // Method: GET
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
-	var user *models.User
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
+	user := helpers.GetUserBySessionToken(w, r)
+	if user == nil {
 		return
-	} else {
-		token := sessionToken.Value
-		user, err = helpers.GetUserBySessionToken(token)
-		if err != nil {
-			http.Redirect(w, r, "/", http.StatusUnauthorized)
-			return
-		}
 	}
 
 	data := map[string]any{
@@ -37,15 +28,8 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 // Route: /user/dealers
 // Method: GET
 func GetUserDealers(w http.ResponseWriter, r *http.Request) {
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-		return
-	}
-	token := sessionToken.Value
-	user, err := helpers.GetUserBySessionToken(token)
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
+	user := helpers.GetUserBySessionToken(w, r)
+	if user == nil {
 		return
 	}
 	role := user.Role.Name

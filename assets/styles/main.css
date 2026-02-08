@@ -1,11 +1,6 @@
-@import url("/assets/styles/values.css");
-
 section {
   height: 92vh;
   display: flex;
-}
-
-section[id] {
   scroll-margin-top: 4rem;
 }
 
@@ -37,7 +32,7 @@ input[type="checkbox"] {
   margin-bottom: 0;
 }
 
-section[id="3"] {
+section#for-dealer {
   background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.75)),
     url("/assets/images/gates.png");
   background-size: cover;
@@ -52,18 +47,18 @@ section[id="3"] {
   flex-direction: column;
 }
 
-section[id="3"] .description {
+section#for-dealer .description {
   width: 50%;
   color: white;
   align-items: center;
   justify-content: center;
 }
 
-section[id="1"] .description {
+section#main .description {
   justify-content: space-between;
 }
 
-section[id="1"] .description h1 {
+section#main .description h1 {
   text-align: center;
   margin-top: 5rem;
   padding: 2rem;
@@ -78,14 +73,6 @@ section[id="1"] .description h1 {
   position: relative;
   display: flex;
   width: 60%;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-}
-
-.map {
-  display: flex;
-  width: 66%;
   height: 100%;
   justify-content: center;
   align-items: center;
@@ -128,17 +115,6 @@ section[id="1"] .description h1 {
   content: url("/assets/images/white_checkbox.png");
 }
 
-.map-container {
-  width: 100vw;
-}
-
-.map-container iframe {
-  width: 100%;
-  height: 300px;
-  border: none;
-  display: block;
-}
-
 .hint {
   font-size: small;
   margin-top: 4px;
@@ -146,37 +122,4 @@ section[id="1"] .description h1 {
 
 .hint::before {
   content: "*";
-}
-
-section[id="2"] h2 {
-  text-align: center;
-}
-
-.products {
-  border-right: 1px dashed rgba(0, 0, 0, 0.25);
-  width: 50%;
-  padding: 0 5rem;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.calc {
-  border-left: 1px dashed rgba(0, 0, 0, 0.25);
-    width: 50%;
-  padding: 0 5rem;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.calc li {
-  margin-bottom: 1rem;
-}
-
-.card {
-  width: auto;
-  padding: 2rem;
-  border: 2px solid black;
-  margin-bottom: 2rem;
 }

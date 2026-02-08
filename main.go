@@ -46,9 +46,6 @@ func main() {
 	// Главная страница
 	r.HandleFunc("/", handlers.MainHandler).Methods("GET")
 
-	// Контакты
-	r.HandleFunc("/contacts", handlers.ContactsHandler).Methods("GET")
-
 	// Аутентификация
 	r.HandleFunc("/sign_in", handlers.SignInForm).Methods("GET")
 	r.HandleFunc("/sign_in", handlers.SignIn).Methods("POST")

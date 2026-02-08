@@ -31,7 +31,13 @@ func SignInForm(w http.ResponseWriter, r *http.Request) {
 // Route: /sign_in
 // Method: POST
 func SignIn(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	_, err := r.Cookie("session_token")
+	if err == nil {
+		http.Redirect(w, r, "/user", http.StatusSeeOther)
+		return
+	}
+
+	err = r.ParseForm()
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -82,7 +88,13 @@ func SignUpFrom(w http.ResponseWriter, r *http.Request) {
 // Route: /sign_up
 // Method: POST
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	_, err := r.Cookie("session_token")
+	if err == nil {
+		http.Redirect(w, r, "/user", http.StatusSeeOther)
+		return
+	}
+
+	err = r.ParseForm()
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
