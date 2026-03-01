@@ -26,14 +26,26 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 
 	// Вернуть limit потом
 	var orders []models.Sale
-	err := database.DB.
-		Preload("Client").
-		Preload("Manager").
-		Where("client_id = ?", user.ID).
-		Find(&orders).Error
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
+	if (user.Role.Name == "dealer") {
+		if err := database.DB.
+			Preload("Client").
+			Preload("Manager").
+			Preload("Status").
+			Where("client_id = ?", user.ID).
+			Find(&orders).Error;err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+	} else {
+		if err := database.DB.
+			Preload("Client").
+			Preload("Manager").
+			Preload("Status").
+			Where("manager_id = ?", user.ID).
+			Find(&orders).Error;err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	data := map[string]any{
@@ -71,7 +83,6 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		Preload("LiftType").
 		Preload("ColorOut").
 		Preload("CycleAmount").
-		Preload("Status").
 		Model(models.SalesAndGate{}).
 		Where("sale_id = ?", orderId).
 		Find(&orderGates)
@@ -140,7 +151,6 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		Preload("LiftType").
 		Preload("ColorOut").
 		Preload("CycleAmount").
-		Preload("Status").
 		Where("sale_id = ? and row_number = ?", vars["order_id"], vars["gate_id"]).
 		Find(&gate).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
@@ -223,18 +233,28 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 	var order models.Sale
 	if role == "dealer" {
 		var managerId int64
-		database.DB.Model(&models.ManagerAndDealer{}).
+		if err := database.DB.Model(&models.ManagerAndDealer{}).
 			Select("manager_id").
 			Where("dealer_id = ?", user.ID).
-			Find(&managerId)
+			Find(&managerId).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusNotFound)
+			return
+		}
 
 		order = models.Sale{
-			ClientID: &user.ID,
+			ClientID:  &user.ID,
+			ManagerID: managerId,
+			StatusID:  19,
 		}
 
-		if managerId > 0 {
-			order.ManagerID = &managerId
+		database.DB.Create(&order)
+	} else {
+		order = models.Sale{
+			ClientID:  nil,
+			ManagerID: user.ID,
+			StatusID:  19,
 		}
+
 		database.DB.Create(&order)
 	}
 
@@ -273,7 +293,6 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			ColorOutID:    gate.ColorOutId,
 			CycleAmountID: gate.CycleAmountId,
 			TotalPrice:    gate.GatePrice,
-			StatusID:      9,
 		}
 
 		wg.Go(func() {
@@ -302,7 +321,7 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wg.Wait()
-	http.Redirect(w, r, "/orders", http.StatusSeeOther)
+	w.WriteHeader(http.StatusCreated)
 }
 
 // Route: /orders/{order_id}/products

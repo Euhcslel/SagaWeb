@@ -1,8 +1,56 @@
 :root {
-  --my-transition: all 0.5s ease-out;
-  --button-static: #ffec69;
-  --button-hover: #e6c200;
-  --href-hover: #959593;
-  --dark-grey: #2c2d28;
-  --light-grey: #E5E5E4;
+  /* Colors */
+  --color-yellow: rgb(255, 236, 105);
+  --color-dark-grey: #2C2D28;
+  --color-black: #000000;
+  --color-white: #FFFFFF;
+  --color-grey: #959593;
+  --color-light-grey: #CACAC9;
+  --color-red: #E72300;
+  --color-intense-yellow: #FFD633;
+  --color-bright-yellow: #FFE24D;
+  --color-light-yellow: #FFF6B3;
+  --color-green: #00C217;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-s: 8px;
+  --spacing-m: 12px;
+  --spacing-l: 16px;
+  --spacing-xl: 24px;
+
+  /* Font-weight */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Font-family */
+  --font-family-base: 'Roboto', system-ui, sans-serif;
+
+  /* Font-size */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 24px;
+
+  /* Background */
+  --bg-inverse: var(--color-dark-grey);
+  --bg-primary: var(--color-white);
+
+  /* Text */
+  --text-primary: var(--color-black);
+  --text-inverse: var(--color-white);
+  --text-secondary: var(--color-dark-grey);
+
+  /* Accent */
+  --accent-default: var(--color-yellow);
+  --accent-active: var(--color-intense-yellow);
+  --accent-hover: var(--color-bright-yellow);
+  --accent-disabled: var(--color-light-yellow);
+
+  /* State */
+  --state-error-text: var(--color-red);
+  --state-disabled-text: var(--color-grey);
+  --state-succes-text: var(--color-green);
 }

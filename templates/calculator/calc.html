@@ -1,267 +1,159 @@
 {{template "html-start" .}}
+<div class="calc-content">
+  <!--Панель выбора элементов заказа-->
+  <div class="tab">
+    <button
+      class="tablinks button button--secondary"
+      onclick="showItem(event, 'mainConfig')"
+    >
+      Конфигурация
+    </button>
+    <button
+      class="tablinks button button--secondary"
+      onclick="showItem(event, 'options')"
+    >
+      Дополнительные опции
+    </button>
+    <button
+      class="tablinks button button--secondary"
+      onclick="showItem(event, 'products')"
+    >
+      Товары
+    </button>
+  </div>
+  <form method="POST" class="myForm" id="myForm">
+    <!--Блок для настройки конфигурации ворот-->
+    <div id="mainConfig" class="tabItem">
+      <div class="form">
+        <!--Тип ворот-->
+        <input
+          type="text"
+          style="display: none"
+          class="gateType"
+          name="gateType"
+        />
+        <!--Ширина-->
+        <label for="width">Ширина</label>
+        {{template "number" (dict "ID" "width" "Name" "width" "Value"
+        .cfg.WidthParams.MinValue "MinValue" .cfg.WidthParams.MinValue
+        "MaxValue" .cfg.WidthParams.MaxValue "Required" true)}}
 
-<!--Панель выбора элементов заказа-->
-<div class="tab">
+        <!--Высота-->
+        <label for="height">Высота</label>
+        {{template "number" (dict "ID" "height" "Name" "height" "Value"
+        .cfg.HeightParams.MinValue "MinValue" .cfg.HeightParams.MinValue
+        "MaxValue" .cfg.HeightParams.MaxValue "Required" true)}}
+
+        <!--Тип подъема-->
+        <label for="liftType">Тип подъема</label>
+        {{template "select_markup" (dict "Label" "Выберите тип подъема"
+        "Options" .cfg.LiftTypes "isDealer" $.isDealer "Name" "liftType")}}
+
+        <!--Количество циклов-->
+        <label for="cycleAmount">Количество циклов</label>
+        {{template "select_markup" (dict "Label" "Выберите количество циклов"
+        "Options" .cfg.CycleAmounts "isDealer" $.isDealer "Name"
+        "cycleAmount")}}
+        <!--Цвет ворот снаружи (реализация через checkbox button)-->
+        <label for="colorOut">Цвет ворот снаружи</label>
+        {{template "select_color" (dict "Label" "Выберите цвет ворот снаружи"
+        "Options" .cfg.Colors "Name" "colorOut")}}
+
+        <!--Привод-->
+        <label for="drive">Привод</label>
+        {{if .cfg.IndustrialDrives}} {{template "select_price" (dict "Label"
+        "Выберите привод" "Options" .cfg.IndustrialDrives "isDealer" $.isDealer
+        "Name" "drive")}} {{else}} {{template "select_price" (dict "Label"
+        "Выберите привод" "Options" .cfg.ResidentialDrives "isDealer" $.isDealer
+        "Name" "drive")}} {{end}}
+      </div>
+      <div class="standart-configuration">
+        <img src="/assets/images/scheme.png" alt="Схема ворот" />
+        <p>Стандартная конфигурация:</p>
+        <ul>
+          <li>
+            Полотно из сэндвич-панелей 40мм и усилением под петли и регулируемые
+            кронштейны
+          </li>
+          <li>Петли и регулируемые кронштейны из оцинкованной стали</li>
+          <li>Комплект подвесов с притолкой до 500мм в комплекте</li>
+          <li>Ручка двусторонняя, задвижка</li>
+          <li>Комплект амортизаторов (при установки вального привода)</li>
+        </ul>
+      </div>
+      <button class="addButton" type="button" onclick="addInOrder()">
+        Добавить в заказ
+      </button>
+    </div>
+
+    <!--Блок для выбора дополнительных опций к воротам-->
+    <template id="optionTemplate">
+      <div class="option-div">
+        {{template "select_price" (dict "Label" "Выберите опцию" "Options"
+        .cfg.Options "isDealer" $.isDealer "Name" "option")}}
+        <input
+          type="number"
+          name="amount"
+          oninput="updateTotalPrice()"
+          min="1"
+          value="1"
+        />
+        <button onclick="deleteItem(this, '.option-div')">-</button>
+      </div>
+    </template>
+
+    <div id="options" class="tabItem">
+      <div id="optionList"></div>
+      <button class="addButton" type="button" onclick="addGateOption()">
+        Добавить еще
+      </button>
+    </div>
+
+    <!--Блок для выбора товаров-->
+    <template id="productTemplate">
+      <div class="product-div">
+        {{template "select_price" (dict "Label" "Выберите товар" "Options"
+        .cfg.Products "isDealer" $.isDealer "Name" "product")}}
+        <input
+          type="number"
+          name="amount"
+          oninput="updateTotalPrice()"
+          min="1"
+          value="1"
+        />
+        <button onclick="deleteItem(this, '.product-div')">-</button>
+      </div>
+    </template>
+
+    <div id="products" class="tabItem">
+      <div id="productList"></div>
+      <button class="addButton" type="button" onclick="addProductInOrder()">
+        Добавить еще
+      </button>
+    </div>
+  </form>
+</div>
+<div
+  style="
+    display: flex;
+    flex-direction: row;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 1rem;
+  "
+>
+  <!--Стоимость заказа-->
+  <p style="display: block; width: 70%" class="totalPrice">0</p>
   <button
+    style="width: 30%; margin: 1rem 4rem"
     type="button"
-    class="tablinks"
-    onclick="showItem(event, 'mainConfig')"
+    onclick="placeOrder()"
   >
-    Конфигурация
-  </button>
-  <button type="button" class="tablinks" onclick="showItem(event, 'options')">
-    Дополнительные опции
-  </button>
-  <button type="button" class="tablinks" onclick="showItem(event, 'products')">
-    Товары
-  </button>
-  <button
-    type="button"
-    class="tablinks"
-    onclick="showItem(event, 'standartCfg')"
-  >
-    Стандартная конфигурация
+    Оформить заказ
   </button>
 </div>
-<hr />
-<form method="POST" class="myForm" id="myForm">
-  <!--Блок для настройки конфигурации ворот-->
-  <div id="mainConfig" class="tabItem">
-    <div class="list">
-      <!--Тип ворот-->
-      <input
-        type="text"
-        style="display: none"
-        class="gateType"
-        name="gateType"
-      />
-      <!--Ширина-->
-      <label for="width">Ширина</label>
-      <input
-        name="width"
-        id="width"
-        oninput="updateSizePrice()"
-        type="number"
-        min="{{.cfg.WidthParams.MinValue}}"
-        max="{{.cfg.WidthParams.MaxValue}}"
-        value="{{.cfg.WidthParams.MinValue}}"
-      />
-
-      <!--Высота-->
-      <label for="height">Высота</label>
-      <input
-        name="height"
-        id="height"
-        oninput="updateSizePrice()"
-        type="number"
-        min="{{.cfg.HeightParams.MinValue}}"
-        max="{{.cfg.HeightParams.MaxValue}}"
-        value="{{.cfg.HeightParams.MinValue}}"
-      />
-
-      <!--Тип подъема-->
-      <label for="liftType">Тип подъема</label>
-      <select name="liftType" oninput="updateTotalPrice()">
-        {{range .cfg.LiftTypes}}
-        <option
-          data-id="{{.ID}}"
-          {{if
-          $.isDealer}}
-          data-markup="{{.WholesaleMarkup}}"
-          data-retail="{{.RetailMarkup}}"
-          {{else}}
-          data-markup="{{.RetailMarkup}}"
-          {{end}}
-        >
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-
-      <!--Количество циклов-->
-      <label for="cycleAmount">Количество циклов</label>
-      <select name="cycleAmount" oninput="updateTotalPrice()">
-        {{range .cfg.CycleAmounts}}
-        <option
-          data-id="{{.ID}}"
-          {{if
-          $.isDealer}}
-          data-markup="{{.WholesaleMarkup}}"
-          data-retail="{{.RetailMarkup}}"
-          {{else}}
-          data-markup="{{.RetailMarkup}}"
-          {{end}}
-        >
-          {{.Amount}}
-        </option>
-        {{end}}
-      </select>
-    </div>
-
-    <div class="list">
-      <!--Цвет ворот снаружи (реализация через checkbox button)-->
-      <div>
-        <label for="colorOut">Цвет ворот снаружи</label>
-        <br />
-        {{range $index, $color := .cfg.Colors}}
-        <input
-          name="colorOut"
-          data-id="{{.ID}}"
-          type="checkbox"
-          class="colored"
-          style="--color-checkbox: #{{$color.Hex}};"
-          {{if
-          eq
-          $index
-          0}}checked{{end}}
-        />
-        {{end}}
-      </div>
-
-      <!--Привод-->
-      <label for="drive">Привод</label>
-      {{if .cfg.IndustrialDrives}}
-      <select name="drive" class="industrial" oninput="updateTotalPrice()">
-        {{range .cfg.IndustrialDrives}}
-        <option
-          data-id="{{.ID}}"
-          {{if
-          $.isDealer}}
-          data-price="{{.WholesalePrice}}"
-          data-retail="{{.RetailPrice}}"
-          {{else}}
-          data-price="{{.RetailPrice}}"
-          {{end}}
-        >
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-      {{else}}
-      <select name="drive" class="residential" oninput="updateTotalPrice()">
-        {{range .cfg.ResidentialDrives}}
-        <option
-          data-id="{{.ID}}"
-          {{if
-          $.isDealer}}
-          data-price="{{.WholesalePrice}}"
-          data-retail="{{.RetailPrice}}"
-          {{else}}
-          data-price="{{.RetailPrice}}"
-          {{end}}
-        >
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-      {{end}}
-    </div>
-    <button class="addButton" type="button" onclick="addInOrder()">
-      Добавить в заказ
-    </button>
-  </div>
-
-  <!--Блок для выбора дополнительных опций к воротам-->
-  <template id="optionTemplate">
-    <div class="option-div">
-      <select name="option" oninput="updateTotalPrice()">
-        {{range .cfg.Options}}
-        <option
-          value="{{.Name}}"
-          {{if
-          $.isDealer}}
-          data-price="{{.WholesalePrice}}"
-          data-retail="{{.RetailPrice}}"
-          {{else}}
-          data-price="{{.RetailPrice}}"
-          {{end}}
-          data-id="{{.ID}}"
-        >
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-      <input
-        type="number"
-        name="amount"
-        oninput="updateTotalPrice()"
-        min="1"
-        value="1"
-      />
-      <button onclick="deleteItem(this, '.option-div')">-</button>
-    </div>
-  </template>
-
-  <div id="options" class="tabItem">
-    <div id="optionList"></div>
-    <button class="addButton" type="button" onclick="addGateOption()">
-      Добавить еще
-    </button>
-  </div>
-
-  <!--Блок для выбора товаров-->
-  <template id="productTemplate">
-    <div class="product-div">
-      <select name="product" oninput="updateTotalPrice()">
-        {{range .cfg.Products}}
-        <option
-          value="{{.Name}}"
-          {{if
-          $.isDealer}}
-          data-price="{{.WholesalePrice}}"
-          data-retail="{{.RetailPrice}}"
-          {{else}}
-          data-price="{{.RetailPrice}}"
-          {{end}}
-          data-id="{{.ID}}"
-        >
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-      <input
-        type="number"
-        name="amount"
-        oninput="updateTotalPrice()"
-        min="1"
-        value="1"
-      />
-      <button onclick="deleteItem(this, '.product-div')">-</button>
-    </div>
-  </template>
-
-  <div id="products" class="tabItem">
-    <div id="productList"></div>
-    <button class="addButton" type="button" onclick="addProductInOrder()">
-      Добавить еще
-    </button>
-  </div>
-
-  <!--Стандартная конфигурация-->
-  <div id="standartCfg" class="tabItem">
-    <p>Стандартная конфигурация</p>
-  </div>
-
-  <br />
-
-  <div style="display: flex; flex-direction: row">
-    <!--Стоимость заказа-->
-    <p style="display: block; width: 70%" class="totalPrice">0</p>
-    <button
-      style="width: 30%; margin: 1rem 4rem"
-      type="button"
-      onclick="placeOrder()"
-    >
-      Оформить заказ
-    </button>
-  </div>
-</form>
 <script src="/assets/scripts/protobuf.min.js"></script>
-<script
-  src="/assets/scripts/order_pb.json"
-  type="application/json"
-  id="order-proto"
-></script>
-<script src="../assets/scripts/tab.js"></script>
-<script src="../assets/scripts/client_calc.js"></script>
+<script src="/assets/scripts/tab.js"></script>
+<script src="/assets/scripts/client_calc.js"></script>
 {{template "no-footer-end"}}

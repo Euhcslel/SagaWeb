@@ -1,10 +1,20 @@
 {{template "html-start" .}}
 <h1>Авторизация</h1>
-<form action="/sign_in" method="post">
-    <label for="username">Имя пользователя</label>
-    <input type="text" name="username">
-    <label for="password">Пароль</label>
-    <input type="text" name="password">
-    <button type="submit">Войти</button>
-</form>
+<div class="form-container">
+  <div class="button-container">
+    <a href="/sign_up" class="button button--primary">Регистрация</a>
+    <p class="button button--blocked">Авторизация</p>
+  </div>
+  <form action="/sign_in" method="post">
+    <div class="input-container">
+      <label for="username">Имя пользователя</label>
+      {{template "text" (dict "ID" "username" "Name" "username" "Value" "" "Required" true)}}
+    </div>
+    <div class="input-container">
+      <label for="password">Пароль</label>
+      {{template "password"}}
+    </div>
+    <button type="submit" class="button button--primary">Войти</button>
+  </form>
+</div>
 {{template "html-end"}}

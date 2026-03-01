@@ -6,9 +6,31 @@ import (
 	"project/pkg/database"
 	"project/pkg/helpers"
 	"project/pkg/models"
+	"time"
 )
 
-var templates = template.Must(template.ParseGlob("templates/**/*.html"))
+// Функция, для создания словаря из пар ключ-значение (для html-шаблонов)
+func dict(values ...any) map[string]any {
+	m := make(map[string]any, len(values)/2)
+	for i := 0; i < len(values); i += 2 {
+		m[values[i].(string)] = values[i+1]
+	}
+	return m
+}
+
+// Функция для форматирования даты и времени в шаблонах
+func FormatDateTime(t time.Time) string {
+	return t.Format("02.01.2006 15:04")
+}
+
+var templates = template.Must(
+	template.New("").
+		Funcs(template.FuncMap{
+			"dict": dict,
+			"fmtTime": FormatDateTime,
+		}).
+		ParseGlob("templates/**/*.html"),
+)
 
 // Route: /
 // Method: GET
@@ -40,7 +62,7 @@ func GetGateTypesList(w http.ResponseWriter, r *http.Request) {
 	data := map[string]any{
 		"css":       "",
 		"gateTypes": gateTypes,
-		"user": user,
+		"user":      user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "gate_type.html", data); err != nil {

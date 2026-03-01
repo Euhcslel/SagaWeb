@@ -1,20 +1,36 @@
 {{template "html-start" .}}
 <h1>Регистрация</h1>
-<form action="/sign_up" method="post">
-  <label for="fullname">ФИО</label><br />
-  <input type="text" name="fullname" />
-  <label for="company">Название компании</label><br />
-  <input type="text" name="company" />
-  <label for="phone">Номер телефона</label><br />
-  <input type="tel" name="phone" />
-  <label for="email">Почта</label><br />
-  <input type="email" name="email" />
-  <label for="password">Название компании</label><br />
-  <input type="password" name="password" />
-  <div style="display: flex; align-items: center">
-    <input type="checkbox" required />
-    <p>Согласие на обработку данных</p>
+<div class="form-container">
+  <div class="button-container">
+    <p class="button button--blocked">Регистрация</p>
+    <a href="/sign_in" class="button button--primary">Авторизация</a>
   </div>
-  <button type="submit" class="primary-button">Отправить заявку</button>
-</form>
+  <form action="/sign_up" method="post">
+    <div class="input-container">
+      <label for="fullname">ФИО</label>
+      {{template "text" (dict "ID" "fullname" "Name" "fullname" "Value" "" "Required" true)}}
+    </div>
+    <div class="input-container">
+      <label for="company">Название компании</label>
+      {{template "text" (dict "ID" "company" "Name" "company" "Value" "" "Required" true)}}
+    </div>
+    <div class="input-container">
+      <label for="phone">Номер телефона</label>
+      {{template "phone"}}
+    </div>
+    <div class="input-container">
+      <label for="email">Почта</label>
+      {{template "email" (dict "Value" "" "Required" true)}}
+    </div>
+    <div class="input-container">
+      <label for="password">Пароль</label>
+      {{template "password"}}
+    </div>
+    <div class="checkbox-container">
+      <input type="checkbox" required />
+      <p>Согласие на обработку данных</p>
+    </div>
+    <button type="submit" class="button button--primary">Отправить заявку</button>
+  </form>
+</div>
 {{template "html-end"}}

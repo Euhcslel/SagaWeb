@@ -6,62 +6,8 @@
     <p>Тип ворот: {{.gate.GateType.Name}}</p>
     <!--Тип подъема-->
     <label for="liftType">Тип подъема</label>
-    <select name="liftType" oninput="updateTotalPrice()" class="custom-select">
-      {{range .cfg.LiftTypes}}
-      <option
-        data-id="{{.ID}}"
-        data-markup="{{.RetailMarkup}}"
-        {{if
-        eq
-        .ID
-        $.gate.LiftTypeID}}selected{{end}}
-      >
-        {{.Name}}
-      </option>
-      {{end}}
-    </select>
     <!--Цвет снаружи-->
-    <div>
-      <label for="colorOut">Цвет ворот снаружи</label>
-      <br />
-      {{range .cfg.Colors}}
-      <input
-        name="colorOut"
-        data-id="{{.ID}}"
-        type="checkbox"
-        style="background-color: #{{.Hex}};"
-        {{if
-        eq
-        .ID
-        $.gate.ColorOutID}}checked{{end}}
-      />
-      {{end}}
-    </div>
     <!--Количество циклов-->
-    <label for="cycleAmount">Количество циклов</label>
-    <select name="cycleAmount" oninput="updateTotalPrice()">
-      {{range .cfg.CycleAmounts}}
-      <option
-        data-id="{{.ID}}"
-        data-markup="{{.RetailMarkup}}"
-        {{if
-        eq
-        .ID
-        $.gate.CycleAmountID}}selected{{end}}
-      >
-        {{.Amount}}
-      </option>
-      {{end}}
-    </select>
-    <!--Статус-->
-    <label for="status">Статус заказа</label>
-    <select name="status" oninput="updateTotalPrice()">
-      {{range .statuses}}
-      <option data-id="{{.ID}}" {{if eq .ID $.gate.StatusID}}selected{{end}}>
-        {{.Name}}
-      </option>
-      {{end}}
-    </select>
   </div>
   <div class="options">
     <ul>

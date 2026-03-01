@@ -1,8 +1,90 @@
-@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap");
 @import url("/assets/styles/values.css");
 
-a {
+.button {
+  padding: var(--spacing-l);
+  border: none;
+  font-size: var(--font-size-md);
   text-decoration: none;
+  transition: all 0.3s ease-in-out;
+  color: var(--color-black);
+  text-align: center;
+}
+
+.button--primary {
+  background-color: var(--color-yellow);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.button--primary:hover {
+  background-color: var(--color-bright-yellow);
+  transform: translateY(-2px) translateX(-2px);
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.button--primary:active {
+  background-color: var(--color-intense-yellow);
+  transform: translate(0);
+  box-shadow: inset 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.dark-theme .button--primary {
+  background-color: var(--color-yellow);
+}
+
+.dark-theme .button--primary:hover {
+  background-color: var(--color-bright-yellow);
+  transform: translate(0);
+  box-shadow: 0 0 6px 4px rgba(255, 236, 105, 0.5);
+}
+
+.dark-theme .button--primary:active {
+  background-color: var(--color-intense-yellow);
+  box-shadow: inset 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.button--secondary {
+  background-color: transparent;
+  border: 2px solid var(--color-yellow);
+}
+
+.button--secondary:hover {
+  background-color: var(--color-yellow);
+}
+
+.button--secondary:active {
+  background-color: var(--color-bright-yellow);
+  box-shadow: inset 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.dark-theme .button--secondary {
+  background-color: transparent;
+  color: var(--color-white);
+  border: 2px solid var(--color-yellow);
+}
+
+.dark-theme .button--secondary:hover {
+  background-color: var(--color-yellow);
+  color: var(--color-black);
+}
+
+.dark-theme .button--secondary:active {
+  background-color: var(--color-bright-yellow);
+  box-shadow: inset 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.button--blocked {
+  background-color: var(--color-light-yellow);
+  color: var(--color-grey);
+}
+
+.button--tertiary {
+  color: var(--color-white);
+  background-color: transparent;
+  text-decoration: underline;
+}
+
+.button--tertiary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 body {
@@ -24,20 +106,6 @@ html {
   height: 100%;
 }
 
-button {
-  font-size: 16px;
-  background-color: var(--button-static);
-  border: none;
-  color: black;
-  padding: 1rem;
-  transition: var(--my-transition);
-}
-
-button:hover {
-  transform: scale(1.15);
-  background-color: var(--button-hover);
-}
-
 ::-webkit-scrollbar {
   width: 0;
 }
@@ -52,11 +120,11 @@ nav li {
   display: inline-block;
   padding: 1rem;
   margin-right: 0.5rem;
-  transition: var(--my-transition);
+  transition: all 0.3s ease-in-out;
 }
 
 nav li:hover {
-  background-color: var(--href-hover);
+  background-color: rgba(255, 255, 255, 0.463);
   transform: scale(1.15);
 }
 
@@ -71,8 +139,9 @@ nav {
   align-items: center;
   justify-content: space-between;
   min-height: 4rem;
+  padding: 0 var(--spacing-s) 0 0;
   display: flex;
-  background-color: var(--dark-grey);
+  background-color: var(--color-dark-grey);
 }
 
 nav img {
@@ -86,52 +155,117 @@ nav .nav-div {
   align-items: center;
 }
 
-.button-cart {
-  background-color: var(--dark-grey);
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 2px solid white;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 28px;
-  margin: 0 0.5rem;
+p {
+  margin: 0;
 }
 
-.button-cart:hover {
-  border: none;
-  color: rgb(255, 255, 255);
-  background-color: var(--href-hover);
-  font-size: 32px;
-}
-
-.primary-button {
-  background-color: var(--button-static);
-  color: var(--dark-grey);
-  text-decoration: none;
-  padding: 0.75rem;
-  margin: 0 1rem 0 1rem;
-  display: inline-block;
-  transition: var(--my-transition);
-  border: 2px solid transparent;
-}
-
-.primary-button:hover {
-  background-color: #ffc800;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(27, 27, 27, 0.2);
-  border-color: var(--dark-grey);
-}
-
-.button-catalog p {
-  margin-left: 5px;
-  font-size: 16px;
-}
 footer {
-  flex-shrink: 0;
-  background-color: var(--dark-grey);
-  color: white;
-  padding: 2rem 1rem;
+  background-color: var(--color-dark-grey);
+  color: var(--color-white);
+  padding: var(--spacing-xl);
+}
+
+footer .content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-xl);
+  width: max-content;
+}
+
+footer .content > div {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+footer .content .separator {
+  width: 1px;
+  margin: 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  align-self: stretch;
+  flex: 0 0 auto;
+}
+
+footer > .separator {
+  height: 1px;
+  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  margin: var(--spacing-xl) 0;
+}
+
+footer ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  width: max-content;
+}
+
+footer .content li:first-child {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-m);
+}
+
+footer .content li {
+  margin-bottom: var(--spacing-s);
+  font-size: var(--font-size-sm);
+}
+
+footer div.section-company {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+footer div.section-company p {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+footer .bottom {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+footer .bottom p {
+  font-size: var(--font-size-sm);
+}
+
+/* Text, Email Input */
+input[type="text"], input[type="email"] {
+  box-sizing: border-box;
+  padding: 16px;
+  border-radius: 0;
+  outline: none;
+  border: 1px solid #000;
+  width: 100%;
+}
+
+input[type="text"]:focus, input[type="email"]:focus {
+  outline: none;
+  box-shadow: none;
+  border-radius: 0;
+  border-color: yellow;
+}
+
+form label {
+  display: block;
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-s);
+}
+
+form {
+  gap: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+}
+
+button[type="submit"] {
+    align-self: center;
+}
+
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
 }

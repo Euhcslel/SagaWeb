@@ -13,13 +13,11 @@ type SalesAndGate struct {
 	ColorOutID    int64 `gorm:"column:color_out_id;not null"`
 	CycleAmountID int64 `gorm:"column:cycle_amount_id;not null"`
 	TotalPrice    int32 `gorm:"column:total_price;not null"`
-	StatusID      int32 `gorm:"column:status_id;not null"`
 
 	GateType    GateType    `gorm:"foreignKey:GateTypeID;references:ID"`
 	LiftType    LiftType    `gorm:"foreignKey:LiftTypeID;references:ID"`
 	ColorOut    Color       `gorm:"foreignKey:ColorOutID;references:ID"`
 	CycleAmount CycleAmount `gorm:"foreignKey:CycleAmountID;references:ID"`
-	Status      Status      `gorm:"foreignKey:StatusID;references:ID"`
 }
 
 func (*SalesAndGate) TableName() string {

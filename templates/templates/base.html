@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/assets/styles/base.css" />
+    <link rel="stylesheet" href="/assets/styles/inputs.css">
     <link rel="icon" href="/assets/images/favicon.ico" />
     <link
       rel="stylesheet"
@@ -16,7 +17,7 @@
     <title>Saga Doors</title>
   </head>
   <body>
-    <nav>
+    <nav class="dark-theme">
       <div class="nav-div">
         <img src="/assets/images/logo.png" alt="Логотип" />
         <ul>
@@ -28,28 +29,61 @@
         </ul>
       </div>
       <div class="nav-div">
-        <a href="/gate_type" class="button-cart">
+        <a href="/gate_type" class="button button--tertiary">
           <span class="material-symbols-outlined"> calculate </span>
         </a>
         {{if not .user}}
-        <a class="primary-button" href="/sign_in">Войти</a>
+        <a class="button button--primary" href="/sign_in">Войти</a>
         {{else}}
-          <a href="/user" class="button-cart">
+          <a href="/user" class="button button--tertiary">
             <span class="material-symbols-outlined"> account_circle </span>
           </a>
         {{end}}
       </div>
     </nav>
+    <script src="/assets/scripts/inputs.js"></script>
     <main>{{end}}
 
 {{define "html-end"}}</main>
     <footer>
-      <div>
-        <p>+7 (343) 343-96-99</p>
-        <p>г. Березовский</p>
+      <div class="content">
+        <div class="section-company">
+          <img src="/assets/images/logo.png" alt="" width="48px" height="48px">
+          <p>Saga Doors</p>
+        </div>
+        <hr class="separator">
+        <div class="section-about">
+          <ul>
+            <li>О компании</li>
+            <li>Главная</li>
+            <li>О нас</li>
+            <li>Наши дилеры</li>
+            <li>Стать дилером</li>
+          </ul>
+        </div>
+        <hr class="separator">
+        <div class="section-contacts">
+          <ul>
+            <li>Контакты</li>
+            <li>+7 (343) 343 96-99</li>
+            <li>г. Березовский</li>
+          </ul>
+        </div>
+        <hr class="separator">
+        <div class="section-details">
+          <ul>
+            <li>Реквизиты</li>
+            <li>ООО Сага Дорс</li>
+            <li>ИНН 6671287803</li>
+          </ul>
+        </div>
       </div>
-      <div>
-        <p>© ООО "Сага Дорс"</p>
+      <hr class="separator">
+      <div class="bottom">
+        <p>© 2026 Сага Дорс. Все права защищены</p>
+        <div class="social-icons">
+          <img src="/assets/images/max-messenger.svg" alt="Мессенджер Max" width="24px" height="24px">
+        </div>
       </div>
     </footer>
   </body>
@@ -57,5 +91,7 @@
 {{end}}
 
 {{define "no-footer-end"}}
-</main>
+    </main>
+  </body>
+</html>
 {{end}}

@@ -56,7 +56,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userId := user.ID
-	dbPassword := user.Password
+	dbPassword := user.PasswordHash
 
 	err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
 	if err != nil {
@@ -123,7 +123,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		Fullname:    fullname,
 		PhoneNumber: phone,
 		Email:       email,
-		Password:    passwordHash,
+		PasswordHash:    passwordHash,
 		StatusID:    status.ID,
 	}
 	database.DB.Create(&request)

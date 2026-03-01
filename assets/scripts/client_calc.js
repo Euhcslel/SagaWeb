@@ -3,49 +3,52 @@ let sizePrice = 0;
 // Переменная, хранящая полную стоимость конфигурации ворот
 let gatePrice = 0;
 
+document.addEventListener("input", function (event) {
+  if (event.target.matches("input[type='number']")) {
+    updateSizePrice();
+  }
+});
+
 // Функция, высчитывающая полную стоимость заказа
 function updateTotalPrice() {
   var totalPriceElement = document.querySelector(".totalPrice");
-  var liftTypeSelect = document.getElementsByName("liftType")[0];
-  var selectedLiftType = liftTypeSelect.options[liftTypeSelect.selectedIndex];
-  var cycleAmountSelect = document.getElementsByName("cycleAmount")[0];
-  var selectedCycleAmount =
-    cycleAmountSelect.options[cycleAmountSelect.selectedIndex];
-  var drivesSelect = document.getElementsByName("drive")[0];
-  var selectedDrive = drivesSelect.options[drivesSelect.selectedIndex];
 
-  var liftTypeMarkup =
-    (sizePrice * parseFloat(selectedLiftType.dataset.markup)) / 100;
-  var cycleAmountMarkup =
-    (sizePrice * parseFloat(selectedCycleAmount.dataset.markup)) / 100;
+  var liftInput = document.querySelector('input[name="liftType"]');
+  var liftMarkup = Number(liftInput.dataset.markup || 0);
+  var liftMarkupInMoney = (sizePrice * liftMarkup) / 100;
+
+  var cycleInput = document.querySelector('input[name="cycleAmount"]');
+  var cycleMarkup = Number(cycleInput.dataset.markup || 0);
+  var cycleMarkupInMoney = (sizePrice * cycleMarkup) / 100;
+
+  var driveInput = document.querySelector('input[name="drive"]');
+  var drivePrice = Number(driveInput.dataset.price || 0);
 
   var optionsPrice = 0;
   var optionDivs = document.querySelectorAll(".option-div");
   optionDivs.forEach((div) => {
-    var select = div.querySelector('select[name="option"]');
+    var optionInput = document.querySelector('input[name="option"]');
     var amountInput = div.querySelector('input[type="number"]');
 
-    if (select && amountInput) {
-      var selectedOption = select.options[select.selectedIndex];
-      var price = parseFloat(selectedOption.dataset.price) || 0;
+    if (optionInput && amountInput) {
+      var optionPrice = Number(optionInput.dataset.price || 0);
       var amount = parseInt(amountInput.value) || 0;
 
-      optionsPrice += price * amount;
+      optionsPrice += optionPrice * amount;
     }
   });
 
   var productsPrice = 0;
   var productDivs = document.querySelectorAll(".product-div");
   productDivs.forEach((div) => {
-    var select = div.querySelector('select[name="product"]');
+    var productInput = document.querySelector('input[name="product"]');
     var amountInput = div.querySelector('input[type="number"]');
 
-    if (select && amountInput) {
-      var selectedProduct = select.options[select.selectedIndex];
-      var price = parseFloat(selectedProduct.dataset.price) || 0;
+    if (productInput && amountInput) {
+      var productPrice = Number(productInput.dataset.price || 0);
       var amount = parseInt(amountInput.value) || 0;
 
-      productsPrice += price * amount;
+      productsPrice += productPrice * amount;
     }
   });
 
@@ -53,11 +56,11 @@ function updateTotalPrice() {
     productsPrice +
     optionsPrice +
     sizePrice +
-    liftTypeMarkup +
-    cycleAmountMarkup +
-    parseFloat(selectedDrive.dataset.price)
+    liftMarkupInMoney +
+    cycleMarkupInMoney +
+    drivePrice;
 
-  totalPriceElement.textContent = gatePrice;
+  totalPriceElement.textContent = gatePrice.toFixed(2) + " руб.";
 }
 
 // Функция, определяющая начальную стоимость ворот по ширине и высоте
@@ -76,6 +79,7 @@ async function updateSizePrice() {
 
   var width = parseInt(widthInput.value) || 0;
   var height = parseInt(heightInput.value) || 0;
+
 
   if (width >= widthInput.min && height >= heightInput.min) {
     const response = await fetch(
@@ -141,17 +145,16 @@ function addInOrder() {
     width: parseInt(document.getElementById("width").value),
     height: parseInt(document.getElementById("height").value),
     liftTypeId: parseInt(
-      document.querySelector('[name="liftType"]').selectedOptions[0].dataset.id,
+      document.querySelector('input[name="liftType"]').value,
     ),
     colorOutId: parseInt(
-      document.querySelector('input[name="colorOut"]:checked').dataset.id,
+      document.querySelector('input[name="colorOut"]').value,
     ),
     driveId: parseInt(
-      document.querySelector('[name="drive"]').selectedOptions[0].dataset.id,
+      document.querySelector('input[name="drive"]').value,
     ),
     cycleAmountId: parseInt(
-      document.querySelector('[name="cycleAmount"]').selectedOptions[0].dataset
-        .id,
+      document.querySelector('input[name="cycleAmount"]').value,
     ),
     options: optionsList,
     gatePrice: parseInt(gatePrice),
@@ -197,11 +200,15 @@ async function placeOrder() {
   const message = OrderRequest.create(payload);
   const buffer = OrderRequest.encode(message).finish();
 
-  await fetch("/orders", {
+  const res = await fetch("/orders", {
     method: "POST",
     headers: { "Content-Type": "application/x-protobuf" },
     body: buffer,
   });
+
+  if (res.ok) {
+    window.location.href = "/orders";
+  }
 }
 
 function deleteItem(button, divName) {

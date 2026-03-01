@@ -1,22 +1,30 @@
 @import url("/assets/styles/custom-checkbox.css");
 
+.calc-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 .myForm {
-  width: auto;
+  width: 100%;
   display: flex;
   justify-content: center;
   flex-direction: column;
+  justify-content: start;
   padding: 1rem;
 }
 
 .tab {
   margin-top: 2rem;
-  width: 100%;
+  width: 15%;
   display: flex;
-  justify-content: center;
-}
-
-.tablinks {
-  margin-left: 2rem;
+  flex-direction: column;
+  justify-content: start;
+  gap: var(--spacing-xl);
+  padding: 0 var(--spacing-xl)
 }
 
 .tabItem {
@@ -27,10 +35,14 @@
 #mainConfig {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
 }
 
-.list {
+#mainConfig .form {
+  display: flex;
+  flex-direction: column;
   width: 50%;
+  padding: var(--spacing-xl);
 }
 
 .totalDealerPrice::before {
@@ -45,47 +57,21 @@
   content: "Итоговая стоимость: "
 }
 
-hr {
-  margin: 2rem 0;
-}
-
 .addButton {
   position: absolute;
-  top: -2rem;
   right: 0;
-}
-
-/* Inputs */
-input, select {
-  border: 1px solid black;
-  border-radius: 0;
-}
-
-input[type="number"],
-input[type="text"],
-select {
-  display: block;
-  width: 75%;
-  height: 2rem;
-  margin: 1rem;
 }
 
 .product-div, .option-div {
   display: flex;
 }
 
-select[name="product"], select[name="option"] {
-  display: block;
-  width: 50%;
+.standart-configuration {
+  width: 40%;
+  padding: var(--spacing-xl);
 }
 
-input[name="amount"] {
-  display: block;
-  width: 2rem;
-  height: 2rem;
-}
 
-input[name="amount"]::-webkit-inner-spin-button,
-input[name="amount"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
+.standart-configuration img {
+  width: 100%;
 }

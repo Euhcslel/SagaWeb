@@ -1,16 +1,43 @@
 {{template "html-start" .}}
-<h1>Все заказы пользователя</h1>
-{{range .orders}}
-<a href="/orders/{{.ID}}">
-  <div>
-    <p>Заказ #{{.ID}}</p>
-    <p>Клиент: {{.Client.Fullname}} ({{.Client.PhoneNumber}})</p>
-    {{if .Manager}}
-    <p>Менеджер: {{.Manager.Fullname}} ({{.Manager.Email}})</p>
+<div class="table-container">
+  <h1>Все заказы пользователя</h1>
+  <hr class="gradient-line" />
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>№ Заказа</th>
+          <th>Заказчик</th>
+          <th>Менеджер</th>
+          <th>Дата заказа</th>
+          <th>Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .orders}}
+          <tr
+          onclick="window.location='/orders/{{.ID}}'"
+          {{if eq .Status.Name "В производстве"}}
+          style="background-color: #96ceff;"
+          {{else if eq .Status.Name "Завершен"}}
+          style="background-color: #949494;"
+          {{end}}>
+            <td><p>Заказ #{{.ID}}</p></td>
+            <td><p>{{.Client.Fullname}}</p></td>
+            <td>
+              {{if .Manager}}
+              <p>{{.Manager.Fullname}}</p>
 
-    {{else}}
-    <p>Менеджер не привязан</p>
-    {{end}}
+              {{else}}
+              <p>Нет</p>
+              {{end}}
+            </td>
+            <td>{{fmtTime .CreatedAt}}</td>
+            <td>{{.Status.Name}}</td>
+          </tr>
+        {{end}}
+      </tbody>
+    </table>
   </div>
-</a>
-{{end}} {{template "html-end"}}
+</div>
+{{template "html-end"}}

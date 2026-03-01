@@ -1,5 +1,14 @@
 {{template "html-start" .}}
-{{range .gateTypes}}
-<a href="/calculator?gateType={{.ID}}">{{.Name}}</a>
-{{end}}
+<style>
+    .button-container {
+        display: block;
+    }
+</style>
+<div class="button-container">
+  {{range .gateTypes}}
+  <a href="/calculator?gateType={{.ID}}" class="button button--primary"
+    >{{.Name}}</a
+  >
+  {{end}}
+</div>
 {{template "html-end"}}

@@ -21,30 +21,17 @@ form {
   margin: auto;
 }
 
-input {
-  margin-bottom: 1rem;
-  border: 1px solid black;
-  padding: 0.5rem;
-  display: block;
-}
-
 input[type="checkbox"] {
   margin-bottom: 0;
 }
 
 section#for-dealer {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.75)),
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.75)),
     url("/assets/images/gates.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-}
-
-.description {
-  width: 40%;
-  height: auto;
-  display: flex;
-  flex-direction: column;
 }
 
 section#for-dealer .description {
@@ -56,17 +43,6 @@ section#for-dealer .description {
 
 section#main .description {
   justify-content: space-between;
-}
-
-section#main .description h1 {
-  text-align: center;
-  margin-top: 5rem;
-  padding: 2rem;
-  font-weight: 200;
-  font-size: 40px;
-  color: white;
-  background-color: var(--dark-grey);
-  box-shadow: 10px 10px 5px #00000061;
 }
 
 .logo {
@@ -91,18 +67,41 @@ section#main .description h1 {
   height: 24rem;
 }
 
+.description {
+  width: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
 .cta-block {
-  margin: auto 5rem;
-  text-align: start;
+  padding: 24px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
   text-align: center;
 }
 
-.cta-block a {
-  width: 75%;
+.cta-block p {
+  margin-bottom: var(--spacing-s);
 }
 
-.description div:first-child {
-  margin: 5rem 0 0 2.5rem;
+.horizontal-container {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  justify-content: center;
+}
+
+.gradient-line {
+  border: none;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--color-dark-grey) 50%,
+    transparent 100%
+  );
+  margin-bottom: var(--spacing-xl);
 }
 
 .benefits li {
@@ -115,11 +114,61 @@ section#main .description h1 {
   content: url("/assets/images/white_checkbox.png");
 }
 
-.hint {
-  font-size: small;
-  margin-top: 4px;
+section#about {
+  position: relative;
+  height: 90vh;
+  overflow-y: hidden;
 }
 
-.hint::before {
-  content: "*";
+section#about img {
+  height: 100%;
+  position: absolute;
+  right: 0;
+  z-index: 1;
+}
+
+section#about .history {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 40%;
+  background-color: var(--color-white);
+  padding: var(--spacing-xl);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+}
+
+section#about .history p {
+  margin-bottom: var(--spacing-s);
+  text-indent: var(--spacing-s);
+  text-align: justify;
+}
+
+section#about .history h1 {
+  text-align: center;
+}
+
+section#dealers-list {
+  padding: var(--spacing-xl);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.table-scroll {
+  max-height: 75vh;
+  overflow-y: scroll;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 1rem;
+}
+
+tbody tr {
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+}
+
+td button {
+  margin: 0 0 var(--spacing-s) 0;
 }
