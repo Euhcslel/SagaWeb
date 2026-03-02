@@ -64,7 +64,10 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.SetSession(w, userId)
+	if err = helpers.SetSession(w, userId); err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -88,6 +91,7 @@ func SignUpFrom(w http.ResponseWriter, r *http.Request) {
 // Route: /sign_up
 // Method: POST
 func SignUp(w http.ResponseWriter, r *http.Request) {
+	// Может быть проблема при нулевом или неверном значении Cookie
 	_, err := r.Cookie("session_token")
 	if err == nil {
 		http.Redirect(w, r, "/user", http.StatusSeeOther)
@@ -119,12 +123,12 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	request := models.DealerRegRequest{
-		Company:     company,
-		Fullname:    fullname,
-		PhoneNumber: phone,
-		Email:       email,
-		PasswordHash:    passwordHash,
-		StatusID:    status.ID,
+		Company:      company,
+		Fullname:     fullname,
+		PhoneNumber:  phone,
+		Email:        email,
+		PasswordHash: passwordHash,
+		StatusID:     status.ID,
 	}
 	database.DB.Create(&request)
 

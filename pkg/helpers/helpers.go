@@ -34,17 +34,15 @@ func GetUserBySessionToken(w http.ResponseWriter, r *http.Request) *models.User 
 	return &session.User
 }
 
-func SetSession(w http.ResponseWriter, userId int64) {
+func SetSession(w http.ResponseWriter, userId int64) error {
 	token := uuidv7.New().String()
 
 	session := models.Session{
 		UserID: userId,
 		Token:  token,
 	}
-	err := database.DB.Create(&session).Error
-	if err != nil {
-		WriteError(w, err, http.StatusInternalServerError)
-		return
+	if err := database.DB.Create(&session).Error; err != nil {
+		return err
 	}
 
 	cookie := &http.Cookie{
@@ -56,4 +54,5 @@ func SetSession(w http.ResponseWriter, userId int64) {
 		SameSite: http.SameSiteLaxMode,
 	}
 	http.SetCookie(w, cookie)
+	return nil
 }

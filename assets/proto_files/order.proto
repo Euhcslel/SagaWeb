@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package proto;
-option go_package = "project/proto";
+option go_package = "project/pkg/proto_files";
 
 message GateConfig {
   int32 gateTypeId = 1;

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "project/pkg/proto_files";
+
+message DealerSizePrices {
+    int64 dealer_price = 1;
+    int64 client_price = 2;
+}
+
+message ClientSizePrice {
+    int64 client_price = 1;
+}
+
+message SizePrice {
+  oneof price {
+    DealerSizePrices dealer = 1;
+    ClientSizePrice client = 2;
+  }
+}

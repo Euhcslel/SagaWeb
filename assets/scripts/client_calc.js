@@ -80,7 +80,6 @@ async function updateSizePrice() {
   var width = parseInt(widthInput.value) || 0;
   var height = parseInt(heightInput.value) || 0;
 
-
   if (width >= widthInput.min && height >= heightInput.min) {
     const response = await fetch(
       `/sizes?width=${width}&height=${height}&gateType=${gateType}`,
@@ -92,8 +91,22 @@ async function updateSizePrice() {
       },
     );
 
-    const data = await response.json();
-    sizePrice = data.price;
+    const buffer = await response.arrayBuffer();
+
+    const root = await protobuf.load("/assets/proto_files/prices.proto");
+    const SizePrice = root.lookupType("proto.SizePrice");
+
+    const message = SizePrice.decode(new Uint8Array(buffer));
+    const data = SizePrice.toObject(message, {
+      longs: Number,
+    });
+
+    if (data.dealer) {
+      sizePrice = data.dealer.dealerPrice;
+    } else if (data.client) {
+      sizePrice = data.client.clientPrice;
+    }
+
     updateTotalPrice();
   }
 }
@@ -150,9 +163,7 @@ function addInOrder() {
     colorOutId: parseInt(
       document.querySelector('input[name="colorOut"]').value,
     ),
-    driveId: parseInt(
-      document.querySelector('input[name="drive"]').value,
-    ),
+    driveId: parseInt(document.querySelector('input[name="drive"]').value),
     cycleAmountId: parseInt(
       document.querySelector('input[name="cycleAmount"]').value,
     ),
