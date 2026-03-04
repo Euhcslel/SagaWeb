@@ -3,25 +3,34 @@
 <div class="order-content">
   <div class="gates">
     {{range .order.Gates}}
-    <a href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}">Ворота №{{.Gate.RowNumber}}</a>
-    <ul>
-      <li>{{.Gate.Width}}</li>
-      <li>{{.Gate.Height}}</li>
-      <li>{{.Gate.GateType.Name}}</li>
-      <li>{{.Gate.LiftType.Name}}</li>
-      <li>{{.Gate.ColorOut.Code}}</li>
-      <li>{{.Gate.CycleAmount.Name}}</li>
-      <li>{{.Gate.TotalPrice}}</li>
-    </ul>
+    <div class="order-card">
+      <div class="card-header">
+        <h2>
+          Ворота №{{.Gate.RowNumber}}
+        </h2>
+        <a
+          class="button button--secondary"
+          href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}"
+          ><img src="/assets/images/search.svg" alt="Лупа"
+        /></a>
+      </div>
+      <ul>
+        <li>{{.Gate.Width}}</li>
+        <li>{{.Gate.Height}}</li>
+        <li>{{.Gate.GateType.Name}}</li>
+        <li>{{.Gate.LiftType.Name}}</li>
+        <li>{{.Gate.ColorOut.Code}}</li>
+        <li>{{.Gate.CycleAmount.Name}}</li>
+        <li>{{.Gate.TotalPrice}}</li>
+      </ul>
+    </div>
     {{end}}
   </div>
   <div class="products">
     <p>Товары</p>
     <ul>
       {{range .order.Products}}
-      <li>
-        {{.Product.Name}} x {{.Amount}}
-      </li>
+      <li>{{.Product.Name}} x {{.Amount}}</li>
       {{end}}
     </ul>
   </div>

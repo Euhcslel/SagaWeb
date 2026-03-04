@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"project/pkg/database"
 	"project/pkg/models"
 	"strconv"
@@ -16,33 +17,34 @@ func main() {
 	if err_load != nil {
 		log.Fatal("Error loading .env file")
 	}
-	db := database.InitDB()
-	var homeId int
-	var promId int
 
-	db.Model(&models.GateType{}).
-		Where("name = ?", "Бытовые ворота").
-		Select("id").
-		Scan(&homeId)
+	database.InitDB()
 
-	db.Model(&models.GateType{}).
-		Where("name = ?", "Промышленные ворота").
-		Select("id").
-		Scan(&promId)
+	dealerPathInd := os.Getenv("EXCEL_IMPORT_IND_DEALER_PATH")
+	if dealerPathInd == "" {
+		log.Fatal("EXCEL_IMPORT_IND_DEALER_PATH не найден в .env файле")
+	}
 
-	insertHomeSizes(homeId)
-	insertPromSizes(promId)
+	clientPathInd := os.Getenv("EXCEL_IMPORT_IND_CLIENT_PATH")
+	if clientPathInd == "" {
+		log.Fatal("EXCEL_IMPORT_IND_CLIENT_PATH не найден в .env файле")
+	}
+
+	dealerPathRes := os.Getenv("EXCEL_IMPORT_RES_DEALER_PATH")
+	if dealerPathRes == "" {
+		log.Fatal("EXCEL_IMPORT_RES_DEALER_PATH не найден в .env файле")
+	}
+
+	clientPathRes := os.Getenv("EXCEL_IMPORT_RES_CLIENT_PATH")
+	if clientPathRes == "" {
+		log.Fatal("EXCEL_IMPORT_RES_CLIENT_PATH не найден в .env файле")
+	}
+
+	createSizes(dealerPathInd, clientPathInd, models.GateTypeInd)
+	createSizes(dealerPathRes, clientPathRes, models.GateTypeRes)
 }
 
-func insertPromSizes(id int) {
-	createSizes("C:/Users/np_gl/Desktop/Диплом/sizes_import/prom_dealer_sizes.xlsx", "C:/Users/np_gl/Desktop/Диплом/sizes_import/prom_client_sizes.xlsx", id)
-}
-
-func insertHomeSizes(id int) {
-	createSizes("C:/Users/np_gl/Desktop/Диплом/sizes_import/home_dealer_sizes.xlsx", "C:/Users/np_gl/Desktop/Диплом/sizes_import/home_client_sizes.xlsx", id)
-}
-
-func createSizes(dealerPath string, clientPath string, gateType int) {
+func createSizes(dealerPath string, clientPath string, gateType models.GateType) {
 	clientPricesFile := readExcelFile(clientPath)
 	if clientPricesFile == nil {
 		return
@@ -63,7 +65,6 @@ func createSizes(dealerPath string, clientPath string, gateType int) {
 		}
 	}()
 
-	db := database.InitDB()
 	sizes := []models.Size{}
 
 	clientRows, err := clientPricesFile.GetRows("Лист1")
@@ -139,13 +140,13 @@ func createSizes(dealerPath string, clientPath string, gateType int) {
 			intRetailPrice, _ := strconv.Atoi(clientCell)
 			size.RetailPrice = int64(intRetailPrice)
 
-			size.GateTypeID = int64(gateType)
+			size.GateType = gateType
 
 			sizes = append(sizes, size)
 		}
 	}
 
-	db.Create(&sizes)
+	database.DB.Create(&sizes)
 }
 
 func readExcelFile(path string) *excelize.File {

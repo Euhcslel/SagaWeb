@@ -4,7 +4,7 @@ package proto;
 option go_package = "project/pkg/proto_files";
 
 message GateConfig {
-  int32 gateTypeId = 1;
+  GateType gateType = 1;
   int32 width = 2;
   int32 height = 3;
   int64 liftTypeId = 4;
@@ -14,6 +14,11 @@ message GateConfig {
   map<int32, int32> options = 8;
   int32 gatePrice = 9;
   int32 headroom = 10;
+}
+
+enum GateType {
+  GATE_TYPE_IND = 0;
+  GATE_TYPE_RES = 1;
 }
 
 message OrderRequest {

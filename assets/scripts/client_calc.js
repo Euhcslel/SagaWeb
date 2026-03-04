@@ -3,6 +3,12 @@ let sizePrice = 0;
 // Переменная, хранящая полную стоимость конфигурации ворот
 let gatePrice = 0;
 
+// Типы ворот для protobuf
+const GateType = {
+  IND: 1,
+  RES: 2,
+};
+
 document.addEventListener("input", function (event) {
   if (event.target.matches("input[type='number']")) {
     updateSizePrice();
@@ -154,7 +160,7 @@ function addInOrder() {
 
   const config = {
     headroom: 100,
-    gateTypeId: parseInt(document.querySelector(".gateType").value),
+    gateType: GateType(document.querySelector(".gateType").value),
     width: parseInt(document.getElementById("width").value),
     height: parseInt(document.getElementById("height").value),
     liftTypeId: parseInt(

@@ -27,7 +27,12 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := r.URL.Query()
-	gateType := query.Get("gateType")
+	gateTypeParam := query.Get("gateType")
+	gateType, err := models.DetermineGateType(gateTypeParam)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
 
 	cfg, err := getGateCfg(gateType)
 	if err != nil {
@@ -134,7 +139,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func getGateCfg(gateType string) (types.Config, error) {
+func getGateCfg(gateType models.GateType) (types.Config, error) {
 	cfg := types.Config{
 		LiftTypes:    []models.LiftType{},
 		Colors:       []models.Color{},
@@ -144,32 +149,18 @@ func getGateCfg(gateType string) (types.Config, error) {
 		Products:     []models.Product{},
 	}
 
-	var gateTypes []models.GateType
-	if err := database.DB.Find(&gateTypes).Error; err != nil {
-		return types.Config{}, err
-	}
-
-	gateTypesMap := make(map[int32]string)
-	for _, gateTypeItem := range gateTypes {
-		gateTypesMap[gateTypeItem.ID] = gateTypeItem.Name
-	}
-
 	var wg sync.WaitGroup
 	errChan := make(chan error, 8)
-	gateTypeInt, err := strconv.ParseInt(gateType, 10, 32)
-	if err != nil {
-		return cfg, err
-	}
 
-	switch gateTypesMap[int32(gateTypeInt)] {
-	case "Промышленные ворота":
+	switch gateType {
+	case models.GateTypeInd:
 		wg.Go(func() {
 			if err := database.DB.Find(&cfg.IndustrialDrives).Error; err != nil {
 				errChan <- err
 				return
 			}
 		})
-	case "Бытовые ворота":
+	case models.GateTypeRes:
 		wg.Go(func() {
 			if err := database.DB.Find(&cfg.ResidentialDrives).Error; err != nil {
 				errChan <- err

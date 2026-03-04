@@ -1,7 +1,25 @@
-.products, .gates {
-    width: 50%;
+.gates {
+  width: 50%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xl);
+  padding: var(--spacing-xl);
 }
 
 .order-content {
-    display: flex;
+  display: flex;
+}
+
+.order-card {
+  position: relative;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-m);
+}
+
+.order-card a {
+  position: absolute;
+  right: var(--spacing-m);
+  top: var(--spacing-m);
 }

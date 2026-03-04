@@ -15,26 +15,27 @@
       </thead>
       <tbody>
         {{range .orders}}
-          <tr
+        <tr
           onclick="window.location='/orders/{{.ID}}'"
-          {{if eq .Status.Name "В производстве"}}
-          style="background-color: #96ceff;"
-          {{else if eq .Status.Name "Завершен"}}
-          style="background-color: #949494;"
-          {{end}}>
-            <td><p>Заказ #{{.ID}}</p></td>
-            <td><p>{{.Client.Fullname}}</p></td>
-            <td>
-              {{if .Manager}}
-              <p>{{.Manager.Fullname}}</p>
-
-              {{else}}
-              <p>Нет</p>
-              {{end}}
-            </td>
-            <td>{{fmtTime .CreatedAt}}</td>
-            <td>{{.Status.Name}}</td>
-          </tr>
+          class="
+              {{if eq .Status "new"}}status-new{{end}}
+              {{if eq .Status "pending"}}status-pending{{end}}
+              {{if eq .Status "paid"}}status-success{{end}}
+              {{if eq .Status "cancelled"}}status-cancelled{{end}}
+            "
+        >
+          <td><p>Заказ #{{.ID}}</p></td>
+          <td><p>{{.Client.Fullname}}</p></td>
+          <td>
+            {{if .Manager}}
+            <p>{{.Manager.Fullname}}</p>
+            {{else}}
+            <p>Нет</p>
+            {{end}}
+          </td>
+          <td>{{fmtTime .CreatedAt}}</td>
+          <td>{{.Status.Label}}</td>
+        </tr>
         {{end}}
       </tbody>
     </table>

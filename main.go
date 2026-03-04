@@ -19,8 +19,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	db := database.InitDB()
-	database.AutoMigrateAll(db)
+	database.InitDB()
 
 	logFile, err := os.Create("logs/error.log")
 	if err != nil {

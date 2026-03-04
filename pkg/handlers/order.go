@@ -10,8 +10,6 @@ import (
 	"project/pkg/types"
 	"sync"
 
-	"strconv"
-
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/proto"
 )
@@ -26,13 +24,12 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 
 	// Вернуть limit потом
 	var orders []models.Sale
-	if (user.Role.Name == "dealer") {
+	if user.Role.Name == "dealer" {
 		if err := database.DB.
 			Preload("Client").
 			Preload("Manager").
-			Preload("Status").
 			Where("client_id = ?", user.ID).
-			Find(&orders).Error;err != nil {
+			Find(&orders).Error; err != nil {
 			helpers.WriteError(w, err, http.StatusInternalServerError)
 			return
 		}
@@ -40,16 +37,15 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 		if err := database.DB.
 			Preload("Client").
 			Preload("Manager").
-			Preload("Status").
 			Where("manager_id = ?", user.ID).
-			Find(&orders).Error;err != nil {
+			Find(&orders).Error; err != nil {
 			helpers.WriteError(w, err, http.StatusInternalServerError)
 			return
 		}
 	}
 
 	data := map[string]any{
-		"css":    "",
+		"css":    "order_list.css",
 		"orders": orders,
 		"user":   user,
 	}
@@ -163,15 +159,8 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stringGateType := strconv.Itoa(int(gate.GateTypeID))
-	cfg, err := getGateCfg(stringGateType)
+	cfg, err := getGateCfg(gate.GateType)
 	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	var statuses []models.Status
-	if err := database.DB.Model(models.Status{}).Find(&statuses).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -181,7 +170,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		"gate":     gate,
 		"options":  options,
 		"cfg":      cfg,
-		"statuses": statuses,
+		"statuses": models.GetAllOrderStatuses(),
 		"user":     user,
 	}
 
@@ -244,7 +233,7 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 		order = models.Sale{
 			ClientID:  &user.ID,
 			ManagerID: managerId,
-			StatusID:  19,
+			Status:    models.OrderStatusNew,
 		}
 
 		database.DB.Create(&order)
@@ -252,7 +241,7 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 		order = models.Sale{
 			ClientID:  nil,
 			ManagerID: user.ID,
-			StatusID:  19,
+			Status:    models.OrderStatusNew,
 		}
 
 		database.DB.Create(&order)
@@ -271,6 +260,15 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Проверка на валидность типов ворот в заказе
+	for _, gate := range orderData.OrderGates {
+		_, err := models.GateTypeFromProto(gate.GateType)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+
 	for productId, amount := range orderData.Products {
 		salesAndProduct := models.SalesAndProduct{
 			SaleID:    order.ID,
@@ -283,10 +281,12 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 
 	var wg sync.WaitGroup
 	for i, gate := range orderData.OrderGates {
+		gateType, _ := models.GateTypeFromProto(gate.GateType)
+
 		orderDetails := models.SalesAndGate{
 			SaleID:        order.ID,
 			RowNumber:     int64(i + 1),
-			GateTypeID:    gate.GateTypeId,
+			GateType:      gateType,
 			Width:         gate.Width,
 			Height:        gate.Height,
 			LiftTypeID:    gate.LiftTypeId,

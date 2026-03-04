@@ -84,7 +84,8 @@ func SignUpFrom(w http.ResponseWriter, r *http.Request) {
 		"css": "auth.css",
 	}
 	if err := templates.ExecuteTemplate(w, "sign_up.html", data); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -116,19 +117,13 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var status models.Status
-	if err := database.DB.Model(&models.Status{}).Where("name = ?", "Ожидает подтверждения").Find(&status).Error; err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
-	}
-
 	request := models.DealerRegRequest{
 		Company:      company,
 		Fullname:     fullname,
 		PhoneNumber:  phone,
 		Email:        email,
 		PasswordHash: passwordHash,
-		StatusID:     status.ID,
+		Status:       models.RegRequestStatusPending,
 	}
 	database.DB.Create(&request)
 
