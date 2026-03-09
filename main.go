@@ -48,7 +48,7 @@ func main() {
 	// Аутентификация
 	r.HandleFunc("/sign_in", handlers.SignInForm).Methods("GET")
 	r.HandleFunc("/sign_in", handlers.SignIn).Methods("POST")
-	r.HandleFunc("/sign_up", handlers.SignUpFrom).Methods("GET")
+	r.HandleFunc("/sign_up", handlers.SignUpForm).Methods("GET")
 	r.HandleFunc("/sign_up", handlers.SignUp).Methods("POST")
 	r.HandleFunc("/sign_out", handlers.SignOut).Methods("POST")
 

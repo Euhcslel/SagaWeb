@@ -13,7 +13,7 @@ import (
 // Route: /sign_in
 // Method: GET
 func SignInForm(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Cookie("session_token")
+	_, err := helpers.GetUserBySessionToken(r)
 	if err == nil {
 		http.Redirect(w, r, "/user", http.StatusSeeOther)
 		return
@@ -31,7 +31,7 @@ func SignInForm(w http.ResponseWriter, r *http.Request) {
 // Route: /sign_in
 // Method: POST
 func SignIn(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Cookie("session_token")
+	_, err := helpers.GetUserBySessionToken(r)
 	if err == nil {
 		http.Redirect(w, r, "/user", http.StatusSeeOther)
 		return
@@ -47,12 +47,12 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	var user models.User
-	err = database.DB.Model(&models.User{}).
+	err = database.DB.
 		Where("username = ?", username).
 		First(&user).
 		Error
 	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusUnauthorized)
 		return
 	}
 	userId := user.ID
@@ -60,7 +60,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
 	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusUnauthorized)
 		return
 	}
 
@@ -73,8 +73,8 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 // Route: /sign_up
 // Method: GET
-func SignUpFrom(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Cookie("session_token")
+func SignUpForm(w http.ResponseWriter, r *http.Request) {
+	_, err := helpers.GetUserBySessionToken(r)
 	if err == nil {
 		http.Redirect(w, r, "/user", http.StatusSeeOther)
 		return
@@ -92,8 +92,7 @@ func SignUpFrom(w http.ResponseWriter, r *http.Request) {
 // Route: /sign_up
 // Method: POST
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	// Может быть проблема при нулевом или неверном значении Cookie
-	_, err := r.Cookie("session_token")
+	_, err := helpers.GetUserBySessionToken(r)
 	if err == nil {
 		http.Redirect(w, r, "/user", http.StatusSeeOther)
 		return
@@ -125,7 +124,11 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		PasswordHash: passwordHash,
 		Status:       models.RegRequestStatusPending,
 	}
-	database.DB.Create(&request)
+
+	if err := database.DB.Create(&request).Error; err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -133,16 +136,10 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 // Route: /sign_out
 // Method: POST
 func SignOut(w http.ResponseWriter, r *http.Request) {
-	sessionToken, err := r.Cookie("session_token")
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusUnauthorized)
-		return
-	}
-	token := sessionToken.Value
+	cookie, err := r.Cookie("session_token")
 
-	if err := database.DB.Where("token = ?", token).Delete(models.Session{}).Error; err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
+	if err == nil {
+		database.DB.Where("token = ?", cookie.Value).Delete(models.Session{})
 	}
 
 	http.SetCookie(w, &http.Cookie{
