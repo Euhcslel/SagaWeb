@@ -10,8 +10,9 @@ import (
 // Route: /user
 // Method: GET
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
-	user := helpers.GetUserBySessionToken(w, r)
-	if user == nil {
+	user, err := helpers.GetUserBySessionToken(r)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusUnauthorized)
 		return
 	}
 
@@ -28,8 +29,9 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 // Route: /user/dealers
 // Method: GET
 func GetUserDealers(w http.ResponseWriter, r *http.Request) {
-	user := helpers.GetUserBySessionToken(w, r)
-	if user == nil {
+	user, err := helpers.GetUserBySessionToken(r)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusUnauthorized)
 		return
 	}
 	role := user.Role.Name

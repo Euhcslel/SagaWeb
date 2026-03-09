@@ -4,15 +4,14 @@ import (
 	"net/http"
 	"project/pkg/database"
 	"project/pkg/models"
-	"time"
 
 	"github.com/samborkent/uuidv7"
 )
 
-func GetUserBySessionToken(w http.ResponseWriter, r *http.Request) *models.User {
+func GetUserBySessionToken(r *http.Request) (*models.User, error) {
 	sessionToken, err := r.Cookie("session_token")
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	token := sessionToken.Value
 
@@ -22,16 +21,10 @@ func GetUserBySessionToken(w http.ResponseWriter, r *http.Request) *models.User 
 		Where("token = ?", token).
 		First(&session).Error
 	if err != nil {
-		WriteError(w, err, http.StatusInternalServerError)
-		return nil
-	} else if session.ExpiresAt.Before(time.Now()) {
-		if err := database.DB.Delete(models.Session{}).Where("token = ?", token).Error; err != nil {
-			WriteError(w, err, http.StatusInternalServerError)
-		}
-		return nil
+		return nil, err
 	}
 
-	return &session.User
+	return &session.User, nil
 }
 
 func SetSession(w http.ResponseWriter, userId int64) error {

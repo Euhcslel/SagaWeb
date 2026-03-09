@@ -25,7 +25,7 @@ func FormatDateTime(t time.Time) string {
 var templates = template.Must(
 	template.New("").
 		Funcs(template.FuncMap{
-			"dict": dict,
+			"dict":    dict,
 			"fmtTime": FormatDateTime,
 		}).
 		ParseGlob("templates/**/*.html"),
@@ -34,7 +34,7 @@ var templates = template.Must(
 // Route: /
 // Method: GET
 func MainHandler(w http.ResponseWriter, r *http.Request) {
-	user := helpers.GetUserBySessionToken(w, r)
+	user, _ := helpers.GetUserBySessionToken(r)
 
 	data := map[string]any{
 		"css":  "main.css",
@@ -49,7 +49,7 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 // Route: /gate_types
 // Method: GET
 func GetGateTypesList(w http.ResponseWriter, r *http.Request) {
-	user := helpers.GetUserBySessionToken(w, r)
+	user, _ := helpers.GetUserBySessionToken(r)
 
 	data := map[string]any{
 		"css":       "gate_type.css",

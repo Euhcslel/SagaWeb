@@ -20,7 +20,8 @@ func hasDealerAccess(role string) bool {
 // Route: /calculator
 // Method: GET
 func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
-	user := helpers.GetUserBySessionToken(w, r)
+	user, _ := helpers.GetUserBySessionToken(r)
+
 	role := "client"
 	if user != nil {
 		role = user.Role.Name
@@ -57,7 +58,8 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 // Route: /sizes
 // Method: GET
 func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
-	user := helpers.GetUserBySessionToken(w, r)
+	user, _ := helpers.GetUserBySessionToken(r)
+
 	role := "client"
 	if user != nil {
 		role = user.Role.Name
