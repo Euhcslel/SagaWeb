@@ -43,7 +43,7 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 	isDealer := hasDealerAccess(role)
 
 	data := map[string]any{
-		"css":      "calculator.css",
+		"css":      "calc.css",
 		"cfg":      cfg,
 		"user":     user,
 		"isDealer": isDealer,
@@ -76,7 +76,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gateTypeID, err := strconv.Atoi(query.Get("gateType"))
+	gateType, err := models.DetermineGateType(query.Get("gateType"))
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -89,7 +89,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 		var size models.Size
 		if err := database.DB.Model(&models.Size{}).
 			Where("width >= ? AND height >= ?", width, height).
-			Where("gate_type_id = ?", gateTypeID).
+			Where("gate_type = ?", gateType).
 			Limit(1).
 			Order("width asc, height asc").
 			Find(&size).Error; err != nil {
@@ -110,7 +110,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 		if err := database.DB.Model(&models.Size{}).
 			Select("RetailPrice").
 			Where("width >= ? AND height >= ?", width, height).
-			Where("gate_type_id = ?", gateTypeID).
+			Where("gate_type = ?", gateType).
 			Limit(1).
 			Order("width asc, height asc").
 			Pluck("RetailPrice", &price).Error; err != nil {
@@ -194,7 +194,7 @@ func getGateCfg(gateType models.GateType) (types.Config, error) {
 		if err := database.DB.
 			Model(&models.Size{}).
 			Select("MAX(width) as max_value, MIN(width) as min_value").
-			Where("gate_type_id = ?", gateType).
+			Where("gate_type = ?", gateType).
 			Scan(&cfg.WidthParams).Error; err != nil {
 			errChan <- err
 			return
@@ -205,7 +205,7 @@ func getGateCfg(gateType models.GateType) (types.Config, error) {
 		if err := database.DB.
 			Model(&models.Size{}).
 			Select("MAX(height) as max_value, MIN(height) as min_value").
-			Where("gate_type_id = ?", gateType).
+			Where("gate_type = ?", gateType).
 			Scan(&cfg.HeightParams).Error; err != nil {
 			errChan <- err
 			return

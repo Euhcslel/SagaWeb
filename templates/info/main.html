@@ -129,21 +129,25 @@
   </div>
   <div class="form">
     <form action="/reg" method="post">
+      <input type="hidden" name="accountType" value="dealer" />
       <div class="input-container">
         <label for="fullname">ФИО</label>
-        {{template "text" (dict "ID" "fullname" "Name" "fullname" "Value" "" "Required" true)}}
+        <input type="text" name="fullname" id="fullname" />
       </div>
       <div class="input-container">
         <label for="company">Название компании</label>
-        {{template "text" (dict "ID" "company" "Name" "company" "Value" "" "Required" true)}}
+        <input type="text" name="company" id="company" />
       </div>
       <div class="input-container">
         <label for="phone">Номер телефона</label>
-        {{template "phone" (dict "ID" "phone" "Name" "phone" "Value" "" "Required" true)}}
+        <div class="phone">
+          <span class="prefix">+7</span>
+          <input type="tel" pattern="[0-9]*" name="phone" id="phone" />
+        </div>
       </div>
       <div class="input-container">
         <label for="email">Почта</label>
-        {{template "email" (dict "Value" "" "Required" true)}}
+        <input type="email" name="email" id="email" />
       </div>
       <div class="checkbox-container">
         <input type="checkbox" required name="consent" value="1" />

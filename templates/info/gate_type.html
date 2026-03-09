@@ -1,14 +1,13 @@
 {{template "html-start" .}}
-<style>
-    .button-container {
-        display: block;
-    }
-</style>
 <div class="button-container">
   {{range .gateTypes}}
-  <a href="/calculator?gateType={{.ID}}" class="button button--primary"
-    >{{.Name}}</a
-  >
+  <div class="card">
+    <a href="/calculator?gateType={{.}}" class="button button--primary"
+      ><span> {{.Label}} </span>
+    </a>
+    
+    <img src="../assets/images/{{.}}_gates.jpeg" alt="{{.Label}}" />
+  </div>
   {{end}}
 </div>
 {{template "html-end"}}

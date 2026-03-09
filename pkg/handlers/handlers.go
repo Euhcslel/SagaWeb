@@ -52,7 +52,7 @@ func GetGateTypesList(w http.ResponseWriter, r *http.Request) {
 	user := helpers.GetUserBySessionToken(w, r)
 
 	data := map[string]any{
-		"css":       "",
+		"css":       "gate_type.css",
 		"gateTypes": models.GetAllGateTypes(),
 		"user":      user,
 	}

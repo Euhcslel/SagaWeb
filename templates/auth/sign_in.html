@@ -8,11 +8,11 @@
   <form action="/sign_in" method="post">
     <div class="input-container">
       <label for="username">Имя пользователя</label>
-      {{template "text" (dict "ID" "username" "Name" "username" "Value" "" "Required" true)}}
+      <input type="text" name="username" id="username" />
     </div>
     <div class="input-container">
       <label for="password">Пароль</label>
-      {{template "password"}}
+      <input type="password" name="password" id="password">
     </div>
     <button type="submit" class="button button--primary">Войти</button>
   </form>

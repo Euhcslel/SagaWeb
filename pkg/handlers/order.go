@@ -75,7 +75,7 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем все ворота выбранного заказа
 	var orderGates []models.SalesAndGate
-	database.DB.Preload("GateType").
+	database.DB.
 		Preload("LiftType").
 		Preload("ColorOut").
 		Preload("CycleAmount").
@@ -143,7 +143,6 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 
 	var gate models.SalesAndGate
 	if err := database.DB.Model(models.SalesAndGate{}).
-		Preload("GateType").
 		Preload("LiftType").
 		Preload("ColorOut").
 		Preload("CycleAmount").

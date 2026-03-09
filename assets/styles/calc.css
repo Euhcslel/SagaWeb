@@ -1,0 +1,176 @@
+@import url("/assets/styles/custom-checkbox.css");
+
+.calc-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 10rem;
+}
+
+.myForm {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  justify-content: start;
+  padding: 1rem;
+  gap: var(--spacing-m);
+}
+
+.tab {
+  margin-top: 2rem;
+  width: 15%;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  gap: var(--spacing-xl);
+  padding: 0 var(--spacing-xl);
+}
+
+.tabItem {
+  display: none;
+  position: relative;
+}
+
+#mainConfig {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#mainConfig .form {
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  gap: var(--spacing-s);
+}
+
+.totalClientPrice::before,
+.totalDealerPrice::before {
+  content: "Итоговая стоимость: ";
+}
+
+.gateClientPrice::before,
+.gateDealerPrice::before {
+  content: "Стоимость текущих ворот: ";
+}
+
+.form-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.addButton {
+  position: absolute;
+  right: 0;
+}
+
+.product-div,
+.option-div {
+  display: flex;
+  gap: var(--spacing-m);
+  margin-bottom: var(--spacing-m);
+}
+
+.option-div select,
+.product-div select {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.standart-configuration {
+  width: 40%;
+  padding-right: var(--spacing-xl);
+}
+
+.standart-configuration img {
+  width: 100%;
+}
+
+.calc-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: var(--spacing-m);
+  gap: var(--spacing-l);
+  box-sizing: border-box;
+}
+
+.prices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+}
+
+.prices p {
+  display: block;
+}
+
+.gate-list #addGateToOrderButton {
+  display: block;
+  margin: 0 auto;
+}
+
+#gateList {
+  padding: 0;
+  overflow-y: scroll;
+  max-height: 20vh;
+  scrollbar-width: thin;
+}
+
+#gateList li {
+  list-style-type: none;
+  margin-bottom: var(--spacing-s);
+}
+
+#gateList li button {
+  border: none;
+  border-left: var(--spacing-s) solid transparent;
+  border-radius: 0 var(--spacing-s) var(--spacing-s) 0;
+  background: transparent;
+  padding: var(--spacing-s) var(--spacing-m);
+  text-decoration-line: underline;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+#gateList li button:hover {
+  background-color: var(--color-bright-yellow);
+}
+
+#gateList li button.active {
+  border-left: var(--spacing-s) solid var(--color-bright-yellow);
+}
+
+#gateList li button.active:hover {
+  background-color: transparent;
+  cursor: default;
+}
+
+.headerGateNumber {
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-m);
+  align-items: stretch;
+}
+
+h2 {
+  margin: 0;
+  margin-bottom: var(--spacing-m);
+}
+
+#gateList li .deleteGate:hover {
+  background-color: transparent;
+}

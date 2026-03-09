@@ -8,29 +8,32 @@
   <form action="/sign_up" method="post">
     <div class="input-container">
       <label for="fullname">ФИО</label>
-      {{template "text" (dict "ID" "fullname" "Name" "fullname" "Value" "" "Required" true)}}
+
     </div>
     <div class="input-container">
       <label for="company">Название компании</label>
-      {{template "text" (dict "ID" "company" "Name" "company" "Value" "" "Required" true)}}
+
     </div>
     <div class="input-container">
       <label for="phone">Номер телефона</label>
-      {{template "phone"}}
+      <div class="phone">
+        <span class="prefix">+7</span>
+        <input type="tel" pattern="[0-9]*" name="phone" id="phone" />
+      </div>
     </div>
     <div class="input-container">
       <label for="email">Почта</label>
-      {{template "email" (dict "Value" "" "Required" true)}}
     </div>
     <div class="input-container">
       <label for="password">Пароль</label>
-      {{template "password"}}
     </div>
     <div class="checkbox-container">
       <input type="checkbox" required />
       <p>Согласие на обработку данных</p>
     </div>
-    <button type="submit" class="button button--primary">Отправить заявку</button>
+    <button type="submit" class="button button--primary">
+      Отправить заявку
+    </button>
   </form>
 </div>
 {{template "html-end"}}
