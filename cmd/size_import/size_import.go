@@ -40,28 +40,33 @@ func main() {
 		log.Fatal("EXCEL_IMPORT_RES_CLIENT_PATH не найден в .env файле")
 	}
 
-	createSizes(dealerPathInd, clientPathInd, models.GateTypeInd)
-	createSizes(dealerPathRes, clientPathRes, models.GateTypeRes)
+	if err := createSizes(dealerPathInd, clientPathInd, models.GateTypeInd); err != nil {
+		log.Printf("Ошибка при попытке добавить цены для промышленных ворот: %v", err)
+	}
+
+	if err := createSizes(dealerPathRes, clientPathRes, models.GateTypeRes); err != nil {
+		log.Printf("Ошибка при попытке добавить цены для бытовых ворот: %v", err)
+	}
 }
 
-func createSizes(dealerPath string, clientPath string, gateType models.GateType) {
-	clientPricesFile := readExcelFile(clientPath)
-	if clientPricesFile == nil {
-		return
+func createSizes(dealerPath string, clientPath string, gateType models.GateType) (err error) {
+	clientPricesFile, err := excelize.OpenFile(clientPath)
+	if err != nil {
+		return fmt.Errorf("Ошибка при чтении файла с клиентскими ценами: %w", err)
 	}
 	defer func() {
-		if err := clientPricesFile.Close(); err != nil {
-			fmt.Println(err)
+		if chain_err := clientPricesFile.Close(); chain_err != nil {
+			err = fmt.Errorf("file close error: %w\nwith error:%w", chain_err, err)
 		}
 	}()
 
-	dealerPricesFile := readExcelFile(dealerPath)
-	if dealerPricesFile == nil {
-		return
+	dealerPricesFile, err := excelize.OpenFile(dealerPath)
+	if err != nil {
+		return fmt.Errorf("Ошибка при чтении файла с дилерскими ценами: %w", err)
 	}
 	defer func() {
-		if err := dealerPricesFile.Close(); err != nil {
-			fmt.Println(err)
+		if chain_err := dealerPricesFile.Close(); chain_err != nil {
+			err = fmt.Errorf("file close error: %w\nwith error:%w", chain_err, err)
 		}
 	}()
 
@@ -69,38 +74,41 @@ func createSizes(dealerPath string, clientPath string, gateType models.GateType)
 
 	clientRows, err := clientPricesFile.GetRows("Лист1")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return fmt.Errorf("Ошибка при попытке прочтать строки в файле с клиентскими ценами: %w", err)
 	}
 
 	clientCols, err := clientPricesFile.GetCols("Лист1")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return fmt.Errorf("Ошибка при попытке прочитать столбцы в файле с клиентскими ценами: %w", err)
 	}
 
 	dealerRows, err := dealerPricesFile.GetRows("Лист1")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return fmt.Errorf("Ошибка при попытке прочитать строки в файле с дилерскими ценами: %w", err)
 	}
 
 	dealerCols, err := dealerPricesFile.GetCols("Лист1")
 	if err != nil {
-		fmt.Println(err)
-		return
+		return fmt.Errorf("Ошибка при попытке прочитать столбцы в файле с дилерскими ценами: %w", err)
 	}
 
 	if len(dealerCols) != len(clientCols) || len(dealerRows) != len(clientRows) {
-		fmt.Println("Число столбцов или строк в файлах Prom различаются!")
-		return
+		return fmt.Errorf("Число столбцов или строк в файлах различаются!")
 	}
 
 	for i := 1; i < len(clientRows); i++ {
 		size := models.Size{}
 
-		height, _ := clientPricesFile.GetCellValue("Лист1", "A"+strconv.Itoa(i))
-		intHeight, _ := strconv.Atoi(height)
+		height, err := clientPricesFile.GetCellValue("Лист1", "A"+strconv.Itoa(i))
+		if height == "" {
+			continue
+		} else if err != nil {
+			return fmt.Errorf("Ошибка при попытке прочитать значение ячейки высоты: %w", err)
+		}
+		intHeight, err := strconv.Atoi(height)
+		if err != nil {
+			return fmt.Errorf("Ошибка при попытке преобразовать значение высоты: %w", err)
+		}
 		size.Height = int64(intHeight)
 
 		for j := 1; j < len(clientCols); j++ {
@@ -109,24 +117,29 @@ func createSizes(dealerPath string, clientPath string, gateType models.GateType)
 			}
 			columnLetter, err := excelize.ColumnNumberToName(j)
 			if err != nil {
-				fmt.Println(err)
-				return
+				return fmt.Errorf("Ошибка при попытке преобразовать значение к букве в Excel: %w", err)
 			}
 
-			width, _ := clientPricesFile.GetCellValue("Лист1", columnLetter+"1")
-			intWidth, _ := strconv.Atoi(width)
+			width, err := clientPricesFile.GetCellValue("Лист1", columnLetter+"1")
+			if width == "" {
+				continue
+			} else if err != nil {
+				return fmt.Errorf("Ошибка при попытке прочитать значение ячейки ширины: %w", err)
+			}
+			intWidth, err := strconv.Atoi(width)
+			if err != nil {
+				return fmt.Errorf("Ошибка при попытке преобразовать значение ширины: %w", err)
+			}
 			size.Width = int64(intWidth)
 
 			clientCell, err := clientPricesFile.GetCellValue("Лист1", columnLetter+strconv.Itoa(i))
 			if err != nil {
-				fmt.Println(err)
-				return
+				return fmt.Errorf("Ошибка при попытке прочитать значение клиентской цены: %w", err)
 			}
 
 			dealerCell, err := dealerPricesFile.GetCellValue("Лист1", columnLetter+strconv.Itoa(i))
 			if err != nil {
-				fmt.Println(err)
-				return
+				return fmt.Errorf("Ошибка при попытке прочитать значение дилерской цены: %w", err)
 			}
 
 			if clientCell == "" || dealerCell == "" {
@@ -134,10 +147,16 @@ func createSizes(dealerPath string, clientPath string, gateType models.GateType)
 				continue
 			}
 
-			intWholesalePrice, _ := strconv.Atoi(dealerCell)
+			intWholesalePrice, err := strconv.Atoi(dealerCell)
+			if err != nil {
+				return fmt.Errorf("Ошибка при попытке преобразовать значение дилерской цены: %w", err)
+			}
 			size.WholesalePrice = int64(intWholesalePrice)
 
-			intRetailPrice, _ := strconv.Atoi(clientCell)
+			intRetailPrice, err := strconv.Atoi(clientCell)
+			if err != nil {
+				return fmt.Errorf("Ошибка при попытке преобразовать значение клиентской цены: %w", err)
+			}
 			size.RetailPrice = int64(intRetailPrice)
 
 			size.GateType = gateType
@@ -146,14 +165,9 @@ func createSizes(dealerPath string, clientPath string, gateType models.GateType)
 		}
 	}
 
-	database.DB.Create(&sizes)
-}
-
-func readExcelFile(path string) *excelize.File {
-	f, err := excelize.OpenFile(path)
-	if err != nil {
-		fmt.Println(err)
-		return nil
+	if err := database.DB.Create(&sizes).Error; err != nil {
+		return fmt.Errorf("Ошибка при попытке создать значения цен в базе данных: %w", err)
 	}
-	return f
+
+	return nil
 }
