@@ -38,6 +38,14 @@
     <div id="mainConfig" class="tabItem">
       <div class="form">
         <input type="hidden" id="isDealer" value="{{.isDealer}}" />
+        <!--Тип ворот-->
+        <div class="input-container">
+          <label for="gateType">Тип ворот</label>
+          <select name="gateType" id="gateType">
+            <option value="res" selected>Бытовые ворота</option>
+            <option value="ind">Промышленные ворота</option>
+          </select>
+        </div>
         <!--Ширина-->
         <div class="input-container">
           <label for="width">Ширина</label>
@@ -45,9 +53,9 @@
             name="width"
             id="width"
             type="number"
-            min="{{.cfg.WidthParams.MinValue}}"
-            max="{{.cfg.WidthParams.MaxValue}}"
-            value="{{.cfg.WidthParams.MinValue}}"
+            min="{{.resCfg.WidthParams.MinValue}}"
+            max="{{.resCfg.WidthParams.MaxValue}}"
+            value="{{.resCfg.WidthParams.MinValue}}"
           />
         </div>
 
@@ -58,9 +66,9 @@
             name="height"
             id="height"
             type="number"
-            min="{{.cfg.HeightParams.MinValue}}"
-            max="{{.cfg.HeightParams.MaxValue}}"
-            value="{{.cfg.HeightParams.MinValue}}"
+            min="{{.resCfg.HeightParams.MinValue}}"
+            max="{{.resCfg.HeightParams.MaxValue}}"
+            value="{{.resCfg.HeightParams.MinValue}}"
           />
         </div>
 
@@ -80,7 +88,7 @@
         <div class="input-container">
           <label for="liftType">Тип подъема</label>
           <select name="liftType" id="liftType">
-            {{range .cfg.LiftTypes}}
+            {{range .resCfg.LiftTypes}}
             <option
               value="{{.ID}}"
               data-client-markup="{{.RetailMarkup}}"
@@ -101,7 +109,7 @@
         <div class="input-container">
           <label for="cycleAmount">Количество циклов</label>
           <select name="cycleAmount" id="cycleAmount">
-            {{range .cfg.CycleAmounts}}
+            {{range .resCfg.CycleAmounts}}
             <option
               value="{{.ID}}"
               data-client-markup="{{.RetailMarkup}}"
@@ -122,7 +130,7 @@
         <div class="input-container">
           <label for="colorOut">Цвет ворот снаружи</label>
           <select name="colorOut" id="colorOut">
-            {{range .cfg.Colors}}
+            {{range .resCfg.Colors}}
             <option value="{{.ID}}">{{.Code}}</option>
             {{end}}
           </select>
@@ -131,41 +139,7 @@
         <!--Привод-->
         <div class="input-container">
           <label for="drive">Привод</label>
-          {{if .cfg.IndustrialDrives}}
-          <select name="drive" class="industrial" id="drive">
-            {{range .cfg.IndustrialDrives}}
-            <option
-              value="{{.ID}}"
-              data-client-price="{{.RetailPrice}}"
-              {{if
-              $.isDealer}}
-              data-dealer-price="{{.WholesalePrice}}"
-              {{else}}
-              data-dealer-price="0"
-              {{end}}
-            >
-              {{.Name}}
-            </option>
-            {{end}}
-          </select>
-          {{else}}
-          <select name="drive" class="residential" id="drive">
-            {{range .cfg.ResidentialDrives}}
-            <option
-              value="{{.ID}}"
-              data-client-price="{{.RetailPrice}}"
-              {{if
-              $.isDealer}}
-              data-dealer-price="{{.WholesalePrice}}"
-              {{else}}
-              data-dealer-price="0"
-              {{end}}
-            >
-              {{.Name}}
-            </option>
-            {{end}}
-          </select>
-          {{end}}
+          <select name="drive" id="drive"></select>
         </div>
       </div>
       <div class="standart-configuration">
@@ -188,7 +162,7 @@
     <template id="optionTemplate">
       <div class="option-div">
         <select name="option">
-          {{range .cfg.Options}}
+          {{range .resCfg.Options}}
           <option
             value="{{.ID}}"
             data-client-price="{{.RetailPrice}}"
@@ -228,7 +202,7 @@
     <template id="productTemplate">
       <div class="product-div">
         <select name="product">
-          {{range .cfg.Products}}
+          {{range .resCfg.Products}}
           <option
             value="{{.ID}}"
             data-client-price="{{.RetailPrice}}"
@@ -298,6 +272,13 @@
     Оформить заказ
   </button>
 </div>
+
+<script>
+  window.gateConfigs = {
+    ind: {{ .indCfg | toJSON }},
+    res: {{ .resCfg | toJSON }}
+  }
+</script>
 <script src="/assets/scripts/protobuf.min.js"></script>
 <script src="/assets/scripts/tab.js"></script>
 <script src="/assets/scripts/calc.js"></script>

@@ -44,6 +44,7 @@ function initDomRefs() {
     cycleAmount: document.getElementById("cycleAmount"),
     drive: document.getElementById("drive"),
     colorOut: document.getElementById("colorOut"),
+    gateType: document.getElementById("gateType"),
 
     optionList: document.getElementById("optionList"),
     productList: document.getElementById("productList"),
@@ -83,11 +84,14 @@ async function initProtobuf() {
 /* Инициализирует калькулятор */
 async function initCalculator() {
   initDomRefs();
-  initGateTypeFromUrl();
   initUserRole();
+  initGateType();
   initEventListeners();
 
-  orderGates.push(createGateFromDefaults());
+  applyGateConfig(state.gateType);
+
+  const gate = createGateFromDefaults();
+  orderGates.push(gate);
   currentGateIndex = 0;
 
   await updateCurrentGateSizePrice();
@@ -102,9 +106,8 @@ function initUserRole() {
 }
 
 /* Читает тип ворот из URL */
-function initGateTypeFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  state.gateType = params.get("gateType");
+function initGateType() {
+  state.gateType = DOM.gateType?.value || "res";
 }
 
 /*
@@ -131,6 +134,8 @@ function initEventListeners() {
   DOM.addGateBtn.addEventListener("click", addGate);
   DOM.addOptionBtn.addEventListener("click", addOptionRow);
   DOM.addProductBtn.addEventListener("click", addProductRow);
+
+  DOM.gateType.addEventListener("change", changeGateType);
 }
 
 /*
@@ -146,23 +151,218 @@ function currentGate() {
 
 /*
 ================================
+CONFIG
+================================
+*/
+
+/* Возвращает конфигурацию ворот по типу */
+function getCurrentConfig(type = state.gateType) {
+  return window.gateConfigs?.[type] || null;
+}
+
+/* Возвращает список приводов из конфигурации ворот */
+function getDrivesFromConfig(cfg) {
+  if (!cfg) return [];
+  return cfg.IndustrialDrives?.length
+    ? cfg.IndustrialDrives
+    : cfg.ResidentialDrives || [];
+}
+
+/* Возвращает дилерскую цену, если пользователь дилер */
+function getDealerPrice(value) {
+  return state.role === "dealer" ? Number(value || 0) : 0;
+}
+
+/* Заполняет select элемент списком options */
+function fillSelect(selectEl, items, buildOption) {
+  selectEl.innerHTML = "";
+
+  items.forEach((item) => {
+    const option = buildOption(item);
+    selectEl.appendChild(option);
+  });
+}
+
+/* Создаёт option для select с наценкой (%) */
+function buildMarkupOption(item) {
+  const option = document.createElement("option");
+  option.value = String(item.ID);
+  option.textContent = item.Name;
+  option.dataset.clientMarkup = String(item.RetailMarkup || 0);
+  option.dataset.dealerMarkup = String(getDealerPrice(item.WholesaleMarkup));
+  return option;
+}
+
+/* Создаёт option для выбора цвета */
+function buildColorOption(item) {
+  const option = document.createElement("option");
+  option.value = String(item.ID);
+  option.textContent = item.Code;
+  return option;
+}
+
+/* Создаёт option для выбора привода */
+function buildDriveOption(item) {
+  const option = document.createElement("option");
+  option.value = String(item.ID);
+  option.textContent = item.Name;
+  option.dataset.clientPrice = String(item.RetailPrice || 0);
+  option.dataset.dealerPrice = String(getDealerPrice(item.WholesalePrice));
+  return option;
+}
+
+/* Создаёт option с фиксированной ценой */
+function buildPriceOption(item) {
+  const option = document.createElement("option");
+  option.value = String(item.ID);
+  option.textContent = item.Name;
+  option.dataset.clientPrice = String(item.RetailPrice || 0);
+  option.dataset.dealerPrice = String(getDealerPrice(item.WholesalePrice));
+  return option;
+}
+
+/* Заполняет select внутри template */
+function fillTemplateSelect(templateEl, items, buildOption) {
+  const select = templateEl.content.querySelector("select");
+  if (!select) return;
+
+  select.innerHTML = "";
+  items.forEach((item) => {
+    select.appendChild(buildOption(item));
+  });
+}
+
+/* Применяет ограничения размеров ворот из конфигурации */
+function applySizeParams(cfg) {
+  DOM.width.min = String(cfg.WidthParams?.MinValue ?? 0);
+  DOM.width.max = String(cfg.WidthParams?.MaxValue ?? 0);
+
+  DOM.height.min = String(cfg.HeightParams?.MinValue ?? 0);
+  DOM.height.max = String(cfg.HeightParams?.MaxValue ?? 0);
+
+  DOM.width.value = String(
+    clampNumber(DOM.width.value, DOM.width.min, DOM.width.max),
+  );
+  DOM.height.value = String(
+    clampNumber(DOM.height.value, DOM.height.min, DOM.height.max),
+  );
+}
+
+/* Применяет конфигурацию ворот к форме */
+function applyGateConfig(type) {
+  const cfg = getCurrentConfig(type);
+  if (!cfg) return;
+
+  fillSelect(DOM.liftType, cfg.LiftTypes || [], buildMarkupOption);
+  fillSelect(DOM.cycleAmount, cfg.CycleAmounts || [], buildMarkupOption);
+  fillSelect(DOM.colorOut, cfg.Colors || [], buildColorOption);
+  fillSelect(DOM.drive, getDrivesFromConfig(cfg), buildDriveOption);
+
+  fillTemplateSelect(DOM.optionTemplate, cfg.Options || [], buildPriceOption);
+  fillTemplateSelect(DOM.productTemplate, cfg.Products || [], buildPriceOption);
+
+  applySizeParams(cfg);
+}
+
+/* Нормализует параметры ворот согласно конфигурации */
+function normalizeGateByConfig(gate) {
+  const cfg = getCurrentConfig(gate.gateType);
+  if (!cfg) return;
+
+  gate.size.width = clampNumber(
+    gate.size.width,
+    cfg.WidthParams?.MinValue,
+    cfg.WidthParams?.MaxValue,
+  );
+
+  gate.size.height = clampNumber(
+    gate.size.height,
+    cfg.HeightParams?.MinValue,
+    cfg.HeightParams?.MaxValue,
+  );
+
+  const lift = findById(cfg.LiftTypes, gate.liftType) || cfg.LiftTypes?.[0];
+  gate.liftType = Number(lift?.ID || 0);
+  gate.liftMarkup = {
+    client: Number(lift?.RetailMarkup || 0),
+    dealer: getDealerPrice(lift?.WholesaleMarkup),
+  };
+
+  const cycle =
+    findById(cfg.CycleAmounts, gate.cycleAmount) || cfg.CycleAmounts?.[0];
+  gate.cycleAmount = Number(cycle?.ID || 0);
+  gate.cycleMarkup = {
+    client: Number(cycle?.RetailMarkup || 0),
+    dealer: getDealerPrice(cycle?.WholesaleMarkup),
+  };
+
+  const drives = getDrivesFromConfig(cfg);
+  const drive = findById(drives, gate.driveId) || drives[0];
+  gate.driveId = Number(drive?.ID || 0);
+  gate.drivePrice = {
+    client: Number(drive?.RetailPrice || 0),
+    dealer: getDealerPrice(drive?.WholesalePrice),
+  };
+
+  const color = findById(cfg.Colors, gate.colorOutId) || cfg.Colors?.[0];
+  gate.colorOutId = Number(color?.ID || 0);
+
+  const validOptions = cfg.Options || [];
+  gate.options = gate.options
+    .map((o) => {
+      const item = findById(validOptions, o.id);
+      if (!item) return null;
+
+      return {
+        id: Number(item.ID),
+        amount: getSafeAmount(o.amount),
+        price: {
+          client: Number(item.RetailPrice || 0),
+          dealer: getDealerPrice(item.WholesalePrice),
+        },
+      };
+    })
+    .filter(Boolean);
+}
+
+/* Обрабатывает смену типа ворот */
+function changeGateType() {
+  const gate = currentGate();
+  const newType = DOM.gateType.value;
+
+  parseCurrentGateFromForm();
+
+  gate.gateType = newType;
+  state.gateType = newType;
+
+  applyGateConfig(newType);
+  normalizeGateByConfig(gate);
+  syncFormWithGate(gate);
+
+  renderCurrentGateForm();
+  updateProducts();
+  updateSize();
+}
+
+/*
+================================
 DEFAULT GATE
 ================================
 */
 
 /* Значение ширины по умолчанию */
 function getDefaultWidth() {
-  return Number(DOM.width.min || DOM.width.value || 0);
+  return toNumber(DOM.width.value, 0);
 }
 
 /* Значение высоты по умолчанию */
 function getDefaultHeight() {
-  return Number(DOM.height.min || DOM.height.value || 0);
+  return toNumber(DOM.height.value, 0);
 }
 
 /* Значение headroom по умолчанию */
 function getDefaultHeadroom() {
-  return Number(DOM.headroom.min || DOM.headroom.value || 0);
+  return toNumber(DOM.headroom.value, 0);
 }
 
 /* Возвращает первый option select */
@@ -224,32 +424,35 @@ FORM PARSING
 function parseCurrentGateFromForm() {
   const gate = currentGate();
 
-  gate.size.width = Number(DOM.width.value);
-  gate.size.height = Number(DOM.height.value);
-  gate.headroom = Number(DOM.headroom.value);
+  gate.gateType = DOM.gateType.value;
+  state.gateType = gate.gateType;
+
+  gate.size.width = toNumber(DOM.width.value, 0);
+  gate.size.height = toNumber(DOM.height.value, 0);
+  gate.headroom = toNumber(DOM.headroom.value, 0);
 
   const lift = DOM.liftType.selectedOptions[0];
-  gate.liftType = Number(lift.value);
+  gate.liftType = Number(lift?.value || 0);
   gate.liftMarkup = {
-    client: Number(lift.dataset.clientMarkup || 0),
-    dealer: Number(lift.dataset.dealerMarkup || 0),
+    client: Number(lift?.dataset.clientMarkup || 0),
+    dealer: Number(lift?.dataset.dealerMarkup || 0),
   };
 
   const cycle = DOM.cycleAmount.selectedOptions[0];
-  gate.cycleAmount = Number(cycle.value);
+  gate.cycleAmount = Number(cycle?.value || 0);
   gate.cycleMarkup = {
-    client: Number(cycle.dataset.clientMarkup || 0),
-    dealer: Number(cycle.dataset.dealerMarkup || 0),
+    client: Number(cycle?.dataset.clientMarkup || 0),
+    dealer: Number(cycle?.dataset.dealerMarkup || 0),
   };
 
   const drive = DOM.drive.selectedOptions[0];
-  gate.driveId = Number(drive.value);
+  gate.driveId = Number(drive?.value || 0);
   gate.drivePrice = {
-    client: Number(drive.dataset.clientPrice || 0),
-    dealer: Number(drive.dataset.dealerPrice || 0),
+    client: Number(drive?.dataset.clientPrice || 0),
+    dealer: Number(drive?.dataset.dealerPrice || 0),
   };
 
-  gate.colorOutId = Number(DOM.colorOut.value);
+  gate.colorOutId = Number(DOM.colorOut.value || 0);
 
   gate.options = [];
 
@@ -259,11 +462,11 @@ function parseCurrentGateFromForm() {
     const option = select.options[select.selectedIndex];
 
     gate.options.push({
-      id: Number(option.value),
+      id: Number(option?.value || 0),
       amount: getAmountFromInput(input),
       price: {
-        client: Number(option.dataset.clientPrice || 0),
-        dealer: Number(option.dataset.dealerPrice || 0),
+        client: Number(option?.dataset.clientPrice || 0),
+        dealer: Number(option?.dataset.dealerPrice || 0),
       },
     });
   });
@@ -279,11 +482,11 @@ function readProductsFromForm() {
     const option = select.options[select.selectedIndex];
 
     state.products.push({
-      id: Number(option.value),
+      id: Number(option?.value || 0),
       amount: getAmountFromInput(input),
       price: {
-        client: Number(option.dataset.clientPrice || 0),
-        dealer: Number(option.dataset.dealerPrice || 0),
+        client: Number(option?.dataset.clientPrice || 0),
+        dealer: Number(option?.dataset.dealerPrice || 0),
       },
     });
   });
@@ -298,6 +501,12 @@ UPDATE
 /* Обновляет цену при изменении размеров */
 async function updateSize() {
   parseCurrentGateFromForm();
+
+  const gate = currentGate();
+  if (!Number.isFinite(gate.size.width) || !Number.isFinite(gate.size.height)) {
+    return;
+  }
+
   await updateCurrentGateSizePrice();
   recalculatePrices();
 }
@@ -317,7 +526,12 @@ function updateProducts() {
 /* Получает цену ворот по размеру */
 async function updateCurrentGateSizePrice() {
   const gate = currentGate();
-  gate.sizePrice = await fetchSizePrice(gate.size.width, gate.size.height);
+
+  gate.sizePrice = await fetchSizePrice(
+    gate.size.width,
+    gate.size.height,
+    gate.gateType,
+  );
 }
 
 /*
@@ -327,9 +541,9 @@ API
 */
 
 /* Запрашивает цену размера ворот у сервера */
-async function fetchSizePrice(width, height) {
+async function fetchSizePrice(width, height, gateType) {
   const res = await fetch(
-    `/sizes?width=${width}&height=${height}&gateType=${state.gateType}`,
+    `/sizes?width=${width}&height=${height}&gateType=${gateType}`,
   );
 
   if (!res.ok) {
@@ -370,7 +584,6 @@ function recalculatePrices() {
   }
 
   state.orderPrice.client = calculateOrderTotal("client");
-
   state.orderPrice.dealer =
     state.role === "dealer" ? calculateOrderTotal("dealer") : 0;
 
@@ -446,17 +659,26 @@ function renderOptionsFromGate() {
 function renderCurrentGateForm() {
   const gate = currentGate();
 
-  DOM.headerGateNumber.textContent = `Ворота №${currentGateIndex + 1}`;
+  state.gateType = gate.gateType || state.gateType || "res";
+  DOM.gateType.value = state.gateType;
 
-  DOM.width.value = gate.size.width;
-  DOM.height.value = gate.size.height;
-  DOM.headroom.value = gate.headroom ?? 0;
+  applyGateConfig(state.gateType);
+  normalizeGateByConfig(gate);
+  syncFormWithGate(gate);
+
+  DOM.headerGateNumber.textContent = `Ворота №${currentGateIndex + 1}`;
+  renderOptionsFromGate();
+}
+
+/* Синхронизирует значения формы с объектом ворот */
+function syncFormWithGate(gate) {
+  DOM.width.value = String(gate.size.width);
+  DOM.height.value = String(gate.size.height);
+  DOM.headroom.value = String(gate.headroom ?? 0);
   DOM.liftType.value = String(gate.liftType ?? "");
   DOM.cycleAmount.value = String(gate.cycleAmount ?? "");
   DOM.drive.value = String(gate.driveId ?? "");
   DOM.colorOut.value = String(gate.colorOutId ?? "");
-
-  renderOptionsFromGate();
 }
 
 /* Рендер цен */
@@ -517,7 +739,6 @@ function renderGateList() {
 
     li.appendChild(btn);
     li.appendChild(deleteBtn);
-
     DOM.gateList.appendChild(li);
   });
 }
@@ -530,16 +751,15 @@ ORDER
 
 /* Добавляет новые ворота */
 async function addGate() {
-  const newGate = createGateFromDefaults();
+  parseCurrentGateFromForm();
 
+  const newGate = createGateFromDefaults();
   orderGates.push(newGate);
 
   currentGateIndex = orderGates.length - 1;
-
   renderCurrentGateForm();
 
   await updateCurrentGateSizePrice();
-
   recalculatePrices();
 }
 
@@ -550,7 +770,6 @@ function switchGate(index) {
   parseCurrentGateFromForm();
 
   currentGateIndex = index;
-
   renderCurrentGateForm();
   renderTotalPrice();
   renderGateList();
@@ -558,15 +777,13 @@ function switchGate(index) {
 
 /* Удаляет ворота из заказа */
 function removeGate(index) {
-  if (orderGates.length === 1) return; // нельзя удалить последние ворота
+  if (orderGates.length === 1) return;
 
   orderGates.splice(index, 1);
 
   if (index === currentGateIndex) {
-    // если удалили текущие ворота
     currentGateIndex = Math.max(0, index - 1);
   } else if (index < currentGateIndex) {
-    // если удалили ворота перед текущими
     currentGateIndex--;
   }
 
@@ -583,18 +800,14 @@ UTILS
 /* Добавляет строку опции */
 function addOptionRow() {
   const clone = DOM.optionTemplate.content.cloneNode(true);
-
   DOM.optionList.appendChild(clone);
-
   updateForm();
 }
 
 /* Добавляет строку товара */
 function addProductRow() {
   const clone = DOM.productTemplate.content.cloneNode(true);
-
   DOM.productList.appendChild(clone);
-
   updateProducts();
 }
 
@@ -624,6 +837,38 @@ function getAmountFromInput(input) {
   }
 
   return value;
+}
+
+/* Возвращает безопасное количество (минимум 1) */
+function getSafeAmount(value) {
+  const num = Number(value);
+  return Number.isNaN(num) || num < 1 ? 1 : num;
+}
+
+/* Преобразует значение в число с fallback */
+function toNumber(value, fallback = 0) {
+  const num = Number(value);
+  return Number.isNaN(num) ? fallback : num;
+}
+
+/* Ограничивает число диапазоном min/max */
+function clampNumber(value, min, max) {
+  let result = toNumber(value, toNumber(min, 0));
+
+  if (min !== undefined && min !== null && min !== "") {
+    result = Math.max(result, toNumber(min, result));
+  }
+
+  if (max !== undefined && max !== null && max !== "") {
+    result = Math.min(result, toNumber(max, result));
+  }
+
+  return result;
+}
+
+/* Находит элемент в массиве по ID */
+function findById(items = [], id) {
+  return items.find((item) => Number(item.ID) === Number(id)) || null;
 }
 
 /* debounce для ограничений вызовов */
@@ -680,6 +925,9 @@ function buildGatePayload(gate) {
 
 /* Отправляет заказ на сервер */
 async function placeOrder() {
+  parseCurrentGateFromForm();
+  readProductsFromForm();
+
   const payload = {
     orderGates: orderGates.map(buildGatePayload),
     products: buildProductsList(),

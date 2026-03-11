@@ -27,7 +27,7 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 		role = user.Role.Name
 	}
 
-	query := r.URL.Query()
+	/*query := r.URL.Query()
 	gateTypeParam := query.Get("gateType")
 	gateType, err := models.DetermineGateType(gateTypeParam)
 	if err != nil {
@@ -39,13 +39,26 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
+	}*/
+
+	indCfg, err := getGateCfg(models.GateTypeInd)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	resCfg, err := getGateCfg(models.GateTypeRes)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
 	}
 
 	isDealer := hasDealerAccess(role)
 
 	data := map[string]any{
 		"css":      "calc.css",
-		"cfg":      cfg,
+		"indCfg":   indCfg,
+		"resCfg":   resCfg,
 		"user":     user,
 		"isDealer": isDealer,
 	}

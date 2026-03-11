@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"html/template"
 	"net/http"
 	"project/pkg/helpers"
@@ -22,11 +23,21 @@ func FormatDateTime(t time.Time) string {
 	return t.Format("02.01.2006 15:04")
 }
 
+// Функция для преобразования в JSON для JS
+func toJSON(v any) template.JS {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return template.JS("{}")
+	}
+	return template.JS(b)
+}
+
 var templates = template.Must(
 	template.New("").
 		Funcs(template.FuncMap{
 			"dict":    dict,
 			"fmtTime": FormatDateTime,
+			"toJSON":  toJSON,
 		}).
 		ParseGlob("templates/**/*.html"),
 )
