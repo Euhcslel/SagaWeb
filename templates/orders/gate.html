@@ -4,18 +4,27 @@
   <div class="config">
     <!--Тип ворот-->
     <p>Тип ворот: {{.gate.GateType.Label}}</p>
+    <!--Ширина-->
+    <p>Ширина: {{.gate.Width}}</p>
+    <!--Высота-->
+    <p>Высота: {{.gate.Height}}</p>
+    <!--Высота притолки-->
+    <p>Высота притолки: {{.gate.Headroom}}</p>
     <!--Тип подъема-->
-    <label for="liftType">Тип подъема</label>
+    <p>Тип подъема: {{.gate.LiftType.Name}}</p>
     <!--Цвет снаружи-->
+    <p>Цвет ворот снаружи: {{.gate.ColorOut.Code}}</p>
     <!--Количество циклов-->
+    <p>Количество циклов: {{.gate.CycleAmount.Name}}</p>
   </div>
   <div class="options">
     <ul>
       {{range .options}}
       <li>{{.Option.Name}} x {{.Amount}}</li>
+      {{else}}
+      <li>Нет никаких дополнительных опций</li>
       {{end}}
     </ul>
   </div>
 </form>
-<p class="totalPrice">Полная стоимость: {{.gate.TotalPrice}}</p>
 {{template "html-end"}}

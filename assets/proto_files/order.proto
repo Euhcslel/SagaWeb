@@ -9,16 +9,36 @@ message GateConfig {
   int32 height = 3;
   int64 liftTypeId = 4;
   int64 colorOutId = 5;
-  int32 driveId = 6;
+  Drive drive = 6;
   int64 cycleAmountId = 7;
   map<int32, int32> options = 8;
-  int32 gatePrice = 9;
-  int32 headroom = 10;
+  int32 headroom = 9;
 }
 
 enum GateType {
   GATE_TYPE_IND = 0;
   GATE_TYPE_RES = 1;
+}
+
+message Drive {
+  oneof drive_type {
+    IndustrialDrive industrial = 1;
+    ResidentialDrive residential = 2;
+    ManualDrive manual = 3;
+  }
+}
+
+message IndustrialDrive {
+  int64 driveId = 1;
+}
+
+message ResidentialDrive {
+  int64 driveId = 1;
+  int64 railId = 2;
+}
+
+message ManualDrive {
+  int32 chainLength = 1;
 }
 
 message OrderRequest {

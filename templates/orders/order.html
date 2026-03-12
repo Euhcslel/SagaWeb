@@ -21,7 +21,6 @@
         <li>{{.Gate.LiftType.Name}}</li>
         <li>{{.Gate.ColorOut.Code}}</li>
         <li>{{.Gate.CycleAmount.Name}}</li>
-        <li>{{.Gate.TotalPrice}}</li>
       </ul>
     </div>
     {{end}}
@@ -31,6 +30,8 @@
     <ul>
       {{range .order.Products}}
       <li>{{.Product.Name}} x {{.Amount}}</li>
+      {{else}}
+      <li>Нет никаких товаров</li>
       {{end}}
     </ul>
   </div>

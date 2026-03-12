@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/shopspring/decimal"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -115,8 +116,8 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 		resp = &proto_files.SizePrice{
 			Price: &proto_files.SizePrice_Dealer{
 				Dealer: &proto_files.DealerSizePrices{
-					DealerPrice: size.WholesalePrice,
-					ClientPrice: size.RetailPrice,
+					DealerPrice: size.WholesalePrice.Mul(decimal.NewFromInt(100)).IntPart(),
+					ClientPrice: size.RetailPrice.Mul(decimal.NewFromInt(100)).IntPart(),
 				},
 			},
 		}

@@ -557,13 +557,13 @@ async function fetchSizePrice(width, height, gateType) {
 
   if (data.dealer) {
     return {
-      client: data.dealer.clientPrice,
-      dealer: data.dealer.dealerPrice,
+      client: data.dealer.clientPrice / 100,
+      dealer: data.dealer.dealerPrice / 100,
     };
   }
 
   return {
-    client: data.client.clientPrice,
+    client: data.client.clientPrice / 100,
     dealer: 0,
   };
 }
@@ -605,7 +605,7 @@ function calculateGatePrice(gate, role) {
     total += (o.price?.[role] || 0) * (o.amount || 0);
   });
 
-  return Math.round(total);
+  return total;
 }
 
 /* Вычисляет общую цену заказа */
@@ -621,7 +621,7 @@ function calculateOrderTotal(role) {
     0,
   );
 
-  return Math.round(gates + products);
+  return gates + products;
 }
 
 /*
@@ -687,23 +687,35 @@ function renderTotalPrice() {
 
   if (DOM.gateClientPrice) {
     DOM.gateClientPrice.textContent =
-      (gate.gatePrice?.client || 0).toLocaleString() + " руб.";
+      (gate.gatePrice?.client || 0).toLocaleString("ru-RU", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + " руб.";
   }
 
   if (DOM.totalClientPrice) {
     DOM.totalClientPrice.textContent =
-      state.orderPrice.client.toLocaleString() + " руб.";
+      state.orderPrice.client.toLocaleString("ru-RU", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + " руб.";
   }
 
   if (state.role === "dealer") {
     if (DOM.gateDealerPrice) {
       DOM.gateDealerPrice.textContent =
-        (gate.gatePrice?.dealer || 0).toLocaleString() + " руб.";
+        (gate.gatePrice?.dealer || 0).toLocaleString("ru-RU", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }) + " руб.";
     }
 
     if (DOM.totalDealerPrice) {
       DOM.totalDealerPrice.textContent =
-        state.orderPrice.dealer.toLocaleString() + " руб.";
+        state.orderPrice.dealer.toLocaleString("ru-RU", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }) + " руб.";
     }
   }
 }
@@ -906,9 +918,6 @@ function buildGatePayload(gate) {
     optionsMap[o.id] = o.amount;
   });
 
-  const gatePrice =
-    state.role === "dealer" ? gate.gatePrice.dealer : gate.gatePrice.client;
-
   return {
     gateType: GateType[gate.gateType],
     width: gate.size.width,
@@ -918,8 +927,12 @@ function buildGatePayload(gate) {
     driveId: gate.driveId,
     cycleAmountId: gate.cycleAmount,
     options: optionsMap,
-    gatePrice,
     headroom: gate.headroom,
+    drive: {
+      industrial: {
+        driveId: 7,
+      },
+    },
   };
 }
 

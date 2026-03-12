@@ -220,7 +220,7 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusUnauthorized)
 		return
 	}
-	
+
 	role := user.Role.Name
 
 	var order models.Sale
@@ -296,12 +296,46 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			LiftTypeID:    gate.LiftTypeId,
 			ColorOutID:    gate.ColorOutId,
 			CycleAmountID: gate.CycleAmountId,
-			TotalPrice:    gate.GatePrice,
 		}
 
 		wg.Go(func() {
 			database.DB.Create(&orderDetails)
 		})
+
+		if gate.Drive == nil {
+			continue
+		}
+
+		switch d := gate.Drive.DriveType.(type) {
+		case *proto_files.Drive_Industrial:
+			driveID := d.Industrial.DriveId
+			indGatesAndSalesDrive := models.IndustrialGatesAndSalesDrive{
+				SaleID:    order.ID,
+				RowNumber: int64(i + 1),
+				DriveID:   int32(driveID),
+			}
+			database.DB.Create(&indGatesAndSalesDrive)
+		case *proto_files.Drive_Residential:
+			driveID := d.Residential.DriveId
+			railID := d.Residential.RailId
+			resGatesAndSalesDriveRail := models.ResidentialGatesAndSalesDriveRail{
+				SaleID:    order.ID,
+				RowNumber: int64(i + 1),
+				DriveID:   int32(driveID),
+				RailID:    int32(railID),
+			}
+			database.DB.Create(&resGatesAndSalesDriveRail)
+		case *proto_files.Drive_Manual:
+			chain := d.Manual.ChainLength
+			gatesAndSalesManualDrive := models.GatesAndSalesManualDrive{
+				SaleID:      order.ID,
+				RowNumber:   int64(i + 1),
+				ChainLength: chain,
+			}
+			database.DB.Create(&gatesAndSalesManualDrive)
+		default:
+			continue
+		}
 
 		if len(gate.Options) == 0 {
 			continue

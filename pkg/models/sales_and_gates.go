@@ -12,7 +12,6 @@ type SalesAndGate struct {
 	LiftTypeID    int64    `gorm:"column:lift_type_id;not null"`
 	ColorOutID    int64    `gorm:"column:color_out_id;not null"`
 	CycleAmountID int64    `gorm:"column:cycle_amount_id;not null"`
-	TotalPrice    int32    `gorm:"column:total_price;not null"`
 
 	LiftType    LiftType    `gorm:"foreignKey:LiftTypeID;references:ID"`
 	ColorOut    Color       `gorm:"foreignKey:ColorOutID;references:ID"`

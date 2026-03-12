@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
+	"github.com/shopspring/decimal"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -151,13 +152,13 @@ func createSizes(dealerPath string, clientPath string, gateType models.GateType)
 			if err != nil {
 				return fmt.Errorf("Ошибка при попытке преобразовать значение дилерской цены: %w", err)
 			}
-			size.WholesalePrice = int64(intWholesalePrice)
+			size.WholesalePrice = decimal.NewFromInt(int64(intWholesalePrice))
 
 			intRetailPrice, err := strconv.Atoi(clientCell)
 			if err != nil {
 				return fmt.Errorf("Ошибка при попытке преобразовать значение клиентской цены: %w", err)
 			}
-			size.RetailPrice = int64(intRetailPrice)
+			size.RetailPrice = decimal.NewFromInt(int64(intRetailPrice))
 
 			size.GateType = gateType
 
