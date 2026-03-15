@@ -25,7 +25,13 @@
             "
         >
           <td><p>Заказ #{{.ID}}</p></td>
-          <td><p>{{.Client.Fullname}}</p></td>
+          <td>
+            {{if .Client}}
+            <p>{{.Client.Fullname}}</p>
+            {{else}}
+            <p>Незарегистрирован</p>
+            {{end}}
+          </td>
           <td>
             {{if .Manager}}
             <p>{{.Manager.Fullname}}</p>

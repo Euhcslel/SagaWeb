@@ -5,6 +5,131 @@
     <!--Тип ворот-->
     <p>Тип ворот: {{.gate.GateType.Label}}</p>
     <!--Ширина-->
+    {{if .isManager}}
+    <!--Ширина-->
+    <div class="input-container">
+      <label for="width">Ширина</label>
+      <input
+        name="width"
+        id="width"
+        type="number"
+        min="{{.cfg.WidthParams.MinValue}}"
+        max="{{.cfg.WidthParams.MaxValue}}"
+        value="{{.gate.Width}}"
+      />
+    </div>
+    <!--Высота-->
+    <div class="input-container">
+      <label for="height">Высота</label>
+      <input
+        name="height"
+        id="height"
+        type="number"
+        min="{{.сfg.HeightParams.MinValue}}"
+        max="{{.сfg.HeightParams.MaxValue}}"
+        value="{{.gate.Height}}"
+      />
+    </div>
+    <!--Высота притолки-->
+    <div class="input-container">
+      <label for="headroom">Высота притолки</label>
+      <input
+        name="headroom"
+        id="headroom"
+        type="number"
+        min="0"
+        value="{{.gate.Headroom}}"
+      />
+    </div>
+
+    <!--Тип подъема-->
+    <div class="input-container">
+      <label for="liftType">Тип подъема</label>
+      <select name="liftType" id="liftType">
+        {{range .cfg.LiftTypes}}
+        <option
+          value="{{.ID}}"
+          data-client-markup="{{.RetailMarkup}}"
+          data-dealer-markup="{{.WholesaleMarkup}}"
+          {{if
+          eq
+          .ID
+          $.gate.LiftTypeID}}
+          selected
+          {{end}}
+        >
+          {{.Name}}
+        </option>
+        {{end}}
+      </select>
+    </div>
+
+    <!--Количество циклов-->
+    <div class="input-container">
+      <label for="cycleAmount">Количество циклов</label>
+      <select name="cycleAmount" id="cycleAmount">
+        {{range .cfg.CycleAmounts}}
+        <option
+          value="{{.ID}}"
+          data-client-markup="{{.RetailMarkup}}"
+          data-dealer-markup="{{.WholesaleMarkup}}"
+          {{if
+          eq
+          .ID
+          $.gate.CycleAmountID}}selected{{end}}
+        >
+          {{.Name}}
+        </option>
+        {{end}}
+      </select>
+    </div>
+
+    <!--Цвет ворот снаружи-->
+    <div class="input-container">
+      <label for="colorOut">Цвет ворот снаружи</label>
+      <select name="colorOut" id="colorOut">
+        {{range .cfg.Colors}}
+        <option value="{{.ID}}" {{if eq .ID $.gate.ColorOutID}}selected{{end}}>
+          {{.Code}}
+        </option>
+        {{end}}
+      </select>
+    </div>
+
+    <!--Привод-->
+    <div class="input-container">
+      <label for="drive">{{.gate.DriveType.Label}}</label>
+      {{if eq .gate.DriveType "manual"}}
+      <div class="input-container">
+        <label for="chainLength">Длина цепи</label>
+        <input
+          name="chainLength"
+          id="chainLength"
+          type="number"
+          min="0"
+          value="{{$.drive.ChainLength}}"
+        />
+      </div>
+      {{else if eq .gate.DriveType "industrial"}}
+      <select name="drive" id="drive">
+        {{range .cfg.IndustrialDrives}}
+        <option value="{{.ID}}" {{if eq .ID $.drive.DriveID}}selected{{end}}>
+          {{.Name}}
+        </option>
+        {{end}}
+      </select>
+      {{else if eq .gate.DriveType "residential"}}
+      <select name="drive" id="drive">
+        {{range .cfg.ResidentialDrives}}
+        <option value="{{.ID}}" {{if eq .ID $.drive.DriveID}}selected{{end}}>
+          {{.Name}}
+        </option>
+        {{end}}
+      </select>
+      {{end}}
+    </div>
+
+    {{else}}
     <p>Ширина: {{.gate.Width}}</p>
     <!--Высота-->
     <p>Высота: {{.gate.Height}}</p>
@@ -16,6 +141,7 @@
     <p>Цвет ворот снаружи: {{.gate.ColorOut.Code}}</p>
     <!--Количество циклов-->
     <p>Количество циклов: {{.gate.CycleAmount.Name}}</p>
+    {{end}}
   </div>
   <div class="options">
     <ul>
@@ -27,4 +153,16 @@
     </ul>
   </div>
 </form>
-{{template "html-end"}}
+<div class="calc-footer dark-theme">
+  <div class="prices">
+    <p>Цена текущих ворот (дилер):</p>
+    <p class="gateDealerPrice">0</p>
+
+    <p>Цена текущих ворот (клиент):</p>
+    <p class="gateClientPrice">0</p>
+  </div>
+  <button class="button button--primary" type="button" onclick="">
+    Сохранить
+  </button>
+</div>
+{{template "no-footer-end"}}

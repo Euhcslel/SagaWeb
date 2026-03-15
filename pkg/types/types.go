@@ -17,6 +17,8 @@ type Config struct {
 	HeightParams      SizeParams
 	Options           []models.Option
 	Products          []models.Product
+	DriveTypes        []models.DriveType
+	Rails             []models.Rail
 }
 
 type Gate struct {

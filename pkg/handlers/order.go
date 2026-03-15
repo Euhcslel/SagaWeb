@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/mux"
+	"github.com/shopspring/decimal"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -133,6 +134,10 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func isManager(role string) bool {
+	return role == "manager"
+}
+
 // Route: /orders/{order_id}/{gate_id}
 // Method: GET
 func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
@@ -155,6 +160,37 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var drive any
+	switch gate.DriveType {
+	case models.IndDriveType:
+		var d models.IndustrialGatesAndSalesDrive
+		if err = database.DB.
+			Where("sale_id = ? AND row_number = ?", gate.SaleID, gate.RowNumber).
+			First(&d).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+		drive = d
+	case models.ResDriveType:
+		var d models.ResidentialGatesAndSalesDriveRail
+		if err = database.DB.
+			Where("sale_id = ? AND row_number = ?", gate.SaleID, gate.RowNumber).
+			First(&d).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+		drive = d
+	case models.ManualDriveType:
+		var d models.GatesAndSalesManualDrive
+		if err = database.DB.
+			Where("sale_id = ? AND row_number = ?", gate.SaleID, gate.RowNumber).
+			First(&d).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+		drive = d
+	}
+
 	var options []models.GatesAndSalesOption
 	if err := database.DB.Model(models.GatesAndSalesOption{}).Preload("Option").Where("sale_id = ? and row_number = ?", vars["order_id"], vars["gate_id"]).Find(&options).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
@@ -168,12 +204,14 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css":      "gate.css",
-		"gate":     gate,
-		"options":  options,
-		"cfg":      cfg,
-		"statuses": models.GetAllOrderStatuses(),
-		"user":     user,
+		"css":       "calc.css",
+		"gate":      gate,
+		"options":   options,
+		"cfg":       cfg,
+		"drive":     drive,
+		"statuses":  models.GetAllOrderStatuses(),
+		"user":      user,
+		"isManager": isManager(user.Role.Name),
 	}
 
 	if err := templates.ExecuteTemplate(w, "gate.html", data); err != nil {
@@ -182,21 +220,9 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Route: /orders/{order_id}/{gate_id}/options
-// Method: GET
-func GetGateOptions(w http.ResponseWriter, r *http.Request) {
-
-}
-
 // Route: /orders/{order_id}/documents
 // Method: GET
 func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
-
-}
-
-// Route: /orders/{order_id}/products
-// Method: GET
-func GetProductsInOrder(w http.ResponseWriter, r *http.Request) {
 
 }
 
@@ -222,6 +248,28 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	role := user.Role.Name
+
+	defer r.Body.Close()
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var orderData proto_files.OrderRequest
+	if err := proto.Unmarshal(data, &orderData); err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	// Проверка на валидность типов ворот в заказе
+	for _, gate := range orderData.OrderGates {
+		_, err := models.GateTypeFromProto(gate.GateType)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+	}
 
 	var order models.Sale
 	if role == "dealer" {
@@ -251,28 +299,6 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 		database.DB.Create(&order)
 	}
 
-	defer r.Body.Close()
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusBadRequest)
-		return
-	}
-
-	var orderData proto_files.OrderRequest
-	if err := proto.Unmarshal(data, &orderData); err != nil {
-		helpers.WriteError(w, err, http.StatusBadRequest)
-		return
-	}
-
-	// Проверка на валидность типов ворот в заказе
-	for _, gate := range orderData.OrderGates {
-		_, err := models.GateTypeFromProto(gate.GateType)
-		if err != nil {
-			helpers.WriteError(w, err, http.StatusBadRequest)
-			return
-		}
-	}
-
 	for productId, amount := range orderData.Products {
 		salesAndProduct := models.SalesAndProduct{
 			SaleID:    order.ID,
@@ -286,6 +312,11 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 	var wg sync.WaitGroup
 	for i, gate := range orderData.OrderGates {
 		gateType, _ := models.GateTypeFromProto(gate.GateType)
+		driveType := models.GetDriveTypeFromProto(gate.Drive)
+		if driveType == "unknown" {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 
 		orderDetails := models.SalesAndGate{
 			SaleID:        order.ID,
@@ -293,18 +324,17 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			GateType:      gateType,
 			Width:         gate.Width,
 			Height:        gate.Height,
+			Headroom:      gate.Headroom,
 			LiftTypeID:    gate.LiftTypeId,
 			ColorOutID:    gate.ColorOutId,
 			CycleAmountID: gate.CycleAmountId,
+			DriveType:     driveType,
+			Price:         decimal.NewFromInt(gate.Price).Div(decimal.NewFromInt(100)),
 		}
 
 		wg.Go(func() {
 			database.DB.Create(&orderDetails)
 		})
-
-		if gate.Drive == nil {
-			continue
-		}
 
 		switch d := gate.Drive.DriveType.(type) {
 		case *proto_files.Drive_Industrial:
@@ -334,7 +364,8 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			}
 			database.DB.Create(&gatesAndSalesManualDrive)
 		default:
-			continue
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
 		}
 
 		if len(gate.Options) == 0 {

@@ -28,20 +28,6 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 		role = user.Role.Name
 	}
 
-	/*query := r.URL.Query()
-	gateTypeParam := query.Get("gateType")
-	gateType, err := models.DetermineGateType(gateTypeParam)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusBadRequest)
-		return
-	}
-
-	cfg, err := getGateCfg(gateType)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
-	}*/
-
 	indCfg, err := getGateCfg(models.GateTypeInd)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
@@ -122,7 +108,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 	} else {
-		var price int64
+		var price decimal.Decimal
 		if err := database.DB.Model(&models.Size{}).
 			Select("RetailPrice").
 			Where("width >= ? AND height >= ?", width, height).
@@ -137,7 +123,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 		resp = &proto_files.SizePrice{
 			Price: &proto_files.SizePrice_Client{
 				Client: &proto_files.ClientSizePrice{
-					ClientPrice: price,
+					ClientPrice: price.Mul(decimal.NewFromInt(100)).IntPart(),
 				},
 			},
 		}
@@ -163,6 +149,7 @@ func getGateCfg(gateType models.GateType) (types.Config, error) {
 		HeightParams: types.SizeParams{},
 		Options:      []models.Option{},
 		Products:     []models.Product{},
+		DriveTypes:   []models.DriveType{},
 	}
 
 	var wg sync.WaitGroup
@@ -170,6 +157,7 @@ func getGateCfg(gateType models.GateType) (types.Config, error) {
 
 	switch gateType {
 	case models.GateTypeInd:
+		cfg.DriveTypes = []models.DriveType{models.IndDriveType, models.ManualDriveType}
 		wg.Go(func() {
 			if err := database.DB.Find(&cfg.IndustrialDrives).Error; err != nil {
 				errChan <- err
@@ -177,6 +165,13 @@ func getGateCfg(gateType models.GateType) (types.Config, error) {
 			}
 		})
 	case models.GateTypeRes:
+		cfg.DriveTypes = []models.DriveType{models.ResDriveType, models.ManualDriveType}
+		wg.Go(func() {
+			if err := database.DB.Find(&cfg.Rails).Error; err != nil {
+				errChan <- err
+				return
+			}
+		})
 		wg.Go(func() {
 			if err := database.DB.Find(&cfg.ResidentialDrives).Error; err != nil {
 				errChan <- err

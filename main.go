@@ -64,7 +64,6 @@ func main() {
 	r.HandleFunc("/orders/{order_id}", handlers.AddNewGateInOrder).Methods("POST")
 	r.HandleFunc("/orders/{order_id}", handlers.DeleteUserOrder).Methods("DELETE")
 
-	r.HandleFunc("/orders/{order_id}/products", handlers.GetProductsInOrder).Methods("GET")
 	r.HandleFunc("/orders/{order_id}/products", handlers.AddNewProductInOrder).Methods("POST")
 	r.HandleFunc("/orders/{order_id}/products/{product_id}", handlers.UpdateProductList).Methods("PUT")
 	r.HandleFunc("/orders/{order_id}/products/{product_id}", handlers.DeleteProductFromOrder).Methods("DELETE")
@@ -74,7 +73,6 @@ func main() {
 	r.HandleFunc("/orders/{order_id}/{gate_id}", handlers.UpdateGateInOrder).Methods("PUT")
 
 	// Доделать
-	r.HandleFunc("/orders/{order_id}/{gate_id}/options", handlers.GetGateOptions).Methods("GET")
 	r.HandleFunc("/orders/{order_id}/documents", handlers.GetOrderDocuments).Methods("GET")
 
 	r.HandleFunc("/calculator", handlers.GetCalculatorForUser).Methods("GET")

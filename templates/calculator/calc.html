@@ -136,10 +136,33 @@
           </select>
         </div>
 
-        <!--Привод-->
+        <!--Тип привода-->
+        <div class="input-container">
+          <label for="driveType">Тип привода</label>
+          <select id="driveType"></select>
+        </div>
+
+        <!--Ручной привод-->
+        <div class="input-container manual">
+          <label for="chainLength">Длина цепи</label>
+          <input
+            name="chainLength"
+            id="chainLength"
+            type="number"
+            min="0"
+            value="0"
+          />
+        </div>
+
+        <!--Автоматический привод-->
         <div class="input-container">
           <label for="drive">Привод</label>
           <select name="drive" id="drive"></select>
+        </div>
+        <!--Автоматический привод-->
+        <div class="input-container rail">
+          <label for="rail">Направляющая</label>
+          <select name="rail" id="rail"></select>
         </div>
       </div>
       <div class="standart-configuration">
@@ -249,11 +272,11 @@
   {{if .isDealer}}
   <button class="button button--secondary">Скачать договор</button>
   <div class="prices">
-    <!--<p>Цена текущих ворот (дилер):</p>
+    <p>Цена текущих ворот (дилер):</p>
     <p class="gateDealerPrice">0</p>
 
     <p>Цена текущих ворот (клиент):</p>
-    <p class="gateClientPrice">0</p>-->
+    <p class="gateClientPrice">0</p>
 
     <p>Стоимость заказа (дилер):</p>
     <p class="totalDealerPrice">0</p>

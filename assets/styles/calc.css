@@ -174,3 +174,7 @@ h2 {
 #gateList li .deleteGate:hover {
   background-color: transparent;
 }
+
+.manual, .rail {
+  display: none;
+}

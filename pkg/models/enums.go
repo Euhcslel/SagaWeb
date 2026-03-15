@@ -5,6 +5,7 @@ import (
 	"project/pkg/proto_files"
 )
 
+// Тип Статус заказа
 type OrderStatus string
 
 const (
@@ -13,6 +14,7 @@ const (
 	OrderStatusCancelled OrderStatus = "cancelled"
 )
 
+// Функция для получения всех статусов заказа
 func GetAllOrderStatuses() []OrderStatus {
 	return []OrderStatus{
 		OrderStatusNew,
@@ -21,6 +23,7 @@ func GetAllOrderStatuses() []OrderStatus {
 	}
 }
 
+// Функция для получения наименования статуса заказа
 func (s OrderStatus) Label() string {
 	switch s {
 	case OrderStatusNew:
@@ -34,6 +37,7 @@ func (s OrderStatus) Label() string {
 	}
 }
 
+// Тип Статус заявки на регистрацию
 type RegRequestStatus string
 
 const (
@@ -42,6 +46,7 @@ const (
 	RegRequestStatusRejected RegRequestStatus = "rejected"
 )
 
+// Функция для получения всех статусов заявки на регистрацию
 func GetAllRegRequestStatuses() []RegRequestStatus {
 	return []RegRequestStatus{
 		RegRequestStatusPending,
@@ -50,6 +55,7 @@ func GetAllRegRequestStatuses() []RegRequestStatus {
 	}
 }
 
+// Функция для получения наименования статуса заявки на регистрацию
 func (s RegRequestStatus) Label() string {
 	switch s {
 	case RegRequestStatusPending:
@@ -63,6 +69,7 @@ func (s RegRequestStatus) Label() string {
 	}
 }
 
+// Тип Тип ворот
 type GateType string
 
 const (
@@ -70,6 +77,7 @@ const (
 	GateTypeRes GateType = "res"
 )
 
+// Функция для получения всех типов ворот
 func GetAllGateTypes() []GateType {
 	return []GateType{
 		GateTypeInd,
@@ -77,6 +85,7 @@ func GetAllGateTypes() []GateType {
 	}
 }
 
+// Функция для преобразования строки в тип ворот
 func DetermineGateType(name string) (GateType, error) {
 	t := GateType(name)
 
@@ -88,6 +97,7 @@ func DetermineGateType(name string) (GateType, error) {
 	}
 }
 
+// Функция для получения наименования типа ворот
 func (t GateType) Label() string {
 	switch t {
 	case GateTypeInd:
@@ -99,6 +109,7 @@ func (t GateType) Label() string {
 	}
 }
 
+// Функция для получения типа ворот из proto-типа
 func GateTypeFromProto(t proto_files.GateType) (GateType, error) {
 	switch t {
 	case proto_files.GateType_GATE_TYPE_IND:
@@ -108,4 +119,62 @@ func GateTypeFromProto(t proto_files.GateType) (GateType, error) {
 	default:
 		return "", errors.New("Такой тип ворот не существует")
 	}
+}
+
+// Тип Тип привода
+type DriveType string
+
+const (
+	IndDriveType    DriveType = "industrial"
+	ResDriveType    DriveType = "residential"
+	ManualDriveType DriveType = "manual"
+)
+
+// Функция для получения всех типов привода
+func GetAllDriveTypes() []DriveType {
+	return []DriveType{
+		IndDriveType,
+		ResDriveType,
+		ManualDriveType,
+	}
+}
+
+// Функция для преобразования строки в тип привода
+func DetermineDriveType(name string) (DriveType, error) {
+	t := DriveType(name)
+
+	switch t {
+	case IndDriveType, ResDriveType, ManualDriveType:
+		return t, nil
+	default:
+		return "", errors.New("Такой тип привода не существует")
+	}
+}
+
+// Функция для получения наименования типа привода
+func (t DriveType) Label() string {
+	switch t {
+	case IndDriveType:
+		return "Промышленный привод"
+	case ResDriveType:
+		return "Бытовой привод"
+	case ManualDriveType:
+		return "Ручной привод"
+	default:
+		return "Неопределено"
+	}
+}
+
+// Функция для преобразования типа привода из proto-типа в enum
+func GetDriveTypeFromProto(drive *proto_files.Drive) DriveType {
+	driveType := drive.DriveType
+	switch driveType.(type) {
+	case *proto_files.Drive_Industrial:
+		return IndDriveType
+	case *proto_files.Drive_Manual:
+		return ManualDriveType
+	case *proto_files.Drive_Residential:
+		return ResDriveType
+	}
+	return "unknown"
 }
