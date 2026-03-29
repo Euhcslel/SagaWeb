@@ -28,26 +28,26 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 		role = user.Role.Name
 	}
 
-	indCfg, err := getGateCfg(models.GateTypeInd)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	resCfg, err := getGateCfg(models.GateTypeRes)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
-	}
-
 	isDealer := hasDealerAccess(role)
 
+	indCfg, err := getGateCfg(models.GateTypeInd, isDealer)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	resCfg, err := getGateCfg(models.GateTypeRes, isDealer)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
 	data := map[string]any{
-		"css":      "calc.css",
-		"indCfg":   indCfg,
-		"resCfg":   resCfg,
-		"user":     user,
-		"isDealer": isDealer,
+		"css":                      "calc.css",
+		"IndustrialConfiguration":  indCfg,
+		"ResidentialConfiguration": resCfg,
+		"user":                     user,
+		"isDealer":                 isDealer,
 	}
 
 	if err := templates.ExecuteTemplate(w, "calc.html", data); err != nil {
@@ -141,7 +141,7 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func getGateCfg(gateType models.GateType) (types.Config, error) {
+func getGateCfg(gateType models.GateType, isDealer bool) (types.Config, error) {
 	cfg := types.Config{
 		LiftTypes:    []models.LiftType{},
 		Colors:       []models.Color{},
@@ -164,6 +164,12 @@ func getGateCfg(gateType models.GateType) (types.Config, error) {
 				return
 			}
 		})
+
+		if !isDealer {
+			for i := range cfg.IndustrialDrives {
+				cfg.IndustrialDrives[i].WholesalePrice = decimal.NewFromInt(0)
+			}
+		}
 	case models.GateTypeRes:
 		cfg.DriveTypes = []models.DriveType{models.ResDriveType, models.ManualDriveType}
 		wg.Go(func() {
@@ -172,12 +178,25 @@ func getGateCfg(gateType models.GateType) (types.Config, error) {
 				return
 			}
 		})
+
+		if !isDealer {
+			for i := range cfg.Rails {
+				cfg.Rails[i].WholesalePrice = decimal.NewFromInt(0)
+			}
+		}
+
 		wg.Go(func() {
 			if err := database.DB.Find(&cfg.ResidentialDrives).Error; err != nil {
 				errChan <- err
 				return
 			}
 		})
+
+		if !isDealer {
+			for i := range cfg.ResidentialDrives {
+				cfg.ResidentialDrives[i].WholesalePrice = decimal.NewFromInt(0)
+			}
+		}
 	}
 
 	wg.Go(func() {
@@ -239,6 +258,21 @@ func getGateCfg(gateType models.GateType) (types.Config, error) {
 
 	wg.Wait()
 	close(errChan)
+
+	if !isDealer {
+		for i := range cfg.LiftTypes {
+			cfg.LiftTypes[i].WholesaleMarkup = decimal.NewFromInt(0)
+		}
+		for i := range cfg.CycleAmounts {
+			cfg.CycleAmounts[i].WholesaleMarkup = decimal.NewFromInt(0)
+		}
+		for i := range cfg.Products {
+			cfg.Products[i].WholesalePrice = decimal.NewFromInt(0)
+		}
+		for i := range cfg.Options {
+			cfg.Options[i].WholesalePrice = decimal.NewFromInt(0)
+		}
+	}
 
 	return cfg, <-errChan
 }

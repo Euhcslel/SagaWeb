@@ -213,6 +213,15 @@ footer .content li {
   font-size: var(--font-size-sm);
 }
 
+footer a {
+  text-decoration: none;
+  color: var(--color-white);
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
 footer div.section-company {
   display: flex;
   flex-direction: row;

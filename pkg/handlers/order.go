@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/gorilla/mux"
-	"github.com/shopspring/decimal"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -197,7 +196,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg, err := getGateCfg(gate.GateType)
+	cfg, err := getGateCfg(gate.GateType, true)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
@@ -211,7 +210,6 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		"drive":     drive,
 		"statuses":  models.GetAllOrderStatuses(),
 		"user":      user,
-		"isManager": isManager(user.Role.Name),
 	}
 
 	if err := templates.ExecuteTemplate(w, "gate.html", data); err != nil {
@@ -329,7 +327,7 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			ColorOutID:    gate.ColorOutId,
 			CycleAmountID: gate.CycleAmountId,
 			DriveType:     driveType,
-			Price:         decimal.NewFromInt(gate.Price).Div(decimal.NewFromInt(100)),
+			Amount:        gate.Amount,
 		}
 
 		wg.Go(func() {

@@ -1,168 +1,291 @@
-{{template "html-start" .}}
-<a class="back-button" href="/orders/{{.gate.SaleID}}">Вернуться назад</a>
-<form action="">
-  <div class="config">
-    <!--Тип ворот-->
-    <p>Тип ворот: {{.gate.GateType.Label}}</p>
-    <!--Ширина-->
-    {{if .isManager}}
-    <!--Ширина-->
-    <div class="input-container">
-      <label for="width">Ширина</label>
-      <input
-        name="width"
-        id="width"
-        type="number"
-        min="{{.cfg.WidthParams.MinValue}}"
-        max="{{.cfg.WidthParams.MaxValue}}"
-        value="{{.gate.Width}}"
-      />
-    </div>
-    <!--Высота-->
-    <div class="input-container">
-      <label for="height">Высота</label>
-      <input
-        name="height"
-        id="height"
-        type="number"
-        min="{{.сfg.HeightParams.MinValue}}"
-        max="{{.сfg.HeightParams.MaxValue}}"
-        value="{{.gate.Height}}"
-      />
-    </div>
-    <!--Высота притолки-->
-    <div class="input-container">
-      <label for="headroom">Высота притолки</label>
-      <input
-        name="headroom"
-        id="headroom"
-        type="number"
-        min="0"
-        value="{{.gate.Headroom}}"
-      />
-    </div>
-
-    <!--Тип подъема-->
-    <div class="input-container">
-      <label for="liftType">Тип подъема</label>
-      <select name="liftType" id="liftType">
-        {{range .cfg.LiftTypes}}
-        <option
-          value="{{.ID}}"
-          data-client-markup="{{.RetailMarkup}}"
-          data-dealer-markup="{{.WholesaleMarkup}}"
-          {{if
-          eq
-          .ID
-          $.gate.LiftTypeID}}
-          selected
-          {{end}}
-        >
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-    </div>
-
-    <!--Количество циклов-->
-    <div class="input-container">
-      <label for="cycleAmount">Количество циклов</label>
-      <select name="cycleAmount" id="cycleAmount">
-        {{range .cfg.CycleAmounts}}
-        <option
-          value="{{.ID}}"
-          data-client-markup="{{.RetailMarkup}}"
-          data-dealer-markup="{{.WholesaleMarkup}}"
-          {{if
-          eq
-          .ID
-          $.gate.CycleAmountID}}selected{{end}}
-        >
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-    </div>
-
-    <!--Цвет ворот снаружи-->
-    <div class="input-container">
-      <label for="colorOut">Цвет ворот снаружи</label>
-      <select name="colorOut" id="colorOut">
-        {{range .cfg.Colors}}
-        <option value="{{.ID}}" {{if eq .ID $.gate.ColorOutID}}selected{{end}}>
-          {{.Code}}
-        </option>
-        {{end}}
-      </select>
-    </div>
-
-    <!--Привод-->
-    <div class="input-container">
-      <label for="drive">{{.gate.DriveType.Label}}</label>
-      {{if eq .gate.DriveType "manual"}}
-      <div class="input-container">
-        <label for="chainLength">Длина цепи</label>
-        <input
-          name="chainLength"
-          id="chainLength"
-          type="number"
-          min="0"
-          value="{{$.drive.ChainLength}}"
-        />
-      </div>
-      {{else if eq .gate.DriveType "industrial"}}
-      <select name="drive" id="drive">
-        {{range .cfg.IndustrialDrives}}
-        <option value="{{.ID}}" {{if eq .ID $.drive.DriveID}}selected{{end}}>
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-      {{else if eq .gate.DriveType "residential"}}
-      <select name="drive" id="drive">
-        {{range .cfg.ResidentialDrives}}
-        <option value="{{.ID}}" {{if eq .ID $.drive.DriveID}}selected{{end}}>
-          {{.Name}}
-        </option>
-        {{end}}
-      </select>
-      {{end}}
-    </div>
-
-    {{else}}
-    <p>Ширина: {{.gate.Width}}</p>
-    <!--Высота-->
-    <p>Высота: {{.gate.Height}}</p>
-    <!--Высота притолки-->
-    <p>Высота притолки: {{.gate.Headroom}}</p>
-    <!--Тип подъема-->
-    <p>Тип подъема: {{.gate.LiftType.Name}}</p>
-    <!--Цвет снаружи-->
-    <p>Цвет ворот снаружи: {{.gate.ColorOut.Code}}</p>
-    <!--Количество циклов-->
-    <p>Количество циклов: {{.gate.CycleAmount.Name}}</p>
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/assets/images/favicon.ico" />
+    <link rel="stylesheet" href="/assets/styles/base.css" />
+    {{if .css}}
+    <link rel="stylesheet" href="/assets/styles/{{.css}}" />
     {{end}}
-  </div>
-  <div class="options">
-    <ul>
-      {{range .options}}
-      <li>{{.Option.Name}} x {{.Amount}}</li>
-      {{else}}
-      <li>Нет никаких дополнительных опций</li>
-      {{end}}
-    </ul>
-  </div>
-</form>
-<div class="calc-footer dark-theme">
-  <div class="prices">
-    <p>Цена текущих ворот (дилер):</p>
-    <p class="gateDealerPrice">0</p>
+    <title>Ворота №{{.gate.RowNumber}}</title>
+    <script>
+      const gateConfiguration = {
+        gateType: {{.gate.GateType}},
+        width: {{.gate.Width}},
+        height: {{.gate.Height}},
+        headroom: {{.gate.Headroom}},
+        liftTypeID: {{.gate.LiftTypeID}},
+        colorOutID: {{.gate.ColorOutID}},
+        cycleAmountID: {{.gate.CycleAmountID}},
+        driveType: {{.gate.DriveType}},
+        amount: {{.gate.Amount}}
+      }
+    </script>
+    <script type="module" src="/assets/scripts/gate-editor.js" defer></script>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <a class="back-button" href="/orders/{{.gate.SaleID}}">Вернуться назад</a>
+      <form action="" method="post">
+        <div class="configuration">
+          <!--Тип ворот-->
+          <label for=""
+            >Тип ворот
+            <input
+              id="gate-type"
+              name="gate-type"
+              type="text"
+              value="{{.gate.GateType.Label}}"
+              data-value="{{.gate.GateType}}"
+              readonly
+            />
+          </label>
+          <div class="sizes">
+            <!--Ширина-->
+            <label for="width">
+              Ширина
+              <input
+                name="width"
+                id="width"
+                type="number"
+                min="{{.cfg.WidthParams.MinValue}}"
+                max="{{.cfg.WidthParams.MaxValue}}"
+                value="{{.gate.Width}}"
+              />
+            </label>
+            <!--Высота-->
+            <label for="height"
+              >Высота
+              <input
+                name="height"
+                id="height"
+                type="number"
+                min="{{.cfg.HeightParams.MinValue}}"
+                max="{{.cfg.HeightParams.MaxValue}}"
+                value="{{.gate.Height}}"
+              />
+            </label>
+          </div>
+          <!--Высота притолки-->
+          <label for="headroom"
+            >Высота притолки
+            <input
+              name="headroom"
+              id="headroom"
+              type="number"
+              min="0"
+              value="{{.gate.Headroom}}"
+            />
+          </label>
 
-    <p>Цена текущих ворот (клиент):</p>
-    <p class="gateClientPrice">0</p>
-  </div>
-  <button class="button button--primary" type="button" onclick="">
-    Сохранить
-  </button>
-</div>
-{{template "no-footer-end"}}
+          <!--Тип подъема-->
+          <label for="lift-type"
+            >Тип подъема
+            <select name="lift-type" id="lift-type">
+              {{range .cfg.LiftTypes}}
+              <option
+                value="{{.ID}}"
+                data-retail-markup="{{.RetailMarkup}}"
+                data-wholesale-markup="{{.WholesaleMarkup}}"
+                {{if
+                eq
+                .ID
+                $.gate.LiftTypeID}}
+                selected
+                {{end}}
+              >
+                {{.Name}}
+              </option>
+              {{end}}
+            </select>
+          </label>
+
+          <!--Количество циклов-->
+          <label for="cycle-amount"
+            >Количество циклов
+            <select name="cycle-amount" id="cycle-amount">
+              {{range .cfg.CycleAmounts}}
+              <option
+                value="{{.ID}}"
+                data-retail-markup="{{.RetailMarkup}}"
+                data-wholesale-markup="{{.WholesaleMarkup}}"
+                {{if
+                eq
+                .ID
+                $.gate.CycleAmountID}}selected{{end}}
+              >
+                {{.Name}}
+              </option>
+              {{end}}
+            </select>
+          </label>
+
+          <!--Цвет ворот снаружи-->
+          <label for="color-out"
+            >Цвет ворот снаружи
+            <select name="color-out" id="color-out">
+              {{range .cfg.Colors}}
+              <option
+                value="{{.ID}}"
+                {{if
+                eq
+                .ID
+                $.gate.ColorOutID}}selected{{end}}
+              >
+                {{.Code}}
+              </option>
+              {{end}}
+            </select>
+          </label>
+
+          <!--Привод-->
+          <div class="drive-block">
+            <!--Тип привода-->
+            <label
+              >Тип привода
+              <select name="drive-type" class="drive-type">
+                {{range .cfg.DriveTypes}}
+                <option value="{{.}}">{{.Label}}</option>
+                {{end}}
+              </select>
+            </label>
+            {{if eq .gate.DriveType "manual"}}
+            <label
+              >Длина цепи
+              <input
+                oninput="window.updateGatePrice(this.closest('.gate-item'))"
+                data-chain-drive-retail-price="14500"
+                data-chain-drive-wholesale-price="10200"
+                data-chain-retail-price="540"
+                data-chain-wholesale-price="450"
+                name="chain-length"
+                class="chain-length"
+                type="number"
+                min="0"
+                value="0"
+              />
+            </label>
+
+            {{else if eq .gate.DriveType "industrial"}}
+            <label for="drive"
+              >Привод
+              <select name="drive" id="drive">
+                {{range .cfg.IndustrialDrives}}
+                <option
+                  value="{{.ID}}"
+                  data-retail-price="{{.RetailPrice}}"
+                  data-wholesale-price="{{.WholesalePrice}}"
+                  {{if
+                  eq
+                  .ID
+                  $.drive.DriveID}}selected{{end}}
+                >
+                  {{.Name}}
+                </option>
+                {{end}}
+              </select>
+            </label>
+            {{else if eq .gate.DriveType "residential"}}
+            <label for="drive"
+              >Привод бытовой
+              <select name="drive" id="drive">
+                {{range .cfg.ResidentialDrives}}
+                <option
+                  value="{{.ID}}"
+                  data-retail-price="{{.RetailPrice}}"
+                  data-wholesale-price="{{.WholesalePrice}}"
+                  {{if
+                  eq
+                  .ID
+                  $.drive.DriveID}}selected{{end}}
+                >
+                  {{.Name}}
+                </option>
+                {{end}}
+              </select>
+            </label>
+            <label for="rail"
+              >Направляющая
+              <select name="rail" id="rail">
+                {{range .cfg.Rails}}
+                <option
+                  value="{{.ID}}"
+                  data-retail-price="{{.RetailPrice}}"
+                  data-wholesale-price="{{.WholesalePrice}}"
+                  {{if
+                  eq
+                  .ID
+                  $.drive.RailID}}selected{{end}}
+                >
+                  {{.Name}}
+                </option>
+                {{end}}
+              </select>
+            </label>
+            {{end}}
+          </div>
+        </div>
+        <div class="options">
+          <ul
+            class="option-list"
+            data-retail-price="0"
+            data-wholesale-price="0"
+          >
+            {{range .options}}
+            <li class="option-item">
+              <select
+                name="option"
+                class="option"
+                onchange="window.updateOptionsPrice(this)"
+              >
+                <option
+                  value="{{.Option.ID}}"
+                  data-retail-price="{{.Option.RetailPrice}}"
+                  data-wholesale-price="{{.Option.WholesalePrice}}"
+                >
+                  {{.Option.Name}}
+                </option>
+              </select>
+              <div class="controls">
+                <input
+                  type="number"
+                  name="amount"
+                  class="amount"
+                  min="1"
+                  value="1"
+                  oninput="window.updateOptionsPrice(this)"
+                />
+                <button
+                  type="button"
+                  class="button button--secondary"
+                  onclick="
+                    removeItem(this, '.option-div');
+                    window.updateOptionsPrice(this);
+                  "
+                >
+                  Удалить
+                </button>
+              </div>
+            </li>
+            {{end}}
+          </ul>
+        </div>
+      </form>
+      <div class="calc-footer dark-theme">
+        <div class="prices">
+          <p>Цена текущих ворот (дилер):</p>
+          <p id="gate-wholesale-price">0</p>
+
+          <p>Цена текущих ворот (клиент):</p>
+          <p id="gate-retail-price">0</p>
+        </div>
+        <button class="button button--primary" type="button" onclick="">
+          Сохранить
+        </button>
+      </div>
+    </main>
+  </body>
+  <script src="/assets/scripts/protobuf.min.js"></script>
+</html>

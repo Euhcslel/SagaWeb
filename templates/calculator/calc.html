@@ -1,308 +1,473 @@
-{{template "html-start" .}}
-<div class="calc-content">
-  <!--Панель выбора элементов заказа-->
-  <div class="tab">
-    <button
-      class="tablinks button button--secondary"
-      onclick="showItem(event, 'mainConfig')"
-    >
-      Конфигурация
-    </button>
-    <button
-      class="tablinks button button--secondary"
-      onclick="showItem(event, 'options')"
-    >
-      Дополнительные опции
-    </button>
-    <button
-      class="tablinks button button--secondary"
-      onclick="showItem(event, 'products')"
-    >
-      Товары
-    </button>
-    <div class="gate-list">
-      <p>Список ворот в заказе:</p>
-      <ul id="gateList"></ul>
-      <button
-        id="addGateToOrderButton"
-        type="button"
-        class="button button--secondary"
-      >
-        Добавить ворота
-      </button>
-    </div>
-  </div>
-  <form method="POST" class="myForm" id="myForm">
-    <!--Блок для настройки конфигурации ворот-->
-    <h1 class="headerGateNumber">Ворота №</h1>
-    <div id="mainConfig" class="tabItem">
-      <div class="form">
-        <input type="hidden" id="isDealer" value="{{.isDealer}}" />
-        <!--Тип ворот-->
-        <div class="input-container">
-          <label for="gateType">Тип ворот</label>
-          <select name="gateType" id="gateType">
-            <option value="res" selected>Бытовые ворота</option>
-            <option value="ind">Промышленные ворота</option>
-          </select>
-        </div>
-        <!--Ширина-->
-        <div class="input-container">
-          <label for="width">Ширина</label>
-          <input
-            name="width"
-            id="width"
-            type="number"
-            min="{{.resCfg.WidthParams.MinValue}}"
-            max="{{.resCfg.WidthParams.MaxValue}}"
-            value="{{.resCfg.WidthParams.MinValue}}"
-          />
-        </div>
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/assets/images/favicon.ico" />
+    <link rel="stylesheet" href="/assets/styles/base.css" />
+    {{if .css}}
+    <link rel="stylesheet" href="/assets/styles/{{.css}}" />
+    {{end}}
+    <title>Калькулятор</title>
+    <script>
+      const configuration = {
+        industrialConfiguration: {
+          widthParams: {{.IndustrialConfiguration.WidthParams}},
+          heightParams: {{.IndustrialConfiguration.HeightParams}},
+          liftTypes: {{.IndustrialConfiguration.LiftTypes}},
+          cycleAmounts: {{.IndustrialConfiguration.CycleAmounts}},
+          colors: {{.IndustrialConfiguration.Colors}},
+          driveTypes: {
+            {{range .IndustrialConfiguration.DriveTypes}}
+              "{{.}}": "{{.Label}}",
+            {{end}}
+          },
+          drives: {{.IndustrialConfiguration.IndustrialDrives}},
+          options: {{.IndustrialConfiguration.Options}},
+        },
+        residentialConfiguration: {
+          widthParams: {{.ResidentialConfiguration.WidthParams}},
+          heightParams: {{.ResidentialConfiguration.HeightParams}},
+          liftTypes: {{.ResidentialConfiguration.LiftTypes}},
+          cycleAmounts: {{.ResidentialConfiguration.CycleAmounts}},
+          colors: {{.ResidentialConfiguration.Colors}},
+          driveTypes: {
+            {{range .ResidentialConfiguration.DriveTypes}}
+              "{{.}}": "{{.Label}}",
+            {{end}}
+          },
+          drives: {{.ResidentialConfiguration.ResidentialDrives}},
+          rails: {{.ResidentialConfiguration.Rails}},
+          options: {{.ResidentialConfiguration.Options}},
+        },
+        products: {{.IndustrialConfiguration.Products}}
+      };
+    </script>
+    <script type="module" src="/assets/scripts/calc.js" defer></script>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <div class="tabs">
+        <div class="menu">
+          <label for="tab-configuration">
+            <input
+              type="radio"
+              name="tabs"
+              class="tab"
+              id="tab-configuration"
+              checked
+            />
+            Конфигурация
+          </label>
+          <label for="tab-additional-options">
+            <input
+              type="radio"
+              name="tabs"
+              class="tab"
+              id="tab-additional-options"
+            />
+            Дополнительные опции
+          </label>
+          <label for="tab-products">
+            <input type="radio" name="tabs" class="tab" id="tab-products" />
+            Товары
+          </label>
 
-        <!--Высота-->
-        <div class="input-container">
-          <label for="height">Высота</label>
-          <input
-            name="height"
-            id="height"
-            type="number"
-            min="{{.resCfg.HeightParams.MinValue}}"
-            max="{{.resCfg.HeightParams.MaxValue}}"
-            value="{{.resCfg.HeightParams.MinValue}}"
-          />
-        </div>
-
-        <!--Высота притолки-->
-        <div class="input-container">
-          <label for="headroom">Высота притолки</label>
-          <input
-            name="headroom"
-            id="headroom"
-            type="number"
-            min="0"
-            value="0"
-          />
-        </div>
-
-        <!--Тип подъема-->
-        <div class="input-container">
-          <label for="liftType">Тип подъема</label>
-          <select name="liftType" id="liftType">
-            {{range .resCfg.LiftTypes}}
-            <option
-              value="{{.ID}}"
-              data-client-markup="{{.RetailMarkup}}"
-              {{if
-              $.isDealer}}
-              data-dealer-markup="{{.WholesaleMarkup}}"
-              {{else}}
-              data-dealer-markup="0"
-              {{end}}
+          <label for="add-gate-tabs">
+            <h3>Список ворот в заказе:</h3>
+            <ul id="gate-tabs" onchange="window.onChangeGateButton(event)"></ul>
+            <button
+              id="add-gate-tabs"
+              type="button"
+              onclick="window.addGateElement()"
             >
-              {{.Name}}
-            </option>
-            {{end}}
-          </select>
+              Добавить ворота
+            </button>
+          </label>
         </div>
 
-        <!--Количество циклов-->
-        <div class="input-container">
-          <label for="cycleAmount">Количество циклов</label>
-          <select name="cycleAmount" id="cycleAmount">
-            {{range .resCfg.CycleAmounts}}
-            <option
-              value="{{.ID}}"
-              data-client-markup="{{.RetailMarkup}}"
-              {{if
-              $.isDealer}}
-              data-dealer-markup="{{.WholesaleMarkup}}"
-              {{else}}
-              data-dealer-markup="0"
-              {{end}}
+        <div class="content">
+          <form action="" method="post">
+            <ul id="gate-list"></ul>
+
+            <!-- Товары -->
+            <div class="tab-content" id="products">
+              <ul id="product-list"></ul>
+              <button
+                id="add-product"
+                type="button"
+                onclick="window.addProduct()"
+              >
+                Добавить
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="calc-footer dark-theme">
+        <button class="button button--secondary">Скачать коммерческое</button>
+        {{if .isDealer}}
+        <button class="button button--secondary">Скачать договор</button>
+        {{end}}
+
+        <div class="prices">
+          <p>Цена текущих ворот (клиент):</p>
+          <p id="gate-retail-price">0</p>
+
+          <p>Стоимость заказа (клиент):</p>
+          <p id="order-retail-price">0</p>
+
+          <div {{if not .isDealer}} style="display: none" {{end}}>
+            <p>Цена текущих ворот (дилер):</p>
+            <p id="gate-wholesale-price">0</p>
+
+            <p>Стоимость заказа (дилер):</p>
+            <p id="order-wholesale-price">0</p>
+          </div>
+        </div>
+
+        <button
+          class="button button--primary"
+          type="button"
+          onclick="window.placeOrder()"
+        >
+          Оформить заказ
+        </button>
+      </div>
+    </main>
+  </body>
+  <template id="gate-template">
+    <li class="gate-item">
+      <h3 class="header-gate-number">Ворота №</h3>
+      <!-- Конфигурация -->
+      <div class="tab-content configuration">
+        <div class="configuration">
+          <!--Тип ворот-->
+          <label>
+            Тип ворот
+            <select
+              name="gate-type"
+              class="gate-type"
+              onchange="updateGateType(this)"
             >
-              {{.Name}}
-            </option>
-            {{end}}
-          </select>
-        </div>
+              <option value="residential" selected>Бытовые ворота</option>
+              <option value="industrial">Промышленные ворота</option>
+            </select>
+          </label>
 
-        <!--Цвет ворот снаружи-->
-        <div class="input-container">
-          <label for="colorOut">Цвет ворот снаружи</label>
-          <select name="colorOut" id="colorOut">
-            {{range .resCfg.Colors}}
-            <option value="{{.ID}}">{{.Code}}</option>
-            {{end}}
-          </select>
-        </div>
+          <div class="sizes">
+            <!--Ширина-->
+            <label>
+              Ширина
+              <input
+                name="width"
+                class="width"
+                type="number"
+                min="{{.ResidentialConfiguration.WidthParams.MinValue}}"
+                max="{{.ResidentialConfiguration.WidthParams.MaxValue}}"
+                value="{{.ResidentialConfiguration.WidthParams.MinValue}}"
+                oninput="window.updateGateSizePrice(this)"
+              />
+            </label>
 
-        <!--Тип привода-->
-        <div class="input-container">
-          <label for="driveType">Тип привода</label>
-          <select id="driveType"></select>
-        </div>
+            <!--Высота-->
+            <label>
+              Высота
+              <input
+                name="height"
+                class="height"
+                type="number"
+                min="{{.ResidentialConfiguration.HeightParams.MinValue}}"
+                max="{{.ResidentialConfiguration.HeightParams.MaxValue}}"
+                value="{{.ResidentialConfiguration.HeightParams.MinValue}}"
+                oninput="window.updateGateSizePrice(this)"
+              />
+            </label>
+          </div>
 
-        <!--Ручной привод-->
-        <div class="input-container manual">
-          <label for="chainLength">Длина цепи</label>
-          <input
-            name="chainLength"
-            id="chainLength"
-            type="number"
-            min="0"
-            value="0"
+          <!--Высота притолки-->
+          <label>
+            Высота притолки
+            <input
+              name="headroom"
+              class="headroom"
+              type="number"
+              min="0"
+              value="0"
+            />
+          </label>
+
+          <!--Тип подъема-->
+          <label>
+            Тип подъема
+            <select
+              name="lift-type"
+              class="lift-type"
+              onchange="window.updateGatePrice(this.closest('.gate-item'))"
+            >
+              {{range .ResidentialConfiguration.LiftTypes}}
+              <option
+                value="{{.ID}}"
+                data-retail-markup="{{.RetailMarkup}}"
+                {{if
+                $.isDealer}}
+                data-wholesale-markup="{{.WholesaleMarkup}}"
+                {{else}}
+                data-wholesale-markup="0"
+                {{end}}
+              >
+                {{.Name}}
+              </option>
+              {{end}}
+            </select>
+          </label>
+
+          <!--Количество циклов-->
+          <label
+            >Количество циклов
+            <select
+              name="cycle-amount"
+              class="cycle-amount"
+              onchange="window.updateGatePrice(this.closest('.gate-item'))"
+            >
+              {{range .ResidentialConfiguration.CycleAmounts}}
+              <option
+                value="{{.ID}}"
+                data-retail-markup="{{.RetailMarkup}}"
+                {{if
+                $.isDealer}}
+                data-wholesale-markup="{{.WholesaleMarkup}}"
+                {{else}}
+                data-wholesale-markup="0"
+                {{end}}
+              >
+                {{.Name}}
+              </option>
+              {{end}}
+            </select>
+          </label>
+
+          <!--Цвет ворот снаружи-->
+          <label
+            >Цвет ворот снаружи
+            <select name="color-out" class="color-out">
+              {{range .ResidentialConfiguration.Colors}}
+              <option value="{{.ID}}">{{.Code}}</option>
+              {{end}}
+            </select>
+          </label>
+
+          <!--Привод-->
+          <div class="drive-block">
+            <!--Тип привода-->
+            <label
+              >Тип привода
+              <select
+                name="drive-type"
+                class="drive-type"
+                onchange="updateDriveType(this)"
+              >
+                {{range .ResidentialConfiguration.DriveTypes}}
+                <option value="{{.}}">{{.Label}}</option>
+                {{end}}
+              </select>
+            </label>
+
+            <!--Ручной привод-->
+            <label
+              >Длина цепи
+              <input
+                oninput="window.updateGatePrice(this.closest('.gate-item'))"
+                data-chain-drive-retail-price="14500"
+                data-chain-drive-wholesale-price="10200"
+                data-chain-retail-price="540"
+                data-chain-wholesale-price="450"
+                name="chain-length"
+                class="chain-length"
+                type="number"
+                min="0"
+                value="0"
+              />
+            </label>
+
+            <div class="drive-auto">
+              <!--Автоматический привод-->
+              <label
+                >Привод
+                <select
+                  name="drive"
+                  class="drive"
+                  onchange="window.updateGatePrice(this.closest('.gate-item'))"
+                ></select>
+              </label>
+
+              <!--Направляющая к приводу (только для бытовых ворот)-->
+              <label
+                >Направляющая
+                <select
+                  name="rail"
+                  class="rail"
+                  onchange="window.updateGatePrice(this.closest('.gate-item'))"
+                ></select>
+              </label>
+            </div>
+          </div>
+
+          <div class="gate-amount-container">
+            <label
+              >Количество ворот
+              <input
+                name="gate-amount"
+                class="gate-amount"
+                type="number"
+                min="1"
+                value="1"
+                oninput="window.updateOrderPrice()"
+              />
+            </label>
+          </div>
+        </div>
+        <figure class="standart-configuration">
+          <img
+            src="/assets/images/scheme.png"
+            alt="Схема ворот"
+            width="1536"
+            height="1024"
           />
-        </div>
-
-        <!--Автоматический привод-->
-        <div class="input-container">
-          <label for="drive">Привод</label>
-          <select name="drive" id="drive"></select>
-        </div>
-        <!--Автоматический привод-->
-        <div class="input-container rail">
-          <label for="rail">Направляющая</label>
-          <select name="rail" id="rail"></select>
-        </div>
+          <figcaption>
+            Стандартная конфигурация:
+            <ul>
+              <li>
+                Полотно из сэндвич-панелей 40мм и усилением под петли и
+                регулируемые кронштейны
+              </li>
+              <li>Петли и регулируемые кронштейны из оцинкованной стали</li>
+              <li>Комплект подвесов с притолкой до 500мм в комплекте</li>
+              <li>Ручка двусторонняя, задвижка</li>
+              <li>Комплект амортизаторов (при установки вального привода)</li>
+            </ul>
+          </figcaption>
+        </figure>
       </div>
-      <div class="standart-configuration">
-        <img src="/assets/images/scheme.png" alt="Схема ворот" />
-        <p>Стандартная конфигурация:</p>
-        <ul>
-          <li>
-            Полотно из сэндвич-панелей 40мм и усилением под петли и регулируемые
-            кронштейны
-          </li>
-          <li>Петли и регулируемые кронштейны из оцинкованной стали</li>
-          <li>Комплект подвесов с притолкой до 500мм в комплекте</li>
-          <li>Ручка двусторонняя, задвижка</li>
-          <li>Комплект амортизаторов (при установки вального привода)</li>
-        </ul>
+      <!-- Дополнительные опции -->
+      <div class="tab-content additional-options">
+        <h2>Дополнительные опции</h2>
+        <ul class="option-list"></ul>
+        <button
+          class="button button--primary"
+          type="button"
+          onclick="window.addGateOption(this)"
+        >
+          Добавить еще
+        </button>
       </div>
-    </div>
-
-    <!--Блок для выбора дополнительных опций к воротам-->
-    <template id="optionTemplate">
-      <div class="option-div">
-        <select name="option">
-          {{range .resCfg.Options}}
-          <option
-            value="{{.ID}}"
-            data-client-price="{{.RetailPrice}}"
-            {{if
-            $.isDealer}}
-            data-dealer-price="{{.WholesalePrice}}"
-            {{else}}
-            data-dealer-price="0"
-            {{end}}
-          >
-            {{.Name}}
-          </option>
-          {{end}}
-        </select>
-        <div class="controls">
-          <input type="number" name="amount" min="1" value="1" />
-          <button
-            type="button"
-            class="button button--secondary"
-            onclick="removeItem(this, '.option-div')"
-          >
-            Удалить
-          </button>
-        </div>
-      </div>
-    </template>
-
-    <div id="options" class="tabItem">
-      <h2>Дополнительные опции</h2>
-      <div id="optionList"></div>
-      <button id="addOptionButton" class="button button--primary" type="button">
-        Добавить еще
-      </button>
-    </div>
-
-    <!--Блок для выбора товаров-->
-    <template id="productTemplate">
-      <div class="product-div">
-        <select name="product">
-          {{range .resCfg.Products}}
-          <option
-            value="{{.ID}}"
-            data-client-price="{{.RetailPrice}}"
-            {{if
-            $.isDealer}}
-            data-dealer-price="{{.WholesalePrice}}"
-            {{else}}
-            data-dealer-price="0"
-            {{end}}
-          >
-            {{.Name}}
-          </option>
-          {{end}}
-        </select>
-        <div class="controls">
-          <input type="number" name="amount" min="1" value="1" />
-          <button
-            type="button"
-            class="button button--secondary"
-            onclick="removeItem(this, '.product-div')"
-          >
-            Удалить
-          </button>
-        </div>
-      </div>
-    </template>
-
-    <div id="products" class="tabItem">
-      <h2>Товары</h2>
-      <div id="productList"></div>
-      <button
-        id="addProductButton"
-        class="button button--primary"
-        type="button"
+    </li>
+  </template>
+  <!--Блок для выбора дополнительных опций к воротам-->
+  <template id="option-template">
+    <div class="option-item">
+      <select
+        name="option"
+        class="option"
+        onchange="window.updateOptionsPrice(this)"
       >
-        Добавить еще
-      </button>
+        {{range .ResidentialConfiguration.Options}}
+        <option
+          value="{{.ID}}"
+          data-retail-price="{{.RetailPrice}}"
+          {{if
+          $.isDealer}}
+          data-wholesale-price="{{.WholesalePrice}}"
+          {{else}}
+          data-wholesale-price="0"
+          {{end}}
+        >
+          {{.Name}}
+        </option>
+        {{end}}
+      </select>
+      <div class="controls">
+        <input
+          type="number"
+          name="amount"
+          class="amount"
+          min="1"
+          value="1"
+          oninput="window.updateOptionsPrice(this)"
+        />
+        <button
+          type="button"
+          class="button button--secondary"
+          onclick="
+            removeItem(this, '.option-item');
+          "
+        >
+          Удалить
+        </button>
+      </div>
     </div>
-  </form>
-</div>
-<div class="calc-footer dark-theme">
-  <button class="button button--secondary">Скачать коммерческое</button>
-
-  {{if .isDealer}}
-  <button class="button button--secondary">Скачать договор</button>
-  <div class="prices">
-    <p>Цена текущих ворот (дилер):</p>
-    <p class="gateDealerPrice">0</p>
-
-    <p>Цена текущих ворот (клиент):</p>
-    <p class="gateClientPrice">0</p>
-
-    <p>Стоимость заказа (дилер):</p>
-    <p class="totalDealerPrice">0</p>
-
-    <p>Стоимость заказа (клиент):</p>
-    <p class="totalClientPrice">0</p>
-  </div>
-  {{else}}
-  <div class="prices">
-    <p class="gateClientPrice">0</p>
-    <p class="totalClientPrice">0</p>
-  </div>
-  {{end}}
-
-  <button class="button button--primary" type="button" onclick="placeOrder()">
-    Оформить заказ
-  </button>
-</div>
-
-<script>
-  window.gateConfigs = {
-    ind: {{ .indCfg | toJSON }},
-    res: {{ .resCfg | toJSON }}
-  }
-</script>
-<script src="/assets/scripts/protobuf.min.js"></script>
-<script src="/assets/scripts/tab.js"></script>
-<script src="/assets/scripts/calc.js"></script>
-{{template "no-footer-end"}}
+  </template>
+  <!--Блок для выбора товаров-->
+  <template id="product-template">
+    <div class="product-item">
+      <select
+        class="product"
+        name="product"
+        onchange="window.updateProductsPrice()"
+      >
+        {{range .ResidentialConfiguration.Products}}
+        <option
+          value="{{.ID}}"
+          data-retail-price="{{.RetailPrice}}"
+          {{if
+          $.isDealer}}
+          data-wholesale-price="{{.WholesalePrice}}"
+          {{else}}
+          data-wholesale-price="0"
+          {{end}}
+        >
+          {{.Name}}
+        </option>
+        {{end}}
+      </select>
+      <div class="controls">
+        <input
+          type="number"
+          name="amount"
+          class="amount"
+          min="1"
+          value="1"
+          oninput="window.updateProductsPrice(this)"
+        />
+        <button
+          type="button"
+          class="button button--secondary"
+          onclick="
+            removeItem(this, '.product-item');
+          "
+        >
+          Удалить
+        </button>
+      </div>
+    </div>
+  </template>
+  <!--Шаблон элемента вкладки в списке ворот-->
+  <template id="gate-tab-template">
+    <li>
+      <label>
+        <p>Ворота №</p>
+        <input type="radio" name="gates" checked />
+      </label>
+      <button
+        onclick="
+          window.removeGateElement(event);
+          window.updateOrderPrice();
+        "
+      >
+        ✕
+      </button>
+    </li>
+  </template>
+  <script src="/assets/scripts/protobuf.min.js"></script>
+</html>

@@ -78,7 +78,7 @@ type GateConfig struct {
 	CycleAmountId int64                  `protobuf:"varint,7,opt,name=cycleAmountId,proto3" json:"cycleAmountId,omitempty"`
 	Options       map[int32]int32        `protobuf:"bytes,8,rep,name=options,proto3" json:"options,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	Headroom      int32                  `protobuf:"varint,9,opt,name=headroom,proto3" json:"headroom,omitempty"`
-	Price         int64                  `protobuf:"varint,10,opt,name=price,proto3" json:"price,omitempty"`
+	Amount        int32                  `protobuf:"varint,10,opt,name=amount,proto3" json:"amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -176,9 +176,9 @@ func (x *GateConfig) GetHeadroom() int32 {
 	return 0
 }
 
-func (x *GateConfig) GetPrice() int64 {
+func (x *GateConfig) GetAmount() int32 {
 	if x != nil {
-		return x.Price
+		return x.Amount
 	}
 	return 0
 }
@@ -477,7 +477,7 @@ var File_assets_proto_files_order_proto protoreflect.FileDescriptor
 
 const file_assets_proto_files_order_proto_rawDesc = "" +
 	"\n" +
-	"\x1eassets/proto_files/order.proto\x12\x05proto\"\x99\x03\n" +
+	"\x1eassets/proto_files/order.proto\x12\x05proto\"\x9b\x03\n" +
 	"\n" +
 	"GateConfig\x12+\n" +
 	"\bgateType\x18\x01 \x01(\x0e2\x0f.proto.GateTypeR\bgateType\x12\x14\n" +
@@ -492,9 +492,9 @@ const file_assets_proto_files_order_proto_rawDesc = "" +
 	"\x05drive\x18\x06 \x01(\v2\f.proto.DriveR\x05drive\x12$\n" +
 	"\rcycleAmountId\x18\a \x01(\x03R\rcycleAmountId\x128\n" +
 	"\aoptions\x18\b \x03(\v2\x1e.proto.GateConfig.OptionsEntryR\aoptions\x12\x1a\n" +
-	"\bheadroom\x18\t \x01(\x05R\bheadroom\x12\x14\n" +
-	"\x05price\x18\n" +
-	" \x01(\x03R\x05price\x1a:\n" +
+	"\bheadroom\x18\t \x01(\x05R\bheadroom\x12\x16\n" +
+	"\x06amount\x18\n" +
+	" \x01(\x05R\x06amount\x1a:\n" +
 	"\fOptionsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"\xba\x01\n" +
