@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"project/pkg/database"
 	"project/pkg/helpers"
-	//"github.com/gorilla/mux"
 )
 
 // Route: /tables/{table_name}
@@ -21,10 +20,6 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusForbidden)
 		return
 	}
-	//vars := mux.Vars(r)
-
-	//model := database.NamedModels[vars["table_name"]]
-
 }
 
 // Route: /tables

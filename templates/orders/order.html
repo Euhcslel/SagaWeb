@@ -1,39 +1,78 @@
-{{template "html-start" .}}
-<a href="/orders">Вернуться к заказам</a>
-<div class="order-content">
-  <div class="gates">
-    {{range .order.Gates}}
-    <div class="order-card">
-      <div class="card-header">
-        <h2>
-          Ворота №{{.Gate.RowNumber}}
-        </h2>
-        <a
-          class="button button--secondary"
-          href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}"
-          ><img src="/assets/images/search.svg" alt="Лупа"
-        /></a>
-      </div>
-      <ul>
-        <li>{{.Gate.Width}}</li>
-        <li>{{.Gate.Height}}</li>
-        <li>{{.Gate.GateType.Label}}</li>
-        <li>{{.Gate.LiftType.Name}}</li>
-        <li>{{.Gate.ColorOut.Code}}</li>
-        <li>{{.Gate.CycleAmount.Name}}</li>
-      </ul>
-    </div>
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/assets/images/favicon.ico" />
+    <link rel="stylesheet" href="/assets/styles/base.css" />
+    {{if .css}}
+    <link rel="stylesheet" href="/assets/styles/{{.css}}" />
     {{end}}
-  </div>
-  <div class="products">
-    <p>Товары</p>
-    <ul>
-      {{range .order.Products}}
-      <li>{{.Product.Name}} x {{.Amount}}</li>
-      {{else}}
-      <li>Нет никаких товаров</li>
-      {{end}}
-    </ul>
-  </div>
-</div>
-{{template "html-end"}}
+    <title>Заказ №{{.orderId}}</title>
+    <script type="module" src="/assets/scripts/order.js" defer></script>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <a href="/orders">Вернуться к заказам</a>
+      <button
+        class="button secondary"
+        onclick="window.deleteOrder({{.orderId}})"
+      >
+        Удалить заказ
+      </button>
+      <div class="order-content">
+        <div class="gates">
+          {{range .order.Gates}}
+          <div class="order-card">
+            <div class="card-header">
+              <h2>Ворота №{{.Gate.RowNumber}}</h2>
+              <a
+                class="button secondary"
+                href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}"
+                ><img src="/assets/images/search.svg" alt="Лупа"
+              /></a>
+              <button
+                class="button secondary"
+                onclick="window.deleteGate({{.Gate.RowNumber}})"
+              >
+                <img src="/assets/images/orders.svg" alt="Корзина" />
+              </button>
+            </div>
+            <ul>
+              <li>{{.Gate.Width}}</li>
+              <li>{{.Gate.Height}}</li>
+              <li>{{.Gate.GateType.Label}}</li>
+              <li>{{.Gate.LiftType.Name}}</li>
+              <li>{{.Gate.ColorOut.Code}}</li>
+              <li>{{.Gate.CycleAmount.Name}}</li>
+            </ul>
+          </div>
+          {{else}}
+          <p>Нет никаких ворот</p>
+          {{end}}
+        </div>
+        <div class="products">
+          <p>Товары</p>
+          <ul>
+            {{range .order.Products}}
+            <li>{{.Product.Name}} x {{.Amount}}</li>
+            {{else}}
+            <li>Нет никаких товаров</li>
+            {{end}}
+          </ul>
+        </div>
+      </div>
+      <a href="#add-gate-modal" class="button primary">Добавить ворота</a>
+      <div id="add-gate-modal" class="modal">
+        <div class="content">
+          <a href="#" class="close">×</a>
+          <p>Выберите тип ворот:</p>
+          <button class="button secondary" onclick="window.addGate('res')">Бытовые</button>
+          <button class="button secondary" onclick="window.addGate('ind')">Промышленные</button>
+        </div>
+      </div>
+    </main>
+    <script src="/assets/scripts/protobuf.min.js"></script>
+  </body>
+</html>

@@ -106,9 +106,9 @@
         </div>
       </div>
       <div class="calc-footer dark-theme">
-        <button class="button button--secondary">Скачать коммерческое</button>
+        <button class="button secondary">Скачать коммерческое</button>
         {{if .isDealer}}
-        <button class="button button--secondary">Скачать договор</button>
+        <button class="button secondary">Скачать договор</button>
         {{end}}
 
         <div class="prices">
@@ -128,7 +128,7 @@
         </div>
 
         <button
-          class="button button--primary"
+          class="button primary"
           type="button"
           onclick="window.placeOrder()"
         >
@@ -308,6 +308,7 @@
                 <select
                   name="rail"
                   class="rail"
+                  id="rail"
                   onchange="window.updateGatePrice(this.closest('.gate-item'))"
                 ></select>
               </label>
@@ -355,7 +356,7 @@
         <h2>Дополнительные опции</h2>
         <ul class="option-list"></ul>
         <button
-          class="button button--primary"
+          class="button primary"
           type="button"
           onclick="window.addGateOption(this)"
         >
@@ -398,7 +399,7 @@
         />
         <button
           type="button"
-          class="button button--secondary"
+          class="button secondary"
           onclick="
             removeItem(this, '.option-item');
           "
@@ -442,7 +443,7 @@
         />
         <button
           type="button"
-          class="button button--secondary"
+          class="button secondary"
           onclick="
             removeItem(this, '.product-item');
           "

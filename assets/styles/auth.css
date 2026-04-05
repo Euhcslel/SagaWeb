@@ -1,30 +1,29 @@
-
 h1 {
-    text-align: center;
+  text-align: center;
 }
 
 .form-container {
-    margin: auto;
-    padding: var(--spacing-xl);
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
-    width: 25%;
-    margin-bottom: var(--spacing-xl);
+  margin: auto;
+  padding: var(--spacing-xl);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+  width: 25%;
+  margin-bottom: var(--spacing-xl);
 }
 
 .button-container {
-    display: flex;
-    flex-direction: row;
-    margin-bottom: var(--spacing-xl);
-}
+  display: flex;
+  flex-direction: row;
+  margin-bottom: var(--spacing-xl);
 
-.button-container .button {
+  .button {
     flex: 1;
-}
 
-.button-container .button--primary {
-    box-shadow: none;
-}
+    &.primary {
+      box-shadow: none;
 
-.button-container .button--primary:hover {
-    transform: translate(0);
+      &:hover {
+        transform: translate(0);
+      }
+    }
+  }
 }

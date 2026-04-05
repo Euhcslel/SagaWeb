@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"project/pkg/database"
@@ -8,11 +10,34 @@ import (
 	"project/pkg/models"
 	"project/pkg/proto_files"
 	"project/pkg/types"
+	"strconv"
 	"sync"
 
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/proto"
+	"gorm.io/gorm/clause"
 )
+
+// Функция для проверки доступа к заказу
+func getAccessibleSale(user *models.User, saleID string) (*models.Sale, error) {
+	var sale models.Sale
+	query := database.DB.Where("id = ?", saleID)
+
+	switch user.Role.Name {
+	case "dealer":
+		query = query.Where("client_id = ?", user.ID)
+	case "manager":
+		query = query.Where("manager_id = ?", user.ID)
+	default:
+		return nil, errors.New("forbidden")
+	}
+
+	if err := query.First(&sale).Error; err != nil {
+		return nil, err
+	}
+
+	return &sale, nil
+}
 
 // Route: /orders
 // Method: GET
@@ -72,18 +97,23 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	orderId := vars["order_id"]
-
+	saleID := mux.Vars(r)["order_id"]
+	sale, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	}
 	// Получаем все ворота выбранного заказа
 	var orderGates []models.SalesAndGate
-	database.DB.
+	if err := database.DB.
 		Preload("LiftType").
 		Preload("ColorOut").
 		Preload("CycleAmount").
-		Model(models.SalesAndGate{}).
-		Where("sale_id = ?", orderId).
-		Find(&orderGates)
+		Where("sale_id = ?", sale.ID).
+		Find(&orderGates).Error; err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
 
 	// Собираем все ID ворот
 	var gateIDs []int64
@@ -93,10 +123,13 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 
 	// Получаем все опции всех ворот
 	var options []models.GatesAndSalesOption
-	database.DB.
+	if err := database.DB.
 		Where("row_number IN ?", gateIDs).
 		Preload("Option").
-		Find(&options)
+		Find(&options).Error; err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 
 	// Группируем опции по ID ворот
 	optionsMap := make(map[int64][]models.Option)
@@ -116,15 +149,16 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	if err := database.DB.Preload("Product").Where("sale_id = ?", orderId).Find(&order.Products).Error; err != nil {
+	if err := database.DB.Preload("Product").Where("sale_id = ?", sale.ID).Find(&order.Products).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	data := map[string]any{
-		"css":   "/order.css",
-		"order": order,
-		"user":  user,
+		"css":     "/order.css",
+		"order":   order,
+		"user":    user,
+		"orderId": sale.ID,
 	}
 
 	if err := templates.ExecuteTemplate(w, "order.html", data); err != nil {
@@ -147,14 +181,20 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
+	saleID := vars["order_id"]
+	sale, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	}
 
 	var gate models.SalesAndGate
 	if err := database.DB.Model(models.SalesAndGate{}).
 		Preload("LiftType").
 		Preload("ColorOut").
 		Preload("CycleAmount").
-		Where("sale_id = ? and row_number = ?", vars["order_id"], vars["gate_id"]).
-		Find(&gate).Error; err != nil {
+		Where("sale_id = ? and row_number = ?", sale.ID, vars["gate_id"]).
+		First(&gate).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -191,7 +231,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var options []models.GatesAndSalesOption
-	if err := database.DB.Model(models.GatesAndSalesOption{}).Preload("Option").Where("sale_id = ? and row_number = ?", vars["order_id"], vars["gate_id"]).Find(&options).Error; err != nil {
+	if err := database.DB.Model(models.GatesAndSalesOption{}).Preload("Option").Where("sale_id = ? and row_number = ?", sale.ID, vars["gate_id"]).Find(&options).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -203,13 +243,13 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css":       "calc.css",
-		"gate":      gate,
-		"options":   options,
-		"cfg":       cfg,
-		"drive":     drive,
-		"statuses":  models.GetAllOrderStatuses(),
-		"user":      user,
+		"css":      "calc.css",
+		"gate":     gate,
+		"options":  options,
+		"cfg":      cfg,
+		"drive":    drive,
+		"statuses": models.GetAllOrderStatuses(),
+		"user":     user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "gate.html", data); err != nil {
@@ -227,13 +267,132 @@ func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
 // Route: /orders/{order_id}
 // Method: DELETE
 func DeleteUserOrder(w http.ResponseWriter, r *http.Request) {
+	user, err := helpers.GetUserBySessionToken(r)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusUnauthorized)
+		return
+	}
 
+	vars := mux.Vars(r)
+	saleID := vars["order_id"]
+	sale, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	}
+
+	if err := database.DB.Delete(&sale).Error; err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 }
 
 // Route: /orders/{order_id}
 // Method: POST
 func AddNewGateInOrder(w http.ResponseWriter, r *http.Request) {
-	database.DB.Model(models.SalesAndGate{})
+	user, err := helpers.GetUserBySessionToken(r)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	saleID := vars["order_id"]
+	sale, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	}
+
+	var gateRowNumber int64
+
+	err = r.ParseMultipartForm(256)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+	gateType := models.GateType(r.FormValue("gateType"))
+	switch gateType {
+	case models.GateTypeInd:
+		cfg, err := getGateCfg(gateType, true)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+
+		gate := models.SalesAndGate{
+			SaleID:        sale.ID,
+			GateType:      gateType,
+			Width:         int32(cfg.WidthParams.MinValue),
+			Height:        int32(cfg.HeightParams.MinValue),
+			Headroom:      0,
+			LiftTypeID:    cfg.LiftTypes[0].ID,
+			CycleAmountID: cfg.CycleAmounts[0].ID,
+			ColorOutID:    cfg.Colors[0].ID,
+			DriveType:     "industrial",
+			Amount:        1,
+		}
+
+		if err := database.DB.Clauses(clause.Returning{}).Create(&gate).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		if err := database.DB.Create(&models.IndustrialGatesAndSalesDrive{
+			SaleID:    sale.ID,
+			RowNumber: gate.RowNumber,
+			DriveID:   int32(cfg.IndustrialDrives[0].ID),
+		}).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		gateRowNumber = gate.RowNumber
+
+	case models.GateTypeRes:
+		cfg, err := getGateCfg(gateType, true)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+
+		gate := models.SalesAndGate{
+			SaleID:        sale.ID,
+			GateType:      gateType,
+			Width:         int32(cfg.WidthParams.MinValue),
+			Height:        int32(cfg.HeightParams.MinValue),
+			Headroom:      0,
+			LiftTypeID:    cfg.LiftTypes[0].ID,
+			CycleAmountID: cfg.CycleAmounts[0].ID,
+			ColorOutID:    cfg.Colors[0].ID,
+			DriveType:     "residential",
+			Amount:        1,
+		}
+
+		if err := database.DB.Clauses(clause.Returning{}).Create(&gate).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		if err := database.DB.Create(&models.ResidentialGatesAndSalesDriveRail{
+			SaleID:    sale.ID,
+			RowNumber: gate.RowNumber,
+			DriveID:   int32(cfg.ResidentialDrives[0].ID),
+			RailID:    int32(cfg.Rails[0].ID),
+		}).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+
+		gateRowNumber = gate.RowNumber
+
+	default:
+		helpers.WriteError(w, errors.New("Неправильный тип ворот"), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Location", fmt.Sprintf("/%d", gateRowNumber))
+	w.WriteHeader(http.StatusCreated)
 }
 
 // Route: /orders
@@ -286,7 +445,10 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			Status:    models.OrderStatusNew,
 		}
 
-		database.DB.Create(&order)
+		if err := database.DB.Create(&order).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
 	} else {
 		order = models.Sale{
 			ClientID:  nil,
@@ -294,7 +456,10 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			Status:    models.OrderStatusNew,
 		}
 
-		database.DB.Create(&order)
+		if err := database.DB.Create(&order).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	for productId, amount := range orderData.Products {
@@ -304,7 +469,10 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			Amount:    amount,
 		}
 
-		database.DB.Create(&salesAndProduct)
+		if err := database.DB.Create(&salesAndProduct).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	var wg sync.WaitGroup
@@ -330,9 +498,10 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			Amount:        gate.Amount,
 		}
 
-		wg.Go(func() {
-			database.DB.Create(&orderDetails)
-		})
+		if err := database.DB.Create(&orderDetails).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
 
 		switch d := gate.Drive.DriveType.(type) {
 		case *proto_files.Drive_Industrial:
@@ -342,7 +511,11 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 				RowNumber: int64(i + 1),
 				DriveID:   int32(driveID),
 			}
-			database.DB.Create(&indGatesAndSalesDrive)
+
+			if err := database.DB.Create(&indGatesAndSalesDrive).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
 		case *proto_files.Drive_Residential:
 			driveID := d.Residential.DriveId
 			railID := d.Residential.RailId
@@ -352,7 +525,11 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 				DriveID:   int32(driveID),
 				RailID:    int32(railID),
 			}
-			database.DB.Create(&resGatesAndSalesDriveRail)
+
+			if err := database.DB.Create(&resGatesAndSalesDriveRail).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
 		case *proto_files.Drive_Manual:
 			chain := d.Manual.ChainLength
 			gatesAndSalesManualDrive := models.GatesAndSalesManualDrive{
@@ -360,7 +537,10 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 				RowNumber:   int64(i + 1),
 				ChainLength: chain,
 			}
-			database.DB.Create(&gatesAndSalesManualDrive)
+			if err := database.DB.Create(&gatesAndSalesManualDrive).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
 		default:
 			helpers.WriteError(w, err, http.StatusBadRequest)
 			return
@@ -382,9 +562,10 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 			gateAndSalesOptions = append(gateAndSalesOptions, gateAndSalesOption)
 		}
 
-		wg.Go(func() {
-			database.DB.Create(&gateAndSalesOptions)
-		})
+		if err := database.DB.Create(&gateAndSalesOptions).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	wg.Wait()
@@ -412,11 +593,260 @@ func DeleteProductFromOrder(w http.ResponseWriter, r *http.Request) {
 // Route: /orders/{order_id}/{gate_id}
 // Method: DELETE
 func DeleteGateFromOrder(w http.ResponseWriter, r *http.Request) {
+	user, err := helpers.GetUserBySessionToken(r)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusUnauthorized)
+		return
+	}
 
+	vars := mux.Vars(r)
+	saleID := vars["order_id"]
+	sale, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	}
+	rowNumber := vars["gate_id"]
+
+	var gate models.SalesAndGate
+	userRole := user.Role.Name
+	switch userRole {
+	case "dealer":
+		if err := database.DB.
+			Table("sales_and_gates AS sag").
+			Joins("JOIN sales AS s ON s.id = sag.sale_id").
+			Where("sag.sale_id = ? AND sag.row_number = ? AND s.client_id = ?", sale.ID, rowNumber, user.ID).
+			First(&gate).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+	case "manager":
+		if err := database.DB.
+			Table("sales_and_gates AS sag").
+			Joins("JOIN sales AS s ON s.id = sag.sale_id").
+			Where("sag.sale_id = ? AND sag.row_number = ? AND s.manager_id = ?", sale.ID, rowNumber, user.ID).
+			First(&gate).Error; err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+
+	default:
+		helpers.WriteError(w, errors.New("Данная роль не имеет доступа к удалению записи"), http.StatusForbidden)
+		return
+	}
+
+	if err := database.DB.Delete(&gate).Error; err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 }
 
 // Route: /orders/{order_id}/{gate_id}
 // Method: PUT
 func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {
+	user, err := helpers.GetUserBySessionToken(r)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusUnauthorized)
+		return
+	}
 
+	vars := mux.Vars(r)
+	saleID := vars["order_id"]
+	sale, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	}
+
+	defer r.Body.Close()
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var gateData proto_files.GateConfig
+	if err := proto.Unmarshal(data, &gateData); err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	gateId, err := strconv.Atoi(vars["gate_id"])
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var gate models.SalesAndGate
+	if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&gate).Error; err != nil {
+		helpers.WriteError(w, err, http.StatusNotFound)
+		return
+	}
+
+	gate.Width = gateData.Width
+	gate.Height = gateData.Height
+	gate.Headroom = gateData.Headroom
+	gate.LiftTypeID = gateData.LiftTypeId
+	gate.ColorOutID = gateData.ColorOutId
+	gate.CycleAmountID = gateData.CycleAmountId
+	gate.Amount = gateData.Amount
+
+	switch gateData.Drive.DriveType.(type) {
+	case *proto_files.Drive_Industrial:
+		if gate.DriveType != models.IndDriveType {
+			indGatesAndSalesDrive := models.IndustrialGatesAndSalesDrive{
+				SaleID:    int64(sale.ID),
+				RowNumber: int64(gateId),
+				DriveID:   int32(gateData.Drive.GetIndustrial().DriveId),
+			}
+			if err := database.DB.Create(&indGatesAndSalesDrive).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+
+			switch gate.DriveType {
+			case models.ResDriveType:
+				var resGatesAndSalesDriveRail models.ResidentialGatesAndSalesDriveRail
+				if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&resGatesAndSalesDriveRail).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusNotFound)
+					return
+				}
+
+				if err := database.DB.Delete(&resGatesAndSalesDriveRail).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusInternalServerError)
+					return
+				}
+			case models.ManualDriveType:
+				var gatesAndSalesManualDrive models.GatesAndSalesManualDrive
+				if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&gatesAndSalesManualDrive).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusNotFound)
+					return
+				}
+
+				if err := database.DB.Delete(&gatesAndSalesManualDrive).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusInternalServerError)
+					return
+				}
+			}
+		} else {
+			var indGatesAndSalesDrive models.IndustrialGatesAndSalesDrive
+			if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&indGatesAndSalesDrive).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusNotFound)
+				return
+			}
+
+			indGatesAndSalesDrive.DriveID = int32(gateData.Drive.GetIndustrial().DriveId)
+
+			if err := database.DB.Save(&indGatesAndSalesDrive).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+
+	case *proto_files.Drive_Residential:
+		if gate.DriveType != models.ResDriveType {
+			resGatesAndSalesDriveRail := models.ResidentialGatesAndSalesDriveRail{
+				SaleID:    int64(sale.ID),
+				RowNumber: int64(gateId),
+				DriveID:   int32(gateData.Drive.GetResidential().DriveId),
+				RailID:    int32(gateData.Drive.GetResidential().RailId),
+			}
+			if err := database.DB.Create(&resGatesAndSalesDriveRail).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+
+			switch gate.DriveType {
+			case models.IndDriveType:
+				var indGatesAndSalesDriveRail models.IndustrialGatesAndSalesDrive
+				if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&indGatesAndSalesDriveRail).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusNotFound)
+					return
+				}
+				if err := database.DB.Delete(&indGatesAndSalesDriveRail).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusInternalServerError)
+					return
+				}
+
+			case models.ManualDriveType:
+				var gatesAndSalesManualDrive models.GatesAndSalesManualDrive
+				if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&gatesAndSalesManualDrive).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusNotFound)
+					return
+				}
+				if err := database.DB.Delete(&gatesAndSalesManualDrive).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusInternalServerError)
+					return
+				}
+			}
+		} else {
+			var resGatesAndSalesDriveRail models.ResidentialGatesAndSalesDriveRail
+			if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&resGatesAndSalesDriveRail).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusNotFound)
+				return
+			}
+			resGatesAndSalesDriveRail.DriveID = int32(gateData.Drive.GetResidential().DriveId)
+			resGatesAndSalesDriveRail.RailID = int32(gateData.Drive.GetResidential().RailId)
+			if err := database.DB.Save(&resGatesAndSalesDriveRail).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+	case *proto_files.Drive_Manual:
+		if gate.DriveType != models.ManualDriveType {
+			gatesAndSalesManualDrive := models.GatesAndSalesManualDrive{
+				SaleID:      int64(sale.ID),
+				RowNumber:   int64(gateId),
+				ChainLength: gateData.Drive.GetManual().ChainLength,
+			}
+			if err := database.DB.Create(&gatesAndSalesManualDrive).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+
+			switch gate.DriveType {
+			case models.ResDriveType:
+				var resGatesAndSalesDriveRail models.ResidentialGatesAndSalesDriveRail
+				if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&resGatesAndSalesDriveRail).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusNotFound)
+					return
+				}
+				if err := database.DB.Delete(&resGatesAndSalesDriveRail).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusInternalServerError)
+					return
+				}
+			case models.IndDriveType:
+				var indGatesAndSalesDriveRail models.IndustrialGatesAndSalesDrive
+				if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&indGatesAndSalesDriveRail).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusNotFound)
+					return
+				}
+				if err := database.DB.Delete(&indGatesAndSalesDriveRail).Error; err != nil {
+					helpers.WriteError(w, err, http.StatusInternalServerError)
+					return
+				}
+			}
+		} else {
+			var gatesAndSalesManualDrive models.GatesAndSalesManualDrive
+			if err := database.DB.Where("sale_id = ? AND row_number = ?", sale.ID, gateId).First(&gatesAndSalesManualDrive).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusNotFound)
+				return
+			}
+			gatesAndSalesManualDrive.ChainLength = gateData.Drive.GetManual().ChainLength
+			if err := database.DB.Save(&gatesAndSalesManualDrive).Error; err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+	default:
+		helpers.WriteError(w, errors.New("Неизвестный тип привода"), http.StatusBadRequest)
+		return
+	}
+
+	gate.DriveType = models.GetDriveTypeFromProto(gateData.Drive)
+
+	if err := database.DB.Save(&gate).Error; err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 }

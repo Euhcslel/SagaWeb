@@ -42,6 +42,18 @@
               readonly
             />
           </label>
+          <!--Количество-->
+          <label for="amount"
+            >Количество
+            <input
+              name="amount"
+              id="amount"
+              type="number"
+              min="1"
+              value="{{.gate.Amount}}"
+              oninput="window.updateGateSizePrice()"
+            />
+          </label>
           <div class="sizes">
             <!--Ширина-->
             <label for="width">
@@ -53,6 +65,7 @@
                 min="{{.cfg.WidthParams.MinValue}}"
                 max="{{.cfg.WidthParams.MaxValue}}"
                 value="{{.gate.Width}}"
+                oninput="window.updateGateSizePrice()"
               />
             </label>
             <!--Высота-->
@@ -65,6 +78,7 @@
                 min="{{.cfg.HeightParams.MinValue}}"
                 max="{{.cfg.HeightParams.MaxValue}}"
                 value="{{.gate.Height}}"
+                oninput="window.updateGateSizePrice()"
               />
             </label>
           </div>
@@ -83,7 +97,11 @@
           <!--Тип подъема-->
           <label for="lift-type"
             >Тип подъема
-            <select name="lift-type" id="lift-type">
+            <select
+              name="lift-type"
+              id="lift-type"
+              onchange="window.updateGatePrice()"
+            >
               {{range .cfg.LiftTypes}}
               <option
                 value="{{.ID}}"
@@ -105,7 +123,11 @@
           <!--Количество циклов-->
           <label for="cycle-amount"
             >Количество циклов
-            <select name="cycle-amount" id="cycle-amount">
+            <select
+              name="cycle-amount"
+              id="cycle-amount"
+              onchange="window.updateGatePrice()"
+            >
               {{range .cfg.CycleAmounts}}
               <option
                 value="{{.ID}}"
@@ -145,86 +167,122 @@
             <!--Тип привода-->
             <label
               >Тип привода
-              <select name="drive-type" class="drive-type">
+              <select
+                name="drive-type"
+                class="drive-type"
+                onchange="window.updateDriveType()"
+              >
                 {{range .cfg.DriveTypes}}
-                <option value="{{.}}">{{.Label}}</option>
+                <option
+                  value="{{.}}"
+                  {{if
+                  eq
+                  .
+                  $.gate.DriveType}}selected{{end}}
+                >
+                  {{.Label}}
+                </option>
                 {{end}}
               </select>
             </label>
-            {{if eq .gate.DriveType "manual"}}
             <label
               >Длина цепи
               <input
-                oninput="window.updateGatePrice(this.closest('.gate-item'))"
+                oninput="window.updateGatePrice()"
                 data-chain-drive-retail-price="14500"
                 data-chain-drive-wholesale-price="10200"
                 data-chain-retail-price="540"
                 data-chain-wholesale-price="450"
+                id="chain-length"
                 name="chain-length"
                 class="chain-length"
                 type="number"
                 min="0"
+                {{if
+                eq
+                .gate.DriveType
+                `manual`}}
+                value="{{.drive.ChainLength}}"
+                {{else}}
                 value="0"
+                {{end}}
               />
             </label>
 
-            {{else if eq .gate.DriveType "industrial"}}
-            <label for="drive"
-              >Привод
-              <select name="drive" id="drive">
-                {{range .cfg.IndustrialDrives}}
-                <option
-                  value="{{.ID}}"
-                  data-retail-price="{{.RetailPrice}}"
-                  data-wholesale-price="{{.WholesalePrice}}"
-                  {{if
-                  eq
-                  .ID
-                  $.drive.DriveID}}selected{{end}}
-                >
-                  {{.Name}}
-                </option>
-                {{end}}
-              </select>
-            </label>
-            {{else if eq .gate.DriveType "residential"}}
-            <label for="drive"
-              >Привод бытовой
-              <select name="drive" id="drive">
-                {{range .cfg.ResidentialDrives}}
-                <option
-                  value="{{.ID}}"
-                  data-retail-price="{{.RetailPrice}}"
-                  data-wholesale-price="{{.WholesalePrice}}"
-                  {{if
-                  eq
-                  .ID
-                  $.drive.DriveID}}selected{{end}}
-                >
-                  {{.Name}}
-                </option>
-                {{end}}
-              </select>
-            </label>
-            <label for="rail"
-              >Направляющая
-              <select name="rail" id="rail">
-                {{range .cfg.Rails}}
-                <option
-                  value="{{.ID}}"
-                  data-retail-price="{{.RetailPrice}}"
-                  data-wholesale-price="{{.WholesalePrice}}"
-                  {{if
-                  eq
-                  .ID
-                  $.drive.RailID}}selected{{end}}
-                >
-                  {{.Name}}
-                </option>
-                {{end}}
-              </select>
-            </label>
-            {{end}}
+            <div class="drive-auto">
+              {{if eq .gate.GateType "ind"}}
+              <label for="drive"
+                >Привод промышленный
+                <select name="drive" id="drive">
+                  {{range .cfg.IndustrialDrives}}
+                  <option
+                    value="{{.ID}}"
+                    data-retail-price="{{.RetailPrice}}"
+                    data-wholesale-price="{{.WholesalePrice}}"
+                    {{if
+                    ne
+                    $.gate.DriveType
+                    `manual`}}
+                    {{if
+                    eq
+                    .ID
+                    $.drive.DriveID}}selected{{end}}
+                    {{end}}
+                  >
+                    {{.Name}}
+                  </option>
+                  {{end}}
+                </select>
+              </label>
+              {{else}}
+              <label for="drive"
+                >Привод бытовой
+                <select name="drive" id="drive">
+                  {{range .cfg.ResidentialDrives}}
+                  <option
+                    value="{{.ID}}"
+                    data-retail-price="{{.RetailPrice}}"
+                    data-wholesale-price="{{.WholesalePrice}}"
+                    {{if
+                    eq
+                    $.gate.DriveType
+                    `manual`}}
+                    {{if
+                    eq
+                    .ID
+                    $.drive.DriveID}}selected{{end}}
+                    {{end}}
+                  >
+                    {{.Name}}
+                  </option>
+                  {{end}}
+                </select>
+              </label>
+              {{end}}
+              <label for="rail"
+                >Направляющая
+                <select name="rail" id="rail">
+                  {{range .cfg.Rails}}
+                  <option
+                    value="{{.ID}}"
+                    data-retail-price="{{.RetailPrice}}"
+                    data-wholesale-price="{{.WholesalePrice}}"
+                    {{if
+                    eq
+                    $.gate.DriveType
+                    `manual`}}
+                    {{if
+                    eq
+                    .ID
+                    $.drive.RailID}}selected{{end}}
+                    {{end}}
+                  >
+                    {{.Name}}
+                  </option>
+                  {{end}}
+                </select></label
+              >
+            </div>
           </div>
         </div>
         <div class="options">
@@ -259,7 +317,7 @@
                 />
                 <button
                   type="button"
-                  class="button button--secondary"
+                  class="button secondary"
                   onclick="
                     removeItem(this, '.option-div');
                     window.updateOptionsPrice(this);
@@ -281,11 +339,15 @@
           <p>Цена текущих ворот (клиент):</p>
           <p id="gate-retail-price">0</p>
         </div>
-        <button class="button button--primary" type="button" onclick="">
+        <button
+          class="button primary"
+          type="button"
+          onclick="window.SaveGateConfiguration()"
+        >
           Сохранить
         </button>
       </div>
     </main>
+    <script src="/assets/scripts/protobuf.min.js"></script>
   </body>
-  <script src="/assets/scripts/protobuf.min.js"></script>
 </html>

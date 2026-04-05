@@ -16,10 +16,36 @@
   display: flex;
   flex-direction: column;
   padding: var(--spacing-m);
+
+  a {
+    position: absolute;
+    right: var(--spacing-m);
+    top: var(--spacing-m);
+  }
 }
 
-.order-card a {
-  position: absolute;
-  right: var(--spacing-m);
-  top: var(--spacing-m);
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+
+  &:target {
+    display: block;
+  }
+
+  .content {
+    background: white;
+    padding: 20px;
+    margin: 100px auto;
+    width: 300px;
+    text-align: center;
+    border: 2px solid black;
+  }
+
+  .close {
+    display: block;
+    text-align: right;
+    text-decoration: none;
+    font-size: 20px;
+  }
 }

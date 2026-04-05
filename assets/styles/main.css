@@ -2,6 +2,69 @@ section {
   height: 92vh;
   display: flex;
   scroll-margin-top: 4rem;
+
+  &#main {
+    .description {
+      justify-content: space-between;
+    }
+  }
+
+  &#for-dealer {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.75)),
+      url("/assets/images/gates.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    .description {
+      width: 50%;
+      color: white;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  &#about {
+    position: relative;
+    height: 90vh;
+    overflow-y: hidden;
+
+    img {
+      height: 100%;
+      position: absolute;
+      right: 0;
+      z-index: 1;
+    }
+
+    .history {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      width: 40%;
+      background-color: var(--color-white);
+      padding: var(--spacing-xl);
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+
+      p {
+        margin-bottom: var(--spacing-s);
+        text-indent: var(--spacing-s);
+        text-align: justify;
+      }
+
+      h1 {
+        text-align: center;
+      }
+    }
+  }
+
+  &#dealers-list {
+    padding: var(--spacing-xl);
+    align-items: flex-start;
+    justify-content: space-between;
+  }
 }
 
 .form {
@@ -25,26 +88,6 @@ input[type="checkbox"] {
   margin-bottom: 0;
 }
 
-section#for-dealer {
-  background-image:
-    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.75)),
-    url("/assets/images/gates.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-section#for-dealer .description {
-  width: 50%;
-  color: white;
-  align-items: center;
-  justify-content: center;
-}
-
-section#main .description {
-  justify-content: space-between;
-}
-
 .logo {
   position: relative;
   display: flex;
@@ -52,13 +95,13 @@ section#main .description {
   height: 100%;
   justify-content: center;
   align-items: center;
-}
 
-.logo img {
-  z-index: 1;
-  width: 40%;
-  height: 50%;
-  box-shadow: 10px 10px 5px #00000061;
+  img {
+    z-index: 1;
+    width: 40%;
+    height: 50%;
+    box-shadow: 10px 10px 5px #00000061;
+  }
 }
 
 .decoration {
@@ -79,10 +122,10 @@ section#main .description {
   padding: 24px;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
   text-align: center;
-}
 
-.cta-block p {
-  margin-bottom: var(--spacing-s);
+  p {
+    margin-bottom: var(--spacing-s);
+  }
 }
 
 .horizontal-container {
@@ -107,52 +150,11 @@ section#main .description {
 .benefits li {
   list-style-type: none;
   margin-bottom: 1rem;
-}
 
-.benefits li::before {
-  vertical-align: middle;
-  content: url("/assets/images/white_checkbox.png");
-}
-
-section#about {
-  position: relative;
-  height: 90vh;
-  overflow-y: hidden;
-}
-
-section#about img {
-  height: 100%;
-  position: absolute;
-  right: 0;
-  z-index: 1;
-}
-
-section#about .history {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-  width: 40%;
-  background-color: var(--color-white);
-  padding: var(--spacing-xl);
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
-}
-
-section#about .history p {
-  margin-bottom: var(--spacing-s);
-  text-indent: var(--spacing-s);
-  text-align: justify;
-}
-
-section#about .history h1 {
-  text-align: center;
-}
-
-section#dealers-list {
-  padding: var(--spacing-xl);
-  align-items: flex-start;
-  justify-content: space-between;
+  &::before {
+    vertical-align: middle;
+    content: url("/assets/images/white_checkbox.png");
+  }
 }
 
 .table-scroll {

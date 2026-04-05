@@ -72,28 +72,28 @@
   <div class="nav-div">
     <img src="/assets/images/logo.png" alt="Логотип" />
     <ul>
-      <li><a class="button button--tertiary" href="/#main">Главная</a></li>
-      <li><a class="button button--tertiary" href="/#about">О нас</a></li>
+      <li><a class="button tertiary" href="/#main">Главная</a></li>
+      <li><a class="button tertiary" href="/#about">О нас</a></li>
       <li>
-        <a class="button button--tertiary" href="/#dealers-list">Наши дилеры</a>
+        <a class="button tertiary" href="/#dealers-list">Наши дилеры</a>
       </li>
       <li>
-        <a class="button button--tertiary" href="/#for-dealer">Стать дилером</a>
+        <a class="button tertiary" href="/#for-dealer">Стать дилером</a>
       </li>
-      <li><a class="button button--tertiary" href="/#footer">Контакты</a></li>
+      <li><a class="button tertiary" href="/#footer">Контакты</a></li>
     </ul>
   </div>
   <div class="nav-div">
-    <a href="/calculator" class="button button--tertiary">
+    <a href="/calculator" class="button tertiary">
       <img src="/assets/images/calculator.svg" alt="Калькулятор" />
     </a>
     {{if not .user}}
-    <a class="button button--primary" href="/sign_in">Войти</a>
+    <a class="button primary" href="/sign_in">Войти</a>
     {{else}}
-    <a href="/orders" class="button button--tertiary">
+    <a href="/orders" class="button tertiary">
       <img src="/assets/images/orders.svg" alt="Заказы" />
     </a>
-    <a href="/user" class="button button--tertiary">
+    <a href="/user" class="button tertiary">
       <img src="/assets/images/account_white.svg" alt="Профиль" />
     </a>
     {{end}}

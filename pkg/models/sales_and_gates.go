@@ -18,6 +18,7 @@ type SalesAndGate struct {
 	LiftType    LiftType    `gorm:"foreignKey:LiftTypeID;references:ID"`
 	ColorOut    Color       `gorm:"foreignKey:ColorOutID;references:ID"`
 	CycleAmount CycleAmount `gorm:"foreignKey:CycleAmountID;references:ID"`
+	Sale        Sale        `gorm:"foreignKey:SaleID;references:ID"`
 }
 
 func (*SalesAndGate) TableName() string {
