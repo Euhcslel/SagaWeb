@@ -1,0 +1,176 @@
+section {
+  height: 92vh;
+  display: flex;
+  scroll-margin-top: 4rem;
+
+  &#main {
+    .description {
+      justify-content: space-between;
+    }
+  }
+
+  &#for-dealer {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.75)),
+      url("/web/assets/images/gates.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    .description {
+      width: 50%;
+      color: white;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  &#about {
+    position: relative;
+    height: 90vh;
+    overflow-y: hidden;
+
+    img {
+      height: 100%;
+      position: absolute;
+      right: 0;
+      z-index: 1;
+    }
+
+    .history {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      width: 40%;
+      background-color: var(--color-white);
+      padding: var(--spacing-xl);
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+
+      p {
+        margin-bottom: var(--spacing-s);
+        text-indent: var(--spacing-s);
+        text-align: justify;
+      }
+
+      h1 {
+        text-align: center;
+      }
+    }
+  }
+
+  &#dealers-list {
+    padding: var(--spacing-xl);
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.form {
+  width: 50%;
+  height: 100%;
+  background-color: white;
+  border-radius: 50% 0 0 50%;
+  padding-left: 10%;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 50%;
+  height: 100%;
+  margin: auto;
+}
+
+input[type="checkbox"] {
+  margin-bottom: 0;
+}
+
+.logo {
+  position: relative;
+  display: flex;
+  width: 60%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    z-index: 1;
+    width: 40%;
+    height: 50%;
+    box-shadow: 10px 10px 5px #00000061;
+  }
+}
+
+.decoration {
+  position: absolute;
+  width: 24rem;
+  height: 24rem;
+}
+
+.description {
+  width: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.cta-block {
+  padding: 24px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+  text-align: center;
+
+  p {
+    margin-bottom: var(--spacing-s);
+  }
+}
+
+.horizontal-container {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  justify-content: center;
+}
+
+.gradient-line {
+  border: none;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--color-dark-grey) 50%,
+    transparent 100%
+  );
+  margin-bottom: var(--spacing-xl);
+}
+
+.benefits li {
+  list-style-type: none;
+  margin-bottom: 1rem;
+
+  &::before {
+    vertical-align: middle;
+    content: url("/web/assets/images/white_checkbox.png");
+  }
+}
+
+.table-scroll {
+  max-height: 75vh;
+  overflow-y: scroll;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 1rem;
+}
+
+tbody tr {
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+}
+
+td button {
+  margin: 0 0 var(--spacing-s) 0;
+}
