@@ -6,10 +6,10 @@ let Proto = {
 
 // Функция, инициализирующая proto-схемы
 async function initProtobuf() {
-  const pricesRoot = await protobuf.load("/assets/proto_files/prices.proto");
+  const pricesRoot = await protobuf.load("/api/proto/prices.proto");
   Proto.SizePrice = pricesRoot.lookupType("proto.SizePrice");
 
-  const orderRoot = await protobuf.load("/assets/proto_files/order.proto");
+  const orderRoot = await protobuf.load("/api/proto/order.proto");
   Proto.OrderRequest = orderRoot.lookupType("proto.OrderRequest");
 }
 

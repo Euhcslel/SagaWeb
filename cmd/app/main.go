@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"os"
 	"project/internal/database"
-	handlers "project/internal/transport/http"
 	"project/internal/helpers"
+	handlers "project/internal/transport/http"
 
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -28,61 +27,69 @@ func main() {
 	defer logFile.Close()
 	helpers.LogFile = logFile
 
-	r := mux.NewRouter()
+	mux := http.NewServeMux()
 
 	assets := http.StripPrefix(
 		"/web/assets/",
 		http.FileServer(http.Dir("./web/assets")),
 	)
 
-	r.PathPrefix("/web/assets/").Handler(
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
-			assets.ServeHTTP(w, r)
-		}),
+	mux.Handle("GET /web/assets/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
+		assets.ServeHTTP(w, r)
+	}))
+
+	protoAssets := http.StripPrefix(
+		"/api/proto/",
+		http.FileServer(http.Dir("./api/proto")),
 	)
 
+	mux.Handle("GET /api/proto/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
+		protoAssets.ServeHTTP(w, r)
+	}))
+
 	// Главная страница
-	r.HandleFunc("/", handlers.MainHandler).Methods("GET")
+	mux.HandleFunc("GET /", handlers.MainHandler)
 
 	// Аутентификация
-	r.HandleFunc("/sign_in", handlers.SignInForm).Methods("GET")
-	r.HandleFunc("/sign_in", handlers.SignIn).Methods("POST")
-	r.HandleFunc("/sign_up", handlers.SignUpForm).Methods("GET")
-	r.HandleFunc("/sign_up", handlers.SignUp).Methods("POST")
-	r.HandleFunc("/sign_out", handlers.SignOut).Methods("POST")
+	mux.HandleFunc("GET /sign_in", handlers.SignInForm)
+	mux.HandleFunc("POST /sign_in", handlers.SignIn)
+	mux.HandleFunc("GET /sign_up", handlers.SignUpForm)
+	mux.HandleFunc("POST /sign_up", handlers.SignUp)
+	mux.HandleFunc("POST /sign_out", handlers.SignOut)
 
 	// Аккаунт
-	r.HandleFunc("/user", handlers.GetUserInfo).Methods("GET")
-	r.HandleFunc("/user/dealers", handlers.GetUserDealers).Methods("GET")
+	mux.HandleFunc("GET /user", handlers.GetUserInfo)
+	mux.HandleFunc("GET /user/dealers", handlers.GetUserDealers)
 
 	// Заказы
-	r.HandleFunc("/orders", handlers.GetAllUserOrders).Methods("GET")
-	r.HandleFunc("/orders", handlers.CreateNewOrder).Methods("POST")
+	mux.HandleFunc("GET /orders", handlers.GetAllUserOrders)
+	mux.HandleFunc("POST /orders", handlers.CreateNewOrder)
 
-	r.HandleFunc("/orders/{order_id}", handlers.GetUserOrderById).Methods("GET")
-	r.HandleFunc("/orders/{order_id}", handlers.AddNewGateInOrder).Methods("POST")
-	r.HandleFunc("/orders/{order_id}", handlers.DeleteUserOrder).Methods("DELETE")
+	mux.HandleFunc("GET /orders/{order_id}", handlers.GetUserOrderById)
+	mux.HandleFunc("POST /orders/{order_id}", handlers.AddNewGateInOrder)
+	mux.HandleFunc("DELETE /orders/{order_id}", handlers.DeleteUserOrder)
 
-	r.HandleFunc("/orders/{order_id}/products", handlers.AddNewProductInOrder).Methods("POST")
-	r.HandleFunc("/orders/{order_id}/products/{product_id}", handlers.UpdateProductList).Methods("PUT")
-	r.HandleFunc("/orders/{order_id}/products/{product_id}", handlers.DeleteProductFromOrder).Methods("DELETE")
+	mux.HandleFunc("POST /orders/{order_id}/products", handlers.AddNewProductInOrder)
+	mux.HandleFunc("PUT /orders/{order_id}/products/{product_id}", handlers.UpdateProductList)
+	mux.HandleFunc("DELETE /orders/{order_id}/products/{product_id}", handlers.DeleteProductFromOrder)
 
-	r.HandleFunc("/orders/{order_id}/{gate_id}", handlers.GetGateInOrder).Methods("GET")
-	r.HandleFunc("/orders/{order_id}/{gate_id}", handlers.DeleteGateFromOrder).Methods("DELETE")
-	r.HandleFunc("/orders/{order_id}/{gate_id}", handlers.UpdateGateInOrder).Methods("PUT")
+	mux.HandleFunc("GET /orders/{order_id}/{gate_id}", handlers.GetGateInOrder)
+	mux.HandleFunc("DELETE /orders/{order_id}/{gate_id}", handlers.DeleteGateFromOrder)
+	mux.HandleFunc("PUT /orders/{order_id}/{gate_id}", handlers.UpdateGateInOrder)
 
 	// Доделать
-	r.HandleFunc("/orders/{order_id}/documents", handlers.GetOrderDocuments).Methods("GET")
+	mux.HandleFunc("GET /orders/{order_id}/documents", handlers.GetOrderDocuments)
 
-	r.HandleFunc("/calculator", handlers.GetCalculatorForUser).Methods("GET")
+	mux.HandleFunc("GET /calculator", handlers.GetCalculatorForUser)
 
-	r.HandleFunc("/sizes", handlers.GetPriceBasedOnSize).Methods("GET")
+	mux.HandleFunc("GET /sizes", handlers.GetPriceBasedOnSize)
 
 	// Администратор
-	r.HandleFunc("/tables/{table_name}", handlers.GetDataBaseRedactor).Methods("GET")
-	r.HandleFunc("/tables", handlers.GetDataBaseTableList).Methods("GET")
+	mux.HandleFunc("GET /tables/{table_name}", handlers.GetDataBaseRedactor)
+	mux.HandleFunc("GET /tables", handlers.GetDataBaseTableList)
 
-	err_start := http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(r))
+	err_start := http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(mux))
 	log.Fatal(err_start)
 }

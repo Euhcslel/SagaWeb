@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="/assets/images/favicon.ico" />
-    <link rel="stylesheet" href="/assets/styles/base.css" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    <link rel="stylesheet" href="/web/assets/styles/base.css" />
     {{if .css}}
-    <link rel="stylesheet" href="/assets/styles/{{.css}}" />
+    <link rel="stylesheet" href="/web/assets/styles/{{.css}}" />
     {{end}}
     <title>Заказ №{{.orderId}}</title>
-    <script type="module" src="/assets/scripts/order.js" defer></script>
+    <script type="module" src="/web/assets/scripts/order.js" defer></script>
   </head>
   <body>
     {{template "header-nav" .}}
@@ -30,13 +30,13 @@
               <a
                 class="button secondary"
                 href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}"
-                ><img src="/assets/images/search.svg" alt="Лупа"
+                ><img src="/web/assets/images/search.svg" alt="Лупа"
               /></a>
               <button
                 class="button secondary"
                 onclick="window.deleteGate({{.Gate.RowNumber}})"
               >
-                <img src="/assets/images/orders.svg" alt="Корзина" />
+                <img src="/web/assets/images/orders.svg" alt="Корзина" />
               </button>
             </div>
             <ul>
@@ -73,6 +73,6 @@
         </div>
       </div>
     </main>
-    <script src="/assets/scripts/protobuf.min.js"></script>
+    <script src="/web/assets/scripts/protobuf.min.js"></script>
   </body>
 </html>

@@ -23,7 +23,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm/clause"
 )
@@ -107,7 +106,7 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saleID := mux.Vars(r)["order_id"]
+	saleID := r.PathValue("order_id")
 	sale, err := getAccessibleSale(user, saleID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusForbidden)
@@ -190,8 +189,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	saleID := vars["order_id"]
+	saleID := r.PathValue("order_id")
 	sale, err := getAccessibleSale(user, saleID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusForbidden)
@@ -203,7 +201,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		Preload("LiftType").
 		Preload("ColorOut").
 		Preload("CycleAmount").
-		Where("sale_id = ? and row_number = ?", sale.ID, vars["gate_id"]).
+		Where("sale_id = ? and row_number = ?", sale.ID, r.PathValue("gate_id")).
 		First(&gate).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
@@ -241,7 +239,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var options []gates_and_sales_options.GatesAndSalesOption
-	if err := database.DB.Model(gates_and_sales_options.GatesAndSalesOption{}).Preload("Option").Where("sale_id = ? and row_number = ?", sale.ID, vars["gate_id"]).Find(&options).Error; err != nil {
+	if err := database.DB.Model(gates_and_sales_options.GatesAndSalesOption{}).Preload("Option").Where("sale_id = ? and row_number = ?", sale.ID, r.PathValue("gate_id")).Find(&options).Error; err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -283,8 +281,7 @@ func DeleteUserOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	saleID := vars["order_id"]
+	saleID := r.PathValue("order_id")
 	sale, err := getAccessibleSale(user, saleID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusForbidden)
@@ -306,8 +303,7 @@ func AddNewGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	saleID := vars["order_id"]
+	saleID := r.PathValue("order_id")
 	sale, err := getAccessibleSale(user, saleID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusForbidden)
@@ -609,14 +605,13 @@ func DeleteGateFromOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	saleID := vars["order_id"]
+	saleID := r.PathValue("order_id")
 	sale, err := getAccessibleSale(user, saleID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
 	}
-	rowNumber := vars["gate_id"]
+	rowNumber := r.PathValue("gate_id")
 
 	var gate sales_and_gates.SalesAndGate
 	userRole := user.Role.Name
@@ -660,8 +655,7 @@ func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(r)
-	saleID := vars["order_id"]
+	saleID := r.PathValue("order_id")
 	sale, err := getAccessibleSale(user, saleID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusForbidden)
@@ -681,7 +675,7 @@ func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gateId, err := strconv.Atoi(vars["gate_id"])
+	gateId, err := strconv.Atoi(r.PathValue("gate_id"))
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return

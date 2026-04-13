@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="/assets/images/favicon.ico" />
-    <link rel="stylesheet" href="/assets/styles/base.css" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    <link rel="stylesheet" href="/web/assets/styles/base.css" />
     {{if .css}}
-    <link rel="stylesheet" href="/assets/styles/{{.css}}" />
+    <link rel="stylesheet" href="/web/assets/styles/{{.css}}" />
     {{end}}
     <title>Ворота №{{.gate.RowNumber}}</title>
     <script>
@@ -22,7 +22,7 @@
         amount: {{.gate.Amount}}
       }
     </script>
-    <script type="module" src="/assets/scripts/gate-editor.js" defer></script>
+    <script type="module" src="/web/assets/scripts/gate-editor.js" defer></script>
   </head>
   <body>
     {{template "header-nav" .}}
@@ -348,6 +348,6 @@
         </button>
       </div>
     </main>
-    <script src="/assets/scripts/protobuf.min.js"></script>
+    <script src="/web/assets/scripts/protobuf.min.js"></script>
   </body>
 </html>
