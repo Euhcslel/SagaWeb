@@ -1,10 +1,12 @@
-package helpers
+package utils
 
 import (
+	"context"
 	"net/http"
 	"project/internal/database"
 	"project/internal/domain/sessions"
 	"project/internal/domain/users"
+	"project/internal/types"
 
 	"github.com/samborkent/uuidv7"
 )
@@ -49,4 +51,21 @@ func SetSession(w http.ResponseWriter, userId int64) error {
 	}
 	http.SetCookie(w, cookie)
 	return nil
+}
+
+// Функция для получения пользователя из контекста
+func UserFromContext(ctx context.Context) *users.User {
+	user, ok := ctx.Value(types.UserContextKey).(*users.User)
+	if !ok {
+		return nil
+	}
+	return user
+}
+
+func HasDealerAccess(role string) bool {
+	return role == "dealer" || role == "admin" || role == "manager"
+}
+
+func isManager(role string) bool {
+	return role == "manager"
 }

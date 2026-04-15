@@ -4,16 +4,13 @@ import (
 	"net/http"
 	"project/internal/database"
 	"project/internal/helpers"
+	"project/internal/utils"
 )
 
 // Route: /tables/{table_name}
 // Method: GET
 func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
-	user, err := helpers.GetUserBySessionToken(r)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusUnauthorized)
-		return
-	}
+	user := utils.UserFromContext(r.Context())
 
 	role := user.Role.Name
 	if role != "admin" {
@@ -25,11 +22,7 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 // Route: /tables
 // Method: GET
 func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
-	user, err := helpers.GetUserBySessionToken(r)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusUnauthorized)
-		return
-	}
+	user := utils.UserFromContext(r.Context())
 
 	role := user.Role.Name
 	if role != "admin" {

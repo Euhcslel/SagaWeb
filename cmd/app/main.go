@@ -50,45 +50,45 @@ func main() {
 	}))
 
 	// Главная страница
-	mux.HandleFunc("GET /", handlers.MainHandler)
+	mux.Handle("GET /", handlers.WithOptionalAuth(http.HandlerFunc(handlers.MainHandler)))
 
 	// Аутентификация
-	mux.HandleFunc("GET /sign_in", handlers.SignInForm)
-	mux.HandleFunc("POST /sign_in", handlers.SignIn)
-	mux.HandleFunc("GET /sign_up", handlers.SignUpForm)
-	mux.HandleFunc("POST /sign_up", handlers.SignUp)
-	mux.HandleFunc("POST /sign_out", handlers.SignOut)
+	mux.Handle("GET /sign_in", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignInForm)))
+	mux.Handle("POST /sign_in", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignIn)))
+	mux.Handle("GET /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUpForm)))
+	mux.Handle("POST /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUp)))
+	mux.Handle("POST /sign_out", http.HandlerFunc(handlers.SignOut))
 
 	// Аккаунт
-	mux.HandleFunc("GET /user", handlers.GetUserInfo)
-	mux.HandleFunc("GET /user/dealers", handlers.GetUserDealers)
+	mux.Handle("GET /user", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserInfo)))
+	mux.Handle("GET /user/dealers", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserDealers)))
 
 	// Заказы
-	mux.HandleFunc("GET /orders", handlers.GetAllUserOrders)
-	mux.HandleFunc("POST /orders", handlers.CreateNewOrder)
+	mux.Handle("GET /orders", handlers.RequireAuth(http.HandlerFunc(handlers.GetAllUserOrders)))
+	mux.Handle("POST /orders", handlers.RequireAuth(http.HandlerFunc(handlers.CreateNewOrder)))
 
-	mux.HandleFunc("GET /orders/{order_id}", handlers.GetUserOrderById)
-	mux.HandleFunc("POST /orders/{order_id}", handlers.AddNewGateInOrder)
-	mux.HandleFunc("DELETE /orders/{order_id}", handlers.DeleteUserOrder)
+	mux.Handle("GET /orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserOrderById)))
+	mux.Handle("POST /orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.AddNewGateInOrder)))
+	mux.Handle("DELETE /orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteUserOrder)))
 
-	mux.HandleFunc("POST /orders/{order_id}/products", handlers.AddNewProductInOrder)
-	mux.HandleFunc("PUT /orders/{order_id}/products/{product_id}", handlers.UpdateProductList)
-	mux.HandleFunc("DELETE /orders/{order_id}/products/{product_id}", handlers.DeleteProductFromOrder)
+	mux.Handle("POST /orders/{order_id}/products", handlers.RequireAuth(http.HandlerFunc(handlers.AddNewProductInOrder)))
+	mux.Handle("PUT /orders/{order_id}/products/{product_id}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateProductList)))
+	mux.Handle("DELETE /orders/{order_id}/products/{product_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteProductFromOrder)))
 
-	mux.HandleFunc("GET /orders/{order_id}/{gate_id}", handlers.GetGateInOrder)
-	mux.HandleFunc("DELETE /orders/{order_id}/{gate_id}", handlers.DeleteGateFromOrder)
-	mux.HandleFunc("PUT /orders/{order_id}/{gate_id}", handlers.UpdateGateInOrder)
+	mux.Handle("GET /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.GetGateInOrder)))
+	mux.Handle("DELETE /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteGateFromOrder)))
+	mux.Handle("PUT /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateGateInOrder)))
 
 	// Доделать
-	mux.HandleFunc("GET /orders/{order_id}/documents", handlers.GetOrderDocuments)
+	mux.Handle("GET /orders/{order_id}/documents", handlers.RequireAuth(http.HandlerFunc(handlers.GetOrderDocuments)))
 
-	mux.HandleFunc("GET /calculator", handlers.GetCalculatorForUser)
+	mux.Handle("GET /calculator", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCalculatorForUser)))
 
-	mux.HandleFunc("GET /sizes", handlers.GetPriceBasedOnSize)
+	mux.Handle("GET /sizes", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetPriceBasedOnSize)))
 
 	// Администратор
-	mux.HandleFunc("GET /tables/{table_name}", handlers.GetDataBaseRedactor)
-	mux.HandleFunc("GET /tables", handlers.GetDataBaseTableList)
+	mux.Handle("GET /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseRedactor)))
+	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 
 	err_start := http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(mux))
 	log.Fatal(err_start)

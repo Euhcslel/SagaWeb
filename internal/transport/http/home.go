@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"project/internal/helpers"
+	"project/internal/utils"
 	"time"
 )
 
@@ -44,7 +45,7 @@ var templates = template.Must(
 // Route: /
 // Method: GET
 func MainHandler(w http.ResponseWriter, r *http.Request) {
-	user, _ := helpers.GetUserBySessionToken(r)
+	user := utils.UserFromContext(r.Context())
 
 	data := map[string]any{
 		"css":  "main.css",

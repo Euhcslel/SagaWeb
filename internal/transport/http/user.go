@@ -2,19 +2,15 @@ package http
 
 import (
 	"net/http"
-	"project/internal/database"
-	"project/internal/domain/managers_and_dealers"
 	"project/internal/helpers"
+	"project/internal/service"
+	"project/internal/utils"
 )
 
 // Route: /user
 // Method: GET
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
-	user, err := helpers.GetUserBySessionToken(r)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusUnauthorized)
-		return
-	}
+	user := utils.UserFromContext(r.Context())
 
 	data := map[string]any{
 		"css":  "user.css",
@@ -29,31 +25,21 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 // Route: /user/dealers
 // Method: GET
 func GetUserDealers(w http.ResponseWriter, r *http.Request) {
-	user, err := helpers.GetUserBySessionToken(r)
+	user := utils.UserFromContext(r.Context())
+
+	dealers, err := service.GetUserDealers(user)
 	if err != nil {
-		helpers.WriteError(w, err, http.StatusUnauthorized)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
-	role := user.Role.Name
 
-	if role == "manager" {
-		var dealers []managers_and_dealers.ManagerAndDealer
-		if err := database.DB.Model(managers_and_dealers.ManagerAndDealer{}).Preload("Dealer").Where("manager_id = ?", user.ID).Find(&dealers).Error; err != nil {
-			helpers.WriteError(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		data := map[string]any{
-			"css":     "",
-			"user":    user,
-			"dealers": dealers,
-		}
-
-		if err := templates.ExecuteTemplate(w, "dealers.html", data); err != nil {
-			helpers.WriteError(w, err, http.StatusInternalServerError)
-		}
-	} else {
-		http.Redirect(w, r, "/", http.StatusForbidden)
+	data := map[string]any{
+		"css":     "",
+		"user":    user,
+		"dealers": dealers,
 	}
 
+	if err := templates.ExecuteTemplate(w, "dealers.html", data); err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+	}
 }

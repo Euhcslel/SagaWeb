@@ -166,15 +166,15 @@ func (t DriveType) Label() string {
 }
 
 // Функция для преобразования типа привода из proto-типа в enum
-func GetDriveTypeFromProto(drive *generated.Drive) DriveType {
+func GetDriveTypeFromProto(drive *generated.Drive) (DriveType, error) {
 	driveType := drive.DriveType
 	switch driveType.(type) {
 	case *generated.Drive_Industrial:
-		return IndDriveType
+		return IndDriveType, nil
 	case *generated.Drive_Manual:
-		return ManualDriveType
+		return ManualDriveType, nil
 	case *generated.Drive_Residential:
-		return ResDriveType
+		return ResDriveType, nil
 	}
-	return "unknown"
+	return "", errors.New("Такой тип привода не существует")
 }

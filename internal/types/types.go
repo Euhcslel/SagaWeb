@@ -42,3 +42,9 @@ type Order struct {
 	Gates    []Gate
 	Products []sales_and_products.SalesAndProduct
 }
+
+type ContextKey string
+
+const (
+	UserContextKey ContextKey = "user"
+)
