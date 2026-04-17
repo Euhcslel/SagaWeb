@@ -48,11 +48,11 @@ func MainHandler(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
 	data := map[string]any{
-		"css":  "main.css",
+		"css":  "home.css",
 		"user": user,
 	}
 
-	if err := templates.ExecuteTemplate(w, "main.html", data); err != nil {
+	if err := templates.ExecuteTemplate(w, "home.html", data); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
 }
