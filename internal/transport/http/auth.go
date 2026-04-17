@@ -1,7 +1,9 @@
 package http
 
 import (
+	"errors"
 	"net/http"
+	errs "project/internal/errors"
 	"project/internal/helpers"
 	"project/internal/service"
 	"project/internal/utils"
@@ -46,8 +48,14 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	userId, err := service.SignIn(username, password)
 	if err != nil {
-		helpers.WriteError(w, err, http.StatusUnauthorized)
-		return
+		switch {
+		case errors.Is(err, errs.ErrInvalidCredentials):
+			helpers.WriteError(w, err, http.StatusUnauthorized)
+			return
+		default:
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if err = utils.SetSession(w, userId); err != nil {

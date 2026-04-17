@@ -13,9 +13,12 @@ import (
 	"project/internal/domain/sales_and_gates"
 	"project/internal/domain/sales_and_products"
 	"project/internal/domain/users"
+	errs "project/internal/errors"
 	"project/internal/generated"
 	"project/internal/repository"
 	"project/internal/types"
+
+	"gorm.io/gorm"
 )
 
 // Функция для проверки доступа к заказу
@@ -29,10 +32,13 @@ func getAccessibleSale(user *users.User, saleID int64) (*sales.Sale, error) {
 	case "manager":
 		query = query.Where("manager_id = ?", user.ID)
 	default:
-		return nil, errors.New("forbidden")
+		return nil, errs.ErrForbidden
 	}
 
-	if err := query.First(&sale).Error; err != nil {
+	err := query.First(&sale).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errs.ErrForbidden
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -238,7 +244,7 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 		return gate, nil
 
 	default:
-		return sales_and_gates.SalesAndGate{}, errors.New("неверный тип ворот")
+		return sales_and_gates.SalesAndGate{}, errs.ErrInvalidGateType
 	}
 }
 

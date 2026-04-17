@@ -1,7 +1,9 @@
 package http
 
 import (
+	"errors"
 	"net/http"
+	errs "project/internal/errors"
 	"project/internal/helpers"
 	"project/internal/service"
 	"project/internal/utils"
@@ -28,7 +30,10 @@ func GetUserDealers(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
 	dealers, err := service.GetUserDealers(user)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}

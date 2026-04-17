@@ -1,16 +1,21 @@
 package service
 
 import (
+	"errors"
+	errs "project/internal/errors"
 	"project/internal/domain/dealers_reg_requests"
 	"project/internal/domain/enums"
 	"project/internal/repository"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func SignIn(username, password string) (int64, error) {
 	user, err := repository.GetUserByUsername(username)
-	if err != nil {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, errs.ErrInvalidCredentials
+	} else if err != nil {
 		return 0, err
 	}
 
@@ -19,7 +24,7 @@ func SignIn(username, password string) (int64, error) {
 	dbPassword := user.PasswordHash
 	err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
 	if err != nil {
-		return 0, err
+		return 0, errs.ErrInvalidCredentials
 	}
 	return userId, nil
 }

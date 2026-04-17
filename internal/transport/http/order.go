@@ -1,10 +1,12 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"project/internal/domain/enums"
+	errs "project/internal/errors"
 	"project/internal/generated"
 	"project/internal/helpers"
 	"project/internal/service"
@@ -91,7 +93,10 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pageData, err := service.GetCurrentGatePageData(user, saleID, gateID)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -132,7 +137,10 @@ func DeleteUserOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = service.DeleteUserOrder(user, saleID)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -157,7 +165,13 @@ func AddNewGateInOrder(w http.ResponseWriter, r *http.Request) {
 	gateType := r.FormValue("gateType")
 
 	newGate, err := service.AddNewGateInOrder(user, saleID, gateType)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if errors.Is(err, errs.ErrInvalidGateType) {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -185,6 +199,10 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = service.CreateNewOrder(user, &orderData)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 }
@@ -224,7 +242,11 @@ func DeleteGateFromOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := service.DeleteGateFromOrder(user, saleID, gateID); err != nil {
+	err = service.DeleteGateFromOrder(user, saleID, gateID)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -260,7 +282,11 @@ func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := service.UpdateGateInOrder(user, saleID, gateID, &gateData); err != nil {
+	err = service.UpdateGateInOrder(user, saleID, gateID, &gateData)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}

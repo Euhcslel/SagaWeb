@@ -1,10 +1,10 @@
 package service
 
 import (
-	"errors"
 	"project/internal/database"
 	"project/internal/domain/managers_and_dealers"
 	"project/internal/domain/users"
+	errs "project/internal/errors"
 	"project/internal/repository"
 )
 
@@ -18,6 +18,6 @@ func GetUserDealers(user *users.User) ([]managers_and_dealers.ManagerAndDealer, 
 		}
 		return dealers, nil
 	} else {
-		return nil, errors.New("нет прав")
+		return nil, errs.ErrForbidden
 	}
 }
