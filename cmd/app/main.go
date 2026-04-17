@@ -1,11 +1,11 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"project/internal/database"
-	"project/internal/helpers"
 	handlers "project/internal/transport/http"
 
 	"github.com/joho/godotenv"
@@ -15,17 +15,22 @@ import (
 func main() {
 	err_load := godotenv.Load()
 	if err_load != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("error loading .env file")
 	}
 
-	database.InitDB()
-
-	logFile, err := os.Create("logs/error.log")
+	logFile, err := os.OpenFile("logs/error.log",
+	os.O_CREATE|os.O_WRONLY|os.O_APPEND,
+	0600)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer logFile.Close()
-	helpers.LogFile = logFile
+
+	mw := io.MultiWriter(os.Stdout, logFile)
+	log.SetOutput(mw)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	database.InitDB()
 
 	mux := http.NewServeMux()
 
@@ -90,6 +95,6 @@ func main() {
 	mux.Handle("GET /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseRedactor)))
 	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 
-	err_start := http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(mux))
-	log.Fatal(err_start)
+	err = http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(mux))
+	log.Fatal(err)
 }
