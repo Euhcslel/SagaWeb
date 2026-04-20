@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v6.33.2
-// source: assets/proto_files/order.proto
+// source: api/proto/order.proto
 
 package generated
 
@@ -51,11 +51,11 @@ func (x GateType) String() string {
 }
 
 func (GateType) Descriptor() protoreflect.EnumDescriptor {
-	return file_assets_proto_files_order_proto_enumTypes[0].Descriptor()
+	return file_api_proto_order_proto_enumTypes[0].Descriptor()
 }
 
 func (GateType) Type() protoreflect.EnumType {
-	return &file_assets_proto_files_order_proto_enumTypes[0]
+	return &file_api_proto_order_proto_enumTypes[0]
 }
 
 func (x GateType) Number() protoreflect.EnumNumber {
@@ -64,7 +64,7 @@ func (x GateType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GateType.Descriptor instead.
 func (GateType) EnumDescriptor() ([]byte, []int) {
-	return file_assets_proto_files_order_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_order_proto_rawDescGZIP(), []int{0}
 }
 
 type GateConfig struct {
@@ -76,7 +76,7 @@ type GateConfig struct {
 	ColorOutId    int64                  `protobuf:"varint,5,opt,name=colorOutId,proto3" json:"colorOutId,omitempty"`
 	Drive         *Drive                 `protobuf:"bytes,6,opt,name=drive,proto3" json:"drive,omitempty"`
 	CycleAmountId int64                  `protobuf:"varint,7,opt,name=cycleAmountId,proto3" json:"cycleAmountId,omitempty"`
-	Options       map[int32]int32        `protobuf:"bytes,8,rep,name=options,proto3" json:"options,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	Options       map[int64]int32        `protobuf:"bytes,8,rep,name=options,proto3" json:"options,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	Headroom      int32                  `protobuf:"varint,9,opt,name=headroom,proto3" json:"headroom,omitempty"`
 	Amount        int32                  `protobuf:"varint,10,opt,name=amount,proto3" json:"amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -85,7 +85,7 @@ type GateConfig struct {
 
 func (x *GateConfig) Reset() {
 	*x = GateConfig{}
-	mi := &file_assets_proto_files_order_proto_msgTypes[0]
+	mi := &file_api_proto_order_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -97,7 +97,7 @@ func (x *GateConfig) String() string {
 func (*GateConfig) ProtoMessage() {}
 
 func (x *GateConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_assets_proto_files_order_proto_msgTypes[0]
+	mi := &file_api_proto_order_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -110,7 +110,7 @@ func (x *GateConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GateConfig.ProtoReflect.Descriptor instead.
 func (*GateConfig) Descriptor() ([]byte, []int) {
-	return file_assets_proto_files_order_proto_rawDescGZIP(), []int{0}
+	return file_api_proto_order_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GateConfig) GetGateType() GateType {
@@ -162,7 +162,7 @@ func (x *GateConfig) GetCycleAmountId() int64 {
 	return 0
 }
 
-func (x *GateConfig) GetOptions() map[int32]int32 {
+func (x *GateConfig) GetOptions() map[int64]int32 {
 	if x != nil {
 		return x.Options
 	}
@@ -197,7 +197,7 @@ type Drive struct {
 
 func (x *Drive) Reset() {
 	*x = Drive{}
-	mi := &file_assets_proto_files_order_proto_msgTypes[1]
+	mi := &file_api_proto_order_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -209,7 +209,7 @@ func (x *Drive) String() string {
 func (*Drive) ProtoMessage() {}
 
 func (x *Drive) ProtoReflect() protoreflect.Message {
-	mi := &file_assets_proto_files_order_proto_msgTypes[1]
+	mi := &file_api_proto_order_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -222,7 +222,7 @@ func (x *Drive) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Drive.ProtoReflect.Descriptor instead.
 func (*Drive) Descriptor() ([]byte, []int) {
-	return file_assets_proto_files_order_proto_rawDescGZIP(), []int{1}
+	return file_api_proto_order_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Drive) GetDriveType() isDrive_DriveType {
@@ -290,7 +290,7 @@ type IndustrialDrive struct {
 
 func (x *IndustrialDrive) Reset() {
 	*x = IndustrialDrive{}
-	mi := &file_assets_proto_files_order_proto_msgTypes[2]
+	mi := &file_api_proto_order_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -302,7 +302,7 @@ func (x *IndustrialDrive) String() string {
 func (*IndustrialDrive) ProtoMessage() {}
 
 func (x *IndustrialDrive) ProtoReflect() protoreflect.Message {
-	mi := &file_assets_proto_files_order_proto_msgTypes[2]
+	mi := &file_api_proto_order_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -315,7 +315,7 @@ func (x *IndustrialDrive) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IndustrialDrive.ProtoReflect.Descriptor instead.
 func (*IndustrialDrive) Descriptor() ([]byte, []int) {
-	return file_assets_proto_files_order_proto_rawDescGZIP(), []int{2}
+	return file_api_proto_order_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *IndustrialDrive) GetDriveId() int64 {
@@ -335,7 +335,7 @@ type ResidentialDrive struct {
 
 func (x *ResidentialDrive) Reset() {
 	*x = ResidentialDrive{}
-	mi := &file_assets_proto_files_order_proto_msgTypes[3]
+	mi := &file_api_proto_order_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -347,7 +347,7 @@ func (x *ResidentialDrive) String() string {
 func (*ResidentialDrive) ProtoMessage() {}
 
 func (x *ResidentialDrive) ProtoReflect() protoreflect.Message {
-	mi := &file_assets_proto_files_order_proto_msgTypes[3]
+	mi := &file_api_proto_order_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -360,7 +360,7 @@ func (x *ResidentialDrive) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResidentialDrive.ProtoReflect.Descriptor instead.
 func (*ResidentialDrive) Descriptor() ([]byte, []int) {
-	return file_assets_proto_files_order_proto_rawDescGZIP(), []int{3}
+	return file_api_proto_order_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ResidentialDrive) GetDriveId() int64 {
@@ -386,7 +386,7 @@ type ManualDrive struct {
 
 func (x *ManualDrive) Reset() {
 	*x = ManualDrive{}
-	mi := &file_assets_proto_files_order_proto_msgTypes[4]
+	mi := &file_api_proto_order_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +398,7 @@ func (x *ManualDrive) String() string {
 func (*ManualDrive) ProtoMessage() {}
 
 func (x *ManualDrive) ProtoReflect() protoreflect.Message {
-	mi := &file_assets_proto_files_order_proto_msgTypes[4]
+	mi := &file_api_proto_order_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -411,7 +411,7 @@ func (x *ManualDrive) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ManualDrive.ProtoReflect.Descriptor instead.
 func (*ManualDrive) Descriptor() ([]byte, []int) {
-	return file_assets_proto_files_order_proto_rawDescGZIP(), []int{4}
+	return file_api_proto_order_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ManualDrive) GetChainLength() int32 {
@@ -424,14 +424,14 @@ func (x *ManualDrive) GetChainLength() int32 {
 type OrderRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OrderGates    []*GateConfig          `protobuf:"bytes,1,rep,name=orderGates,proto3" json:"orderGates,omitempty"`
-	Products      map[int32]int32        `protobuf:"bytes,2,rep,name=products,proto3" json:"products,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	Products      map[int64]int32        `protobuf:"bytes,2,rep,name=products,proto3" json:"products,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *OrderRequest) Reset() {
 	*x = OrderRequest{}
-	mi := &file_assets_proto_files_order_proto_msgTypes[5]
+	mi := &file_api_proto_order_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -443,7 +443,7 @@ func (x *OrderRequest) String() string {
 func (*OrderRequest) ProtoMessage() {}
 
 func (x *OrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_assets_proto_files_order_proto_msgTypes[5]
+	mi := &file_api_proto_order_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -456,7 +456,7 @@ func (x *OrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderRequest.ProtoReflect.Descriptor instead.
 func (*OrderRequest) Descriptor() ([]byte, []int) {
-	return file_assets_proto_files_order_proto_rawDescGZIP(), []int{5}
+	return file_api_proto_order_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *OrderRequest) GetOrderGates() []*GateConfig {
@@ -466,18 +466,18 @@ func (x *OrderRequest) GetOrderGates() []*GateConfig {
 	return nil
 }
 
-func (x *OrderRequest) GetProducts() map[int32]int32 {
+func (x *OrderRequest) GetProducts() map[int64]int32 {
 	if x != nil {
 		return x.Products
 	}
 	return nil
 }
 
-var File_assets_proto_files_order_proto protoreflect.FileDescriptor
+var File_api_proto_order_proto protoreflect.FileDescriptor
 
-const file_assets_proto_files_order_proto_rawDesc = "" +
+const file_api_proto_order_proto_rawDesc = "" +
 	"\n" +
-	"\x1eassets/proto_files/order.proto\x12\x05proto\"\x9b\x03\n" +
+	"\x15api/proto/order.proto\x12\x05proto\"\x9b\x03\n" +
 	"\n" +
 	"GateConfig\x12+\n" +
 	"\bgateType\x18\x01 \x01(\x0e2\x0f.proto.GateTypeR\bgateType\x12\x14\n" +
@@ -496,7 +496,7 @@ const file_assets_proto_files_order_proto_rawDesc = "" +
 	"\x06amount\x18\n" +
 	" \x01(\x05R\x06amount\x1a:\n" +
 	"\fOptionsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
+	"\x03key\x18\x01 \x01(\x03R\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01\"\xba\x01\n" +
 	"\x05Drive\x128\n" +
 	"\n" +
@@ -519,27 +519,27 @@ const file_assets_proto_files_order_proto_rawDesc = "" +
 	"orderGates\x12=\n" +
 	"\bproducts\x18\x02 \x03(\v2!.proto.OrderRequest.ProductsEntryR\bproducts\x1a;\n" +
 	"\rProductsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\x05R\x03key\x12\x14\n" +
+	"\x03key\x18\x01 \x01(\x03R\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\x05R\x05value:\x028\x01*0\n" +
 	"\bGateType\x12\x11\n" +
 	"\rGATE_TYPE_IND\x10\x00\x12\x11\n" +
 	"\rGATE_TYPE_RES\x10\x01B\x19Z\x17project/pkg/proto_filesb\x06proto3"
 
 var (
-	file_assets_proto_files_order_proto_rawDescOnce sync.Once
-	file_assets_proto_files_order_proto_rawDescData []byte
+	file_api_proto_order_proto_rawDescOnce sync.Once
+	file_api_proto_order_proto_rawDescData []byte
 )
 
-func file_assets_proto_files_order_proto_rawDescGZIP() []byte {
-	file_assets_proto_files_order_proto_rawDescOnce.Do(func() {
-		file_assets_proto_files_order_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_assets_proto_files_order_proto_rawDesc), len(file_assets_proto_files_order_proto_rawDesc)))
+func file_api_proto_order_proto_rawDescGZIP() []byte {
+	file_api_proto_order_proto_rawDescOnce.Do(func() {
+		file_api_proto_order_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_api_proto_order_proto_rawDesc), len(file_api_proto_order_proto_rawDesc)))
 	})
-	return file_assets_proto_files_order_proto_rawDescData
+	return file_api_proto_order_proto_rawDescData
 }
 
-var file_assets_proto_files_order_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_assets_proto_files_order_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_assets_proto_files_order_proto_goTypes = []any{
+var file_api_proto_order_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_api_proto_order_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_proto_order_proto_goTypes = []any{
 	(GateType)(0),            // 0: proto.GateType
 	(*GateConfig)(nil),       // 1: proto.GateConfig
 	(*Drive)(nil),            // 2: proto.Drive
@@ -550,7 +550,7 @@ var file_assets_proto_files_order_proto_goTypes = []any{
 	nil,                      // 7: proto.GateConfig.OptionsEntry
 	nil,                      // 8: proto.OrderRequest.ProductsEntry
 }
-var file_assets_proto_files_order_proto_depIdxs = []int32{
+var file_api_proto_order_proto_depIdxs = []int32{
 	0, // 0: proto.GateConfig.gateType:type_name -> proto.GateType
 	2, // 1: proto.GateConfig.drive:type_name -> proto.Drive
 	7, // 2: proto.GateConfig.options:type_name -> proto.GateConfig.OptionsEntry
@@ -566,12 +566,12 @@ var file_assets_proto_files_order_proto_depIdxs = []int32{
 	0, // [0:8] is the sub-list for field type_name
 }
 
-func init() { file_assets_proto_files_order_proto_init() }
-func file_assets_proto_files_order_proto_init() {
-	if File_assets_proto_files_order_proto != nil {
+func init() { file_api_proto_order_proto_init() }
+func file_api_proto_order_proto_init() {
+	if File_api_proto_order_proto != nil {
 		return
 	}
-	file_assets_proto_files_order_proto_msgTypes[1].OneofWrappers = []any{
+	file_api_proto_order_proto_msgTypes[1].OneofWrappers = []any{
 		(*Drive_Industrial)(nil),
 		(*Drive_Residential)(nil),
 		(*Drive_Manual)(nil),
@@ -580,18 +580,18 @@ func file_assets_proto_files_order_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_assets_proto_files_order_proto_rawDesc), len(file_assets_proto_files_order_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_order_proto_rawDesc), len(file_api_proto_order_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_assets_proto_files_order_proto_goTypes,
-		DependencyIndexes: file_assets_proto_files_order_proto_depIdxs,
-		EnumInfos:         file_assets_proto_files_order_proto_enumTypes,
-		MessageInfos:      file_assets_proto_files_order_proto_msgTypes,
+		GoTypes:           file_api_proto_order_proto_goTypes,
+		DependencyIndexes: file_api_proto_order_proto_depIdxs,
+		EnumInfos:         file_api_proto_order_proto_enumTypes,
+		MessageInfos:      file_api_proto_order_proto_msgTypes,
 	}.Build()
-	File_assets_proto_files_order_proto = out.File
-	file_assets_proto_files_order_proto_goTypes = nil
-	file_assets_proto_files_order_proto_depIdxs = nil
+	File_api_proto_order_proto = out.File
+	file_api_proto_order_proto_goTypes = nil
+	file_api_proto_order_proto_depIdxs = nil
 }

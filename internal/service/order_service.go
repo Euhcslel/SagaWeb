@@ -26,10 +26,10 @@ func getAccessibleSale(user *users.User, saleID int64) (*sales.Sale, error) {
 	var sale sales.Sale
 	query := database.DB.Where("id = ?", saleID)
 
-	switch user.Role.Name {
-	case "dealer":
+	switch user.Role {
+	case enums.DealerRole:
 		query = query.Where("client_id = ?", user.ID)
-	case "manager":
+	case enums.ManagerRole:
 		query = query.Where("manager_id = ?", user.ID)
 	default:
 		return nil, errs.ErrForbidden
@@ -47,7 +47,7 @@ func getAccessibleSale(user *users.User, saleID int64) (*sales.Sale, error) {
 
 func GetAllUserOrders(user *users.User) ([]sales.Sale, error) {
 	// Вернуть limit потом
-	if user.Role.Name == "dealer" {
+	if user.Role == enums.DealerRole {
 		return repository.GetAllDealerOrders(database.DB, user)
 	} else {
 		return repository.GetAllManagerOrders(database.DB, user)
@@ -205,7 +205,7 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 			return sales_and_gates.SalesAndGate{}, err
 		}
 
-		err = repository.CreateIndustrialDriveForGate(database.DB, saleID, gate.RowNumber, int32(cfg.IndustrialDrives[0].ID))
+		err = repository.CreateIndustrialDriveForGate(database.DB, saleID, gate.RowNumber, int64(cfg.IndustrialDrives[0].ID))
 		if err != nil {
 			return sales_and_gates.SalesAndGate{}, err
 		}
@@ -236,7 +236,7 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 			return sales_and_gates.SalesAndGate{}, err
 		}
 
-		err = repository.CreateResidentialDriveForGate(database.DB, saleID, gate.RowNumber, int32(cfg.IndustrialDrives[0].ID), int32(cfg.Rails[0].ID))
+		err = repository.CreateResidentialDriveForGate(database.DB, saleID, gate.RowNumber, cfg.IndustrialDrives[0].ID, cfg.Rails[0].ID)
 		if err != nil {
 			return sales_and_gates.SalesAndGate{}, err
 		}
@@ -249,13 +249,13 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 }
 
 func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
-	role := user.Role.Name
+	role := user.Role
 
 	tx := database.DB.Begin()
 
 	// Создаем заказ
 	var order sales.Sale
-	if role == "dealer" {
+	if role == enums.DealerRole {
 		managerId, err := repository.GetManagerIdByDealerId(tx, user.ID)
 		if err != nil {
 			tx.Rollback()
@@ -335,7 +335,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		case *generated.Drive_Industrial:
 			driveID := d.Industrial.DriveId
 
-			if err := repository.CreateIndustrialDriveForGate(tx, order.ID, newGate.RowNumber, int32(driveID)); err != nil {
+			if err := repository.CreateIndustrialDriveForGate(tx, order.ID, newGate.RowNumber, driveID); err != nil {
 				tx.Rollback()
 				return err
 			}
@@ -344,7 +344,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 			driveID := d.Residential.DriveId
 			railID := d.Residential.RailId
 
-			if err := repository.CreateResidentialDriveForGate(tx, order.ID, newGate.RowNumber, int32(driveID), int32(railID)); err != nil {
+			if err := repository.CreateResidentialDriveForGate(tx, order.ID, newGate.RowNumber, driveID, railID); err != nil {
 				tx.Rollback()
 				return err
 			}
@@ -429,7 +429,7 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 	case *generated.Drive_Industrial:
 		//Если это другой тип привода у ворот
 		if gate.DriveType != enums.IndDriveType {
-			if err := repository.CreateIndustrialDriveForGate(database.DB, saleID, int64(gateID), int32(gateData.Drive.GetIndustrial().DriveId)); err != nil {
+			if err := repository.CreateIndustrialDriveForGate(database.DB, saleID, int64(gateID), gateData.Drive.GetIndustrial().DriveId); err != nil {
 				return err
 			}
 
@@ -446,14 +446,14 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 			}
 			// Если у ворот тот же самый тип привода
 		} else {
-			if err := repository.UpdateGateIndustrialDrive(database.DB, saleID, int64(gateID), int32(gateData.Drive.GetIndustrial().DriveId)); err != nil {
+			if err := repository.UpdateGateIndustrialDrive(database.DB, saleID, int64(gateID), gateData.Drive.GetIndustrial().DriveId); err != nil {
 				return err
 			}
 		}
 
 	case *generated.Drive_Residential:
 		if gate.DriveType != enums.ResDriveType {
-			if err := repository.CreateResidentialDriveForGate(database.DB, saleID, int64(gateID), int32(gateData.Drive.GetResidential().DriveId), int32(gateData.Drive.GetResidential().RailId)); err != nil {
+			if err := repository.CreateResidentialDriveForGate(database.DB, saleID, int64(gateID), gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
 				return err
 			}
 
@@ -469,7 +469,7 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 				}
 			}
 		} else {
-			if err := repository.UpdateGateResidentialDrive(database.DB, saleID, int64(gateID), int32(gateData.Drive.GetIndustrial().DriveId), int32(gateData.Drive.GetResidential().RailId)); err != nil {
+			if err := repository.UpdateGateResidentialDrive(database.DB, saleID, int64(gateID), gateData.Drive.GetIndustrial().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
 				return err
 			}
 		}

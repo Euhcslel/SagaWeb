@@ -3,6 +3,7 @@ package http
 import (
 	"net/http"
 	"project/internal/database"
+	"project/internal/domain/enums"
 	"project/internal/helpers"
 	"project/internal/utils"
 )
@@ -12,8 +13,8 @@ import (
 func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	role := user.Role.Name
-	if role != "admin" {
+	role := user.Role
+	if role != enums.AdminRole {
 		http.Redirect(w, r, "/", http.StatusForbidden)
 		return
 	}
@@ -24,8 +25,8 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	role := user.Role.Name
-	if role != "admin" {
+	role := user.Role
+	if role != enums.AdminRole {
 		http.Redirect(w, r, "/", http.StatusForbidden)
 		return
 	}

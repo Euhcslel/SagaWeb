@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"project/internal/database"
+	"project/internal/domain/enums"
 	"project/internal/domain/sessions"
 	"project/internal/domain/users"
 	"project/internal/types"
@@ -20,7 +21,7 @@ func GetUserBySessionToken(r *http.Request) (*users.User, error) {
 
 	var session sessions.Session
 	err = database.DB.
-		Preload("User").Preload("User.Role").
+		Preload("User").
 		Where("token = ?", token).
 		First(&session).Error
 	if err != nil {
@@ -30,11 +31,11 @@ func GetUserBySessionToken(r *http.Request) (*users.User, error) {
 	return &session.User, nil
 }
 
-func SetSession(w http.ResponseWriter, userId int64) error {
+func SetSession(w http.ResponseWriter, userID int64) error {
 	token := uuidv7.New().String()
 
 	session := sessions.Session{
-		UserID: userId,
+		UserID: userID,
 		Token:  token,
 	}
 	if err := database.DB.Create(&session).Error; err != nil {
@@ -62,10 +63,10 @@ func UserFromContext(ctx context.Context) *users.User {
 	return user
 }
 
-func HasDealerAccess(role string) bool {
-	return role == "dealer" || role == "admin" || role == "manager"
+func HasDealerAccess(role enums.Role) bool {
+	return role == enums.DealerRole || role == enums.AdminRole || role == enums.ManagerRole || role == enums.LogisticianRole
 }
 
-func isManager(role string) bool {
-	return role == "manager"
+func isManager(role enums.Role) bool {
+	return role == enums.ManagerRole
 }

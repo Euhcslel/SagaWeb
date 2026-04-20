@@ -11,7 +11,7 @@ message GateConfig {
   int64 colorOutId = 5;
   Drive drive = 6;
   int64 cycleAmountId = 7;
-  map<int32, int32> options = 8;
+  map<int64, int32> options = 8;
   int32 headroom = 9;
   int32 amount = 10;
 }
@@ -44,5 +44,5 @@ message ManualDrive {
 
 message OrderRequest {
   repeated GateConfig orderGates = 1;
-  map<int32, int32> products = 2;
+  map<int64, int32> products = 2;
 }

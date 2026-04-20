@@ -10,8 +10,8 @@ const TableNameResidentialGatesAndSalesDriveRail = "residential_gates_and_sales_
 type ResidentialGatesAndSalesDriveRail struct {
 	SaleID    int64 `gorm:"column:sale_id;primaryKey"`
 	RowNumber int64 `gorm:"column:row_number;primaryKey"`
-	DriveID   int32 `gorm:"column:drive_id;not null"`
-	RailID    int32 `gorm:"column:rail_id;not null"`
+	DriveID   int64 `gorm:"column:drive_id;not null"`
+	RailID    int64 `gorm:"column:rail_id;not null"`
 
 	Drive residential_gate_drives.ResidentialGateDrive `gorm:"foreignKey:DriveID;references:ID"`
 	Rail  rails.Rail                                   `gorm:"foreignKey:RailID;references:ID"`

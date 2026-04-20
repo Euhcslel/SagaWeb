@@ -22,9 +22,9 @@ type CalculatorPageData struct {
 }
 
 func GetCalculatorPageData(user *users.User) (CalculatorPageData, error) {
-	role := "client"
+	role := enums.ClientRole
 	if user != nil {
-		role = user.Role.Name
+		role = user.Role
 	}
 
 	isDealer := utils.HasDealerAccess(role)
@@ -47,9 +47,9 @@ func GetCalculatorPageData(user *users.User) (CalculatorPageData, error) {
 }
 
 func GetPriceBasedOnSize(width, height int, gateType enums.GateType, user *users.User) (*generated.SizePrice, error) {
-	role := "client"
+	role := enums.ClientRole
 	if user != nil {
-		role = user.Role.Name
+		role = user.Role
 	}
 
 	var resp *generated.SizePrice

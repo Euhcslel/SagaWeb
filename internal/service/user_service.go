@@ -2,6 +2,7 @@ package service
 
 import (
 	"project/internal/database"
+	"project/internal/domain/enums"
 	"project/internal/domain/managers_and_dealers"
 	"project/internal/domain/users"
 	errs "project/internal/errors"
@@ -9,9 +10,9 @@ import (
 )
 
 func GetUserDealers(user *users.User) ([]managers_and_dealers.ManagerAndDealer, error) {
-	role := user.Role.Name
+	role := user.Role
 
-	if role == "manager" {
+	if role == enums.ManagerRole {
 		dealers, err := repository.GetUserDealers(database.DB, user.ID)
 		if err != nil {
 			return nil, err

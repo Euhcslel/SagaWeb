@@ -3,7 +3,7 @@ package units
 const TableNameUnit = "units"
 
 type Unit struct {
-	ID   int32  `gorm:"column:id;primaryKey;autoIncrement:true"`
+	ID   int64  `gorm:"column:id;primaryKey;autoIncrement:true"`
 	Name string `gorm:"column:name;not null"`
 }
 

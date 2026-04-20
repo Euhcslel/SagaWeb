@@ -178,3 +178,14 @@ func GetDriveTypeFromProto(drive *generated.Drive) (DriveType, error) {
 	}
 	return "", errors.New("Такой тип привода не существует")
 }
+
+// Тип Роль
+type Role string
+
+const (
+	ClientRole      Role = "client"
+	ManagerRole     Role = "manager"
+	DealerRole      Role = "dealer"
+	AdminRole       Role = "admin"
+	LogisticianRole Role = "logistician"
+)

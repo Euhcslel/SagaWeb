@@ -147,7 +147,7 @@ func CreateNewGate(db *gorm.DB, gate sales_and_gates.SalesAndGate) (sales_and_ga
 	return gate, nil
 }
 
-func CreateIndustrialDriveForGate(db *gorm.DB, saleID int64, rowNumber int64, driveID int32) error {
+func CreateIndustrialDriveForGate(db *gorm.DB, saleID int64, rowNumber int64, driveID int64) error {
 	if err := db.Create(&industrial_gates_and_sales_drive.IndustrialGatesAndSalesDrive{
 		SaleID:    saleID,
 		RowNumber: rowNumber,
@@ -159,7 +159,7 @@ func CreateIndustrialDriveForGate(db *gorm.DB, saleID int64, rowNumber int64, dr
 	return nil
 }
 
-func CreateResidentialDriveForGate(db *gorm.DB, saleID int64, rowNumber int64, driveID int32, railID int32) error {
+func CreateResidentialDriveForGate(db *gorm.DB, saleID int64, rowNumber int64, driveID int64, railID int64) error {
 	if err := db.Create(&residential_gates_and_sales_drive_rail.ResidentialGatesAndSalesDriveRail{
 		SaleID:    saleID,
 		RowNumber: rowNumber,
@@ -251,7 +251,7 @@ func DeleteGateManualDrive(db *gorm.DB, saleID int64, gateID int64) error {
 	return nil
 }
 
-func UpdateGateIndustrialDrive(db *gorm.DB, saleID int64, gateID int64, driveID int32) error {
+func UpdateGateIndustrialDrive(db *gorm.DB, saleID int64, gateID int64, driveID int64) error {
 	var indGatesAndSalesDrive industrial_gates_and_sales_drive.IndustrialGatesAndSalesDrive
 	if err := db.Where("sale_id = ? AND row_number = ?", saleID, gateID).First(&indGatesAndSalesDrive).Error; err != nil {
 		return err
@@ -266,7 +266,7 @@ func UpdateGateIndustrialDrive(db *gorm.DB, saleID int64, gateID int64, driveID 
 	return nil
 }
 
-func UpdateGateResidentialDrive(db *gorm.DB, saleID int64, gateID int64, driveID int32, railID int32) error {
+func UpdateGateResidentialDrive(db *gorm.DB, saleID int64, gateID int64, driveID int64, railID int64) error {
 	var resGatesAndSalesDriveRail residential_gates_and_sales_drive_rail.ResidentialGatesAndSalesDriveRail
 	if err := db.Where("sale_id = ? AND row_number = ?", saleID, gateID).First(&resGatesAndSalesDriveRail).Error; err != nil {
 		return err
