@@ -19,8 +19,8 @@ func main() {
 	}
 
 	logFile, err := os.OpenFile("logs/error.log",
-	os.O_CREATE|os.O_WRONLY|os.O_APPEND,
-	0600)
+		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
+		0600)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -76,16 +76,19 @@ func main() {
 	mux.Handle("POST /orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.AddNewGateInOrder)))
 	mux.Handle("DELETE /orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteUserOrder)))
 
-	mux.Handle("POST /orders/{order_id}/products", handlers.RequireAuth(http.HandlerFunc(handlers.AddNewProductInOrder)))
-	mux.Handle("PUT /orders/{order_id}/products/{product_id}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateProductList)))
-	mux.Handle("DELETE /orders/{order_id}/products/{product_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteProductFromOrder)))
+	mux.Handle("PUT /orders/{order_id}/products", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateProductList)))
+
+	mux.Handle("PUT /orders/{order_id}/status", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateOrderStatus)))
 
 	mux.Handle("GET /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.GetGateInOrder)))
 	mux.Handle("DELETE /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteGateFromOrder)))
 	mux.Handle("PUT /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateGateInOrder)))
 
-	// Доделать
+	// Работа с документами
 	mux.Handle("GET /orders/{order_id}/documents", handlers.RequireAuth(http.HandlerFunc(handlers.GetOrderDocuments)))
+	mux.Handle("POST /orders/{order_id}/offer", handlers.RequireAuth(http.HandlerFunc(handlers.UploadOfferToOrder)))
+	mux.Handle("POST /orders/{order_id}/bill", handlers.RequireAuth(http.HandlerFunc(handlers.UploadBillToOrder)))
+	mux.Handle("POST /orders/{order_id}/contract", handlers.RequireAuth(http.HandlerFunc(handlers.UploadContractToOrder)))
 
 	mux.Handle("GET /calculator", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCalculatorForUser)))
 

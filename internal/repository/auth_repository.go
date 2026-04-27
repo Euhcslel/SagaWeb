@@ -7,10 +7,10 @@ import (
 	"project/internal/domain/users"
 )
 
-func GetUserByUsername(username string) (users.User, error) {
+func GetUserByEmail(email string) (users.User, error) {
 	var user users.User
 	if err := database.DB.
-		Where("username = ?", username).
+		Where("email = ?", email).
 		First(&user).
 		Error; err != nil {
 		return users.User{}, err

@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/web/assets/images/favicon.ico" />
-    <link rel="stylesheet" href="/web/assets/styles/base.css" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
     {{if .css}}
-    <link rel="stylesheet" href="/web/assets/styles/{{.css}}" />
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
     {{end}}
     <title>Ворота №{{.gate.RowNumber}}</title>
     <script>
@@ -22,18 +22,25 @@
         amount: {{.gate.Amount}}
       }
     </script>
-    <script type="module" src="/web/assets/scripts/gate-editor.js" defer></script>
+    <script
+      type="module"
+      src="/web/assets/scripts/gate-editor.js"
+      defer
+    ></script>
   </head>
   <body>
     {{template "header-nav" .}}
     <main>
-      <a class="back-button" href="/orders/{{.gate.SaleID}}">Вернуться назад</a>
+      <a class="btn secondary" href="/orders/{{.gate.SaleID}}"
+        >Вернуться назад</a
+      >
       <form action="" method="post">
         <div class="configuration">
           <!--Тип ворот-->
           <label for=""
             >Тип ворот
             <input
+              class="input"
               id="gate-type"
               name="gate-type"
               type="text"
@@ -46,13 +53,17 @@
           <label for="amount"
             >Количество
             <input
+              class="input validator"
               name="amount"
               id="amount"
               type="number"
               min="1"
+              placeholder="Значение должно быть не меньше 1"
+              title="Значение должно быть не меньше 1"
               value="{{.gate.Amount}}"
               oninput="window.updateGateSizePrice()"
             />
+            <p class="validator-hint">Количество должно быть не меньше 1</p>
           </label>
           <div class="sizes">
             <!--Ширина-->
@@ -62,30 +73,45 @@
                 name="width"
                 id="width"
                 type="number"
+                class="input validator"
+                value="{{.gate.Width}}"
+                placeholder="Значение должно быть от {{.cfg.WidthParams.MinValue}} до {{.cfg.WidthParams.MaxValue}}"
+                title="Значение должно быть от {{.cfg.WidthParams.MinValue}} до {{.cfg.WidthParams.MaxValue}}"
                 min="{{.cfg.WidthParams.MinValue}}"
                 max="{{.cfg.WidthParams.MaxValue}}"
-                value="{{.gate.Width}}"
                 oninput="window.updateGateSizePrice()"
               />
+              <p class="validator-hint">
+                Ширина должна быть от {{.cfg.WidthParams.MinValue}} до
+                {{.cfg.WidthParams.MaxValue}}
+              </p>
             </label>
             <!--Высота-->
             <label for="height"
               >Высота
               <input
+                class="input validator"
                 name="height"
                 id="height"
                 type="number"
+                placeholder="Значение должно быть от {{.cfg.HeightParams.MinValue}} до {{.cfg.HeightParams.MaxValue}}"
+                title="Значение должно быть от {{.cfg.HeightParams.MinValue}} до {{.cfg.HeightParams.MaxValue}}"
                 min="{{.cfg.HeightParams.MinValue}}"
                 max="{{.cfg.HeightParams.MaxValue}}"
                 value="{{.gate.Height}}"
                 oninput="window.updateGateSizePrice()"
               />
+              <p class="validator-hint">
+                Высота должна быть от {{.cfg.HeightParams.MinValue}} до
+                {{.cfg.HeightParams.MaxValue}}
+              </p>
             </label>
           </div>
           <!--Высота притолки-->
           <label for="headroom"
             >Высота притолки
             <input
+              class="input"
               name="headroom"
               id="headroom"
               type="number"
@@ -98,6 +124,7 @@
           <label for="lift-type"
             >Тип подъема
             <select
+              class="select"
               name="lift-type"
               id="lift-type"
               onchange="window.updateGatePrice()"
@@ -124,6 +151,7 @@
           <label for="cycle-amount"
             >Количество циклов
             <select
+              class="select"
               name="cycle-amount"
               id="cycle-amount"
               onchange="window.updateGatePrice()"
@@ -147,7 +175,7 @@
           <!--Цвет ворот снаружи-->
           <label for="color-out"
             >Цвет ворот снаружи
-            <select name="color-out" id="color-out">
+            <select class="select" name="color-out" id="color-out">
               {{range .cfg.Colors}}
               <option
                 value="{{.ID}}"
@@ -169,7 +197,7 @@
               >Тип привода
               <select
                 name="drive-type"
-                class="drive-type"
+                class="drive-type select"
                 onchange="window.updateDriveType()"
               >
                 {{range .cfg.DriveTypes}}
@@ -195,14 +223,14 @@
                 data-chain-wholesale-price="450"
                 id="chain-length"
                 name="chain-length"
-                class="chain-length"
+                class="chain-length input"
                 type="number"
                 min="0"
                 {{if
                 eq
                 .gate.DriveType
                 `manual`}}
-                value="{{.drive.ChainLength}}"
+                value="{{.manualDrive.ChainLength}}"
                 {{else}}
                 value="0"
                 {{end}}
@@ -213,7 +241,7 @@
               {{if eq .gate.GateType "ind"}}
               <label for="drive"
                 >Привод промышленный
-                <select name="drive" id="drive">
+                <select class="select" name="drive" id="drive">
                   {{range .cfg.IndustrialDrives}}
                   <option
                     value="{{.ID}}"
@@ -226,7 +254,7 @@
                     {{if
                     eq
                     .ID
-                    $.drive.DriveID}}selected{{end}}
+                    $.industrialDrive.DriveID}}selected{{end}}
                     {{end}}
                   >
                     {{.Name}}
@@ -237,7 +265,7 @@
               {{else}}
               <label for="drive"
                 >Привод бытовой
-                <select name="drive" id="drive">
+                <select class="select" name="drive" id="drive">
                   {{range .cfg.ResidentialDrives}}
                   <option
                     value="{{.ID}}"
@@ -250,7 +278,7 @@
                     {{if
                     eq
                     .ID
-                    $.drive.DriveID}}selected{{end}}
+                    $.residentialDrive.DriveID}}selected{{end}}
                     {{end}}
                   >
                     {{.Name}}
@@ -261,7 +289,7 @@
               {{end}}
               <label for="rail"
                 >Направляющая
-                <select name="rail" id="rail">
+                <select class="select" name="rail" id="rail">
                   {{range .cfg.Rails}}
                   <option
                     value="{{.ID}}"
@@ -274,7 +302,7 @@
                     {{if
                     eq
                     .ID
-                    $.drive.RailID}}selected{{end}}
+                    $.residentialDrive.RailID}}selected{{end}}
                     {{end}}
                   >
                     {{.Name}}
@@ -295,7 +323,7 @@
             <li class="option-item">
               <select
                 name="option"
-                class="option"
+                class="option select"
                 onchange="window.updateOptionsPrice(this)"
               >
                 <option
@@ -310,14 +338,14 @@
                 <input
                   type="number"
                   name="amount"
-                  class="amount"
+                  class="amount input"
                   min="1"
                   value="1"
                   oninput="window.updateOptionsPrice(this)"
                 />
                 <button
                   type="button"
-                  class="button secondary"
+                  class="btn secondary"
                   onclick="
                     removeItem(this, '.option-div');
                     window.updateOptionsPrice(this);
@@ -327,26 +355,35 @@
                 </button>
               </div>
             </li>
+            {{else}}
+            <li>
+              <p>Нет доступных опций</p>
+            </li>
             {{end}}
           </ul>
         </div>
       </form>
-      <div class="calc-footer dark-theme">
-        <div class="prices">
-          <p>Цена текущих ворот (дилер):</p>
-          <p id="gate-wholesale-price">0</p>
-
-          <p>Цена текущих ворот (клиент):</p>
-          <p id="gate-retail-price">0</p>
+      <footer class="footer footer-horizontal calc-footer dark">
+        <div>
+          <div class="price-row">
+            <p>Цена текущих ворот (дилер):</p>
+            <p id="gate-wholesale-price">0</p>
+          </div>
+          <div class="price-row">
+            <p>Цена текущих ворот (клиент):</p>
+            <p id="gate-retail-price">0</p>
+          </div>
         </div>
-        <button
-          class="button primary"
-          type="button"
-          onclick="window.SaveGateConfiguration()"
-        >
-          Сохранить
-        </button>
-      </div>
+        <div>
+          <button
+            class="btn primary"
+            type="button"
+            onclick="window.SaveGateConfiguration()"
+          >
+            Сохранить
+          </button>
+        </div>
+      </footer>
     </main>
     <script src="/web/assets/scripts/protobuf.min.js"></script>
   </body>

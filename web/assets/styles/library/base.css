@@ -1,0 +1,85 @@
+:root {
+  color-scheme: light dark;
+
+  --color-dark-grey: oklch(0.294 0.009 116.136);
+
+  --color-base-100: oklch(98% 0.004 116.136);
+  --color-base-200: oklch(95% 0.005 116.136);
+  --color-base-300: oklch(90% 0.006 116.136);
+  --color-base-400: oklch(85% 0.007 116.136);
+  --color-base-500: oklch(75% 0.008 116.136);
+  --color-base-600: oklch(65% 0.009 116.136);
+  --color-base-700: oklch(55% 0.009 116.136);
+  --color-base-800: oklch(40% 0.008 116.136);
+  --color-base-900: oklch(25% 0.006 116.136);
+  --color-base-content: light-dark(oklch(0% 0 0), oklch(100% 0.00011 271.152));
+
+  --color-primary: oklch(94% 0.16 95);
+  --color-primary-content: oklch(0% 0 0);
+
+  --color-secondary: oklch(94% 0.16 95);
+  --color-secondary-content: light-dark(oklch(0% 0 0), oklch(100% 0 0));
+
+  --color-accent: oklch(60% 0.21 136);
+  --color-accent-content: oklch(0% 0 0);
+
+  --color-info: oklch(47% 0.23 270);
+  --color-info-content: oklch(100% 0 0);
+
+  --color-success: oklch(60% 0.21 136);
+  --color-success-content: oklch(0% 0 0);
+
+  --color-warning: oklch(82% 0.19 84);
+  --color-warning-content: oklch(0% 0 0);
+
+  --color-error: oklch(55% 0.27 12);
+  --color-error-content: oklch(100% 0 0);
+
+  --color-neutral: oklch(24.731% 0.02 264.094);
+  --color-neutral-content: oklch(82.901% 0.031 222.959);
+
+  --color-pending: oklch(96.813% 0.10456 104.701 / 0.723);
+  --color-pending-content: oklch(25.539% 0.00365 106.785);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+
+  --spacing-xs: 0.25rem;
+  /* 4px */
+  --spacing-s: 0.5rem;
+  /* 8px */
+  --spacing-m: 0.75rem;
+  /* 12px */
+  --spacing-l: 1rem;
+  /* 16px */
+  --spacing-xl: 1.5rem;
+  /* 24px */
+  --spacing-2xl: 2rem;
+  /* 32px */
+
+  --font-size-xs: clamp(0.75rem, 1vw, 0.875rem);
+  /* 12–14px */
+  --font-size-s: clamp(0.875rem, 1.2vw, 1rem);
+  /* 14–16px */
+  --font-size-m: clamp(1rem, 1.5vw, 1.125rem);
+  /* 16–18px */
+  --font-size-l: clamp(1.25rem, 2vw, 1.5rem);
+  /* 20–24px */
+  --font-size-xl: clamp(1.5rem, 2.5vw, 1.75rem);
+  /* 24–28px */
+  --font-size-2xl: clamp(2rem, 3vw, 2.25rem);
+  /* 32–36px */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  --font-family-base: "Roboto", system-ui, sans-serif;
+}

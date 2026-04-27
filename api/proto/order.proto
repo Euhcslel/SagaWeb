@@ -1,20 +1,26 @@
 syntax = "proto3";
 
 package proto;
-option go_package = "project/pkg/proto_files";
+option go_package = "../project/internal/generated";
 
 message GateConfig {
-  GateType gateType = 1;
+  GateType gate_type = 1;
   int32 width = 2;
   int32 height = 3;
-  int64 liftTypeId = 4;
-  int64 colorOutId = 5;
+  int64 lift_type_id = 4;
+  int64 color_out_id = 5;
   Drive drive = 6;
-  int64 cycleAmountId = 7;
-  map<int64, int32> options = 8;
+  int64 cycle_amount_id = 7;
+  repeated Option options = 8;
   int32 headroom = 9;
   int32 amount = 10;
 }
+
+message Option {
+  int64 option_id = 1;
+  int32 amount = 2;
+}
+
 
 enum GateType {
   GATE_TYPE_IND = 0;
@@ -30,19 +36,24 @@ message Drive {
 }
 
 message IndustrialDrive {
-  int64 driveId = 1;
+  int64 drive_id = 1;
 }
 
 message ResidentialDrive {
-  int64 driveId = 1;
-  int64 railId = 2;
+  int64 drive_id = 1;
+  int64 rail_id = 2;
 }
 
 message ManualDrive {
-  int32 chainLength = 1;
+  int32 chain_length = 1;
 }
 
 message OrderRequest {
-  repeated GateConfig orderGates = 1;
-  map<int64, int32> products = 2;
+  repeated GateConfig order_gates = 1;
+  repeated Product products = 2;
+}
+
+message Product {
+  int64 product_id = 1;
+  int32 amount = 2;
 }

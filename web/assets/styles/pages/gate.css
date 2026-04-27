@@ -1,0 +1,21 @@
+label {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+main {
+  position: relative;
+  padding-bottom: 5rem;
+}
+
+.calc-footer {
+  position: fixed;
+  bottom: 0;
+}

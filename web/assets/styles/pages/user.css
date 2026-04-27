@@ -1,0 +1,13 @@
+.card {
+  width: 100%;
+  max-width: 400px;
+  margin: var(--spacing-xl) auto;
+  padding: var(--spacing-l);
+  border: 2px solid #ccc;
+  background-color: light-dark(var(--color-base-100), var(--color-base-800));
+}
+
+.card-title {
+  display: block;
+  text-align: center;
+}

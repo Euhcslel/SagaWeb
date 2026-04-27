@@ -11,8 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func SignIn(username, password string) (int64, error) {
-	user, err := repository.GetUserByUsername(username)
+func SignIn(email, password string) (int64, error) {
+	user, err := repository.GetUserByEmail(email)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return 0, errs.ErrInvalidCredentials
 	} else if err != nil {

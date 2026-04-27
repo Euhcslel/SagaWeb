@@ -1,0 +1,26 @@
+.table-container {
+  margin: var(--spacing-xl);
+}
+
+tbody {
+  tr {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      filter: brightness(0.90);
+    }
+
+    &.status-new {
+      background: linear-gradient(90deg, #b9f0ff 0%, #dff8ff 100%);
+    }
+
+    &.status-success {
+      background: linear-gradient(90deg, #b8e6a3 0%, #e6f6dd 100%);
+    }
+
+    &.status-cancelled {
+      background: linear-gradient(90deg, #d6d6d6 0%, #efefef 100%);
+    }
+  }
+}

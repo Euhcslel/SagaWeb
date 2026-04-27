@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "../project/internal/generated";
+
+enum OrderStatus {
+  ORDER_STATUS_PENDING = 0;
+  ORDER_STATUS_CONFIRMED = 1;
+  ORDER_STATUS_PAID = 2;
+  ORDER_STATUS_DONE = 3;
+  ORDER_STATUS_CANCELLED = 4;
+}
+
+message UpdateOrderStatusRequest {
+    OrderStatus status = 1;
+}

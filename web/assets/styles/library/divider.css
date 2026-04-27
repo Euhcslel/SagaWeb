@@ -1,0 +1,143 @@
+.divider {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  height: 1rem;
+  align-self: stretch;
+  white-space: nowrap;
+  margin: var(--divider-m, 1rem 0);
+
+  --divider-color: color-mix(
+    in oklab,
+    var(--color-base-content) 10%,
+    transparent
+  );
+
+  &:before,
+  &:after {
+    content: "";
+    height: 0.125rem;
+    width: 100%;
+    flex-grow: 1;
+    background-color: var(--divider-color);
+  }
+
+  @media print {
+    &:before,
+    &:after {
+      border: 0.5px solid;
+    }
+  }
+
+  &:not(:empty) {
+    gap: 1rem;
+  }
+
+  &:empty {
+    gap: 0;
+  }
+}
+
+.divider-horizontal {
+  --divider-m: 0 1rem;
+
+  &.divider {
+    height: auto;
+    flex-direction: column;
+    width: 1rem;
+
+    &:before {
+      height: 100%;
+      width: 0.125rem;
+    }
+
+    &:after {
+      height: 100%;
+      width: 0.125rem;
+    }
+  }
+}
+
+.divider-vertical {
+  --divider-m: 1rem 0;
+
+  &.divider {
+    height: 1rem;
+    width: auto;
+    flex-direction: row;
+
+    &:before {
+      height: 0.125rem;
+      width: 100%;
+    }
+
+    &:after {
+      height: 0.125rem;
+      width: 100%;
+    }
+  }
+}
+
+.divider-neutral {
+  &:before,
+  &:after {
+    background-color: var(--color-neutral);
+  }
+}
+
+.divider-primary {
+  &:before,
+  &:after {
+    background-color: var(--color-primary);
+  }
+}
+
+.divider-secondary {
+  &:before,
+  &:after {
+    background-color: var(--color-secondary);
+  }
+}
+
+.divider-accent {
+  &:before,
+  &:after {
+    background-color: var(--color-accent);
+  }
+}
+
+.divider-success {
+  &:before,
+  &:after {
+    background-color: var(--color-success);
+  }
+}
+
+.divider-warning {
+  &:before,
+  &:after {
+    background-color: var(--color-warning);
+  }
+}
+
+.divider-info {
+  &:before,
+  &:after {
+    background-color: var(--color-info);
+  }
+}
+
+.divider-error {
+  &:before,
+  &:after {
+    background-color: var(--color-error);
+  }
+}
+
+.divider-start:before {
+  display: none;
+}
+
+.divider-end:after {
+  display: none;
+}

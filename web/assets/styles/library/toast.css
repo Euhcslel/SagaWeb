@@ -1,0 +1,69 @@
+.toast {
+    position: fixed;
+    inset-inline-start: auto;
+    inset-inline-end: 1rem;
+    top: auto;
+    bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background-color: transparent;
+    translate: var(--toast-x, 0) var(--toast-y, 0);
+    width: max-content;
+    max-width: calc(100vw - 2rem);
+
+    &>* {
+        @media (prefers-reduced-motion: no-preference) {
+            animation: toast 0.25s ease-out;
+        }
+    }
+
+}
+
+.toast-start {
+    inset-inline-start: 1rem;
+    inset-inline-end: auto;
+    --toast-x: 0;
+}
+
+.toast-center {
+    inset-inline-start: 50%;
+    inset-inline-end: 50%;
+    --toast-x: -50%;
+}
+
+.toast-end {
+    inset-inline-start: auto;
+    inset-inline-end: 1rem;
+    --toast-x: 0;
+}
+
+.toast-bottom {
+    top: auto;
+    bottom: 1rem;
+    --toast-y: 0;
+}
+
+.toast-middle {
+    top: 50%;
+    bottom: auto;
+    --toast-y: -50%;
+}
+
+.toast-top {
+    top: 1rem;
+    bottom: auto;
+    --toast-y: 0;
+}
+
+@keyframes toast {
+    0% {
+        scale: 0.9;
+        opacity: 0;
+    }
+
+    100% {
+        scale: 1;
+        opacity: 1;
+    }
+}

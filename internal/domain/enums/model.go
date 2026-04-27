@@ -2,6 +2,7 @@ package enums
 
 import (
 	"errors"
+	errs "project/internal/errors"
 	"project/internal/generated"
 )
 
@@ -9,29 +10,55 @@ import (
 type OrderStatus string
 
 const (
-	OrderStatusNew       OrderStatus = "new"
+	OrderStatusPending   OrderStatus = "pending"
 	OrderStatusPaid      OrderStatus = "paid"
 	OrderStatusCancelled OrderStatus = "cancelled"
+	OrderStatusConfirmed OrderStatus = "confirmed"
+	OrderStatusDone      OrderStatus = "done"
 )
+
+// Функция для получения статуса заказа из proto-типа
+func GetOrderStatusFromProto(status *generated.OrderStatus) (OrderStatus, error) {
+	switch *status {
+	case generated.OrderStatus_ORDER_STATUS_CANCELLED:
+		return OrderStatusCancelled, nil
+	case generated.OrderStatus_ORDER_STATUS_DONE:
+		return OrderStatusDone, nil
+	case generated.OrderStatus_ORDER_STATUS_PENDING:
+		return OrderStatusPending, nil
+	case generated.OrderStatus_ORDER_STATUS_PAID:
+		return OrderStatusPaid, nil
+	case generated.OrderStatus_ORDER_STATUS_CONFIRMED:
+		return OrderStatusConfirmed, nil
+	}
+
+	return "", errs.ErrInvalidOrderStatus
+}
 
 // Функция для получения всех статусов заказа
 func GetAllOrderStatuses() []OrderStatus {
 	return []OrderStatus{
-		OrderStatusNew,
+		OrderStatusPending,
 		OrderStatusPaid,
 		OrderStatusCancelled,
+		OrderStatusConfirmed,
+		OrderStatusDone,
 	}
 }
 
 // Функция для получения наименования статуса заказа
 func (s OrderStatus) Label() string {
 	switch s {
-	case OrderStatusNew:
-		return "Новый"
+	case OrderStatusPending:
+		return "Ожидает подтверждения"
 	case OrderStatusPaid:
 		return "Оплачен"
 	case OrderStatusCancelled:
 		return "Отменён"
+	case OrderStatusDone:
+		return "Завершен"
+	case OrderStatusConfirmed:
+		return "Подтвержден"
 	default:
 		return "Неизвестно"
 	}

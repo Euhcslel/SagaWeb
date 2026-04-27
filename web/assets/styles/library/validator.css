@@ -1,0 +1,56 @@
+.validator {
+
+    &:user-valid,
+    &:has(:user-valid) {
+
+        &,
+        &:focus,
+        &:checked,
+        &[aria-checked="true"],
+        &:focus-within {
+            background-color: var(--color-success);
+            /*--input-color: var(--color-success);*/
+        }
+    }
+
+    &:user-invalid,
+    &:has(:user-invalid),
+    &[aria-invalid]:not([aria-invalid="false"]),
+    &:has([aria-invalid]:not([aria-invalid="false"])) {
+
+        &,
+        &:focus,
+        &:checked,
+        &[aria-checked="true"],
+        &:focus-within {
+            background-color: var(--color-error);
+            /*--input-color: var(--color-error);*/
+        }
+
+        &~.validator-hint {
+            color: var(--color-error);
+            /*visibility: visible;*/
+            display: inline;
+        }
+    }
+}
+
+.validator-hint {
+    /*visibility: hidden;*/
+    display: none;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* This stays in utilities layer so it unhides hidden validator-hints */
+.validator {
+
+    &:user-invalid,
+    &:has(:user-invalid),
+    &[aria-invalid]:not([aria-invalid="false"]),
+    &:has([aria-invalid]:not([aria-invalid="false"])) {
+        &~.validator-hint {
+            display: revert-layer;
+        }
+    }
+}

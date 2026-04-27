@@ -22,3 +22,44 @@ func GetUserDealers(user *users.User) ([]managers_and_dealers.ManagerAndDealer, 
 		return nil, errs.ErrForbidden
 	}
 }
+
+type UserInfo struct {
+	ID       int64
+	Fullname string
+	Email    string
+	Phone    string
+	Role     enums.Role
+	IsDealer bool
+
+	Dealer *DealerInfo
+}
+
+type DealerInfo struct {
+	CompanyName string
+	Address     string
+}
+
+func GetUserInfo(user *users.User) (*UserInfo, error) {
+	userInfo := &UserInfo{
+		ID:       user.ID,
+		Fullname: user.Fullname,
+		Email:    user.Email,
+		Phone:    user.PhoneNumber,
+		Role:     user.Role,
+		IsDealer: user.Role == enums.DealerRole,
+	}
+
+	if userInfo.IsDealer {
+		dealer, err := repository.GetDealerInfo(database.DB, user.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		userInfo.Dealer = &DealerInfo{
+			CompanyName: dealer.Company.Name,
+			Address:     dealer.Address,
+		}
+	}
+
+	return userInfo, nil
+}

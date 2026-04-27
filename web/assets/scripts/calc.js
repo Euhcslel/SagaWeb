@@ -398,18 +398,28 @@ window.addProduct = () => {
 
 // Функция, формирующая список товаров для отправки заказа
 function buildProductsList() {
-  const products = {};
+  const productsMap = {};
+
   const productItems = document.getElementsByClassName("product-item");
+
   [...productItems].forEach((productItem) => {
     const productSelect = productItem.querySelector(".product");
     const selectedProduct = productSelect.options[productSelect.selectedIndex];
+
+    const productId = Number(selectedProduct.value);
     const amount = Number(productItem.querySelector(".amount").value);
-    if (products[Number(selectedProduct.value)] === undefined) {
-      products[Number(selectedProduct.value)] = 0;
+
+    if (productsMap[productId] === undefined) {
+      productsMap[productId] = 0;
     }
-    products[Number(selectedProduct.value)] += amount;
+
+    productsMap[productId] += amount;
   });
-  return products;
+
+  return Object.entries(productsMap).map(([productId, amount]) => ({
+    productId: Number(productId),
+    amount: amount,
+  }));
 }
 
 // Функция, пракильно формирующая описание типа привода и информацию о нем.
@@ -494,17 +504,27 @@ function buildGatePayload() {
     const gateAmount = Number(gate.querySelector(".gate-amount").value);
 
     // Сбор дополнительных опций
-    const options = {};
+    const optionsMap = {};
+
     const optionItems = gate.getElementsByClassName("option-item");
+
     [...optionItems].forEach((optionItem) => {
       const optionSelect = optionItem.querySelector(".option");
       const selectedOption = optionSelect.options[optionSelect.selectedIndex];
+      const optionId = Number(selectedOption.value);
       const amount = Number(optionItem.querySelector(".amount").value);
-      if (options[Number(selectedOption.value)] === undefined) {
-        options[Number(selectedOption.value)] = 0;
+
+      if (optionsMap[optionId] === undefined) {
+        optionsMap[optionId] = 0;
       }
-      options[Number(selectedOption.value)] += amount;
+
+      optionsMap[optionId] += amount;
     });
+
+    const options = Object.entries(optionsMap).map(([optionId, amount]) => ({
+      optionId: Number(optionId),
+      amount: amount,
+    }));
 
     orderGates.push({
       gateType: gateType,

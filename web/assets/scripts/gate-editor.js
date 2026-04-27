@@ -182,7 +182,7 @@ window.updateDriveType = () => {
 
   chainLabel.hidden = !isManual;
   driveAutoBlock.hidden = isManual;
-  railLabel.hidden = isManual || gateType !== "residential";
+  railLabel.hidden = isManual || gateType !== "res";
 
   updateGatePrice();
 };
@@ -230,16 +230,16 @@ window.SaveGateConfiguration = async () => {
     cycleAmountId: Number(document.getElementById("cycle-amount").value),
     colorOutId: Number(document.getElementById("color-out").value),
     drive: drive,
-    options: Object.fromEntries(
-      [...document.querySelectorAll(".option-item")].map((optionItem) => [
-        Number(optionItem.querySelector(".option").value),
-        Number(optionItem.querySelector(".amount").value),
-      ]),
+    options: [...document.querySelectorAll(".option-item")].map(
+      (optionItem) => ({
+        optionId: Number(optionItem.querySelector(".option").value),
+        amount: Number(optionItem.querySelector(".amount").value),
+      }),
     ),
     headroom: Number(document.getElementById("headroom").value),
     amount: Number(document.getElementById("amount").value),
   };
-
+  
   // Кодирование в protobuf
   const err = Proto.GateConfig.verify(payload);
   if (err) throw new Error(err);

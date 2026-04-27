@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/web/assets/images/favicon.ico" />
-    <link rel="stylesheet" href="/web/assets/styles/base.css" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
     {{if .css}}
-    <link rel="stylesheet" href="/web/assets/styles/{{.css}}" />
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
     {{end}}
     <title>Заказ №{{.orderId}}</title>
     <script type="module" src="/web/assets/scripts/order.js" defer></script>
@@ -14,45 +14,111 @@
   <body>
     {{template "header-nav" .}}
     <main>
-      <a href="/orders">Вернуться к заказам</a>
-      <button
-        class="button secondary"
-        onclick="window.deleteOrder({{.orderId}})"
-      >
-        Удалить заказ
-      </button>
+      <!--Шапка заказа-->
+      <div class="order-header">
+        <!--Вернуться к списку-->
+        <a class="btn secondary" href="/orders">Вернуться к заказам</a>
+        <!--Удалить заказ-->
+        <button
+          class="btn secondary"
+          onclick="window.deleteOrder({{.orderId}})"
+        >
+          Удалить заказ
+        </button>
+        <!--Добавить документ-->
+        <button
+          class="btn secondary"
+          onclick="document.getElementById('add-documents-modal').showModal()"
+        >
+          Прикрепить документ
+        </button>
+        <!--Открыть список документов-->
+        <button class="btn secondary" onclick="window.loadDocuments()">
+          Список документов
+        </button>
+        <!--Статус-->
+        <select name="status" id="status" class="select" onchange="window.changeOrderStatus()">
+          {{range .orderStatuses}}
+          <option value="{{.}}" {{if eq . $.order.Status}}selected{{end}}>
+            {{.Label}}
+          </option>
+          {{end}}
+        </select>
+      </div>
+      <!--Содержимое заказа-->
       <div class="order-content">
-        <div class="gates">
+        <!--Сетка с воротами в заказе-->
+        <div class="order-gates">
           {{range .order.Gates}}
-          <div class="order-card">
-            <div class="card-header">
-              <h2>Ворота №{{.Gate.RowNumber}}</h2>
-              <a
-                class="button secondary"
-                href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}"
-                ><img src="/web/assets/images/search.svg" alt="Лупа"
-              /></a>
-              <button
-                class="button secondary"
-                onclick="window.deleteGate({{.Gate.RowNumber}})"
-              >
-                <img src="/web/assets/images/orders.svg" alt="Корзина" />
-              </button>
+          <div class="card">
+            <div class="card-body">
+              <h2 class="card-title">Ворота №{{.Gate.RowNumber}}</h2>
+              <ul>
+                <li>{{.Gate.Width}}</li>
+                <li>{{.Gate.Height}}</li>
+                <li>{{.Gate.GateType.Label}}</li>
+                <li>{{.Gate.LiftType.Name}}</li>
+                <li>{{.Gate.ColorOut.Code}}</li>
+                <li>{{.Gate.CycleAmount.Name}}</li>
+              </ul>
+              <div class="card-actions">
+                <!--Перейти в детали заказа-->
+                <a
+                  class="btn secondary"
+                  href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m21 21-4.34-4.34" />
+                    <circle cx="11" cy="11" r="8" />
+                  </svg>
+                </a>
+                <!--Удалить ворота из заказа-->
+                <button
+                  class="btn secondary"
+                  onclick="window.deleteGate({{.Gate.RowNumber}})"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <ul>
-              <li>{{.Gate.Width}}</li>
-              <li>{{.Gate.Height}}</li>
-              <li>{{.Gate.GateType.Label}}</li>
-              <li>{{.Gate.LiftType.Name}}</li>
-              <li>{{.Gate.ColorOut.Code}}</li>
-              <li>{{.Gate.CycleAmount.Name}}</li>
-            </ul>
           </div>
           {{else}}
           <p>Нет никаких ворот</p>
           {{end}}
+          <div class="add-button-container">
+            <button
+              class="btn primary"
+              onclick="document.getElementById('add-gate-modal').showModal()"
+            >
+              Добавить ворота
+            </button>
+          </div>
         </div>
-        <div class="products">
+        <div class="order-products">
           <p>Товары</p>
           <ul>
             {{range .order.Products}}
@@ -63,16 +129,96 @@
           </ul>
         </div>
       </div>
-      <a href="#add-gate-modal" class="button primary">Добавить ворота</a>
-      <div id="add-gate-modal" class="modal">
-        <div class="content">
-          <a href="#" class="close">×</a>
+      <!--Модальное окно для добавления новых ворот в заказ-->
+      <dialog id="add-gate-modal" class="modal">
+        <div class="modal-box">
+          <h3>Добавление ворот</h3>
           <p>Выберите тип ворот:</p>
-          <button class="button secondary" onclick="window.addGate('res')">Бытовые</button>
-          <button class="button secondary" onclick="window.addGate('ind')">Промышленные</button>
+          <div class="modal-action">
+            <button class="btn secondary" onclick="window.addGate('res')">
+              Бытовые
+            </button>
+            <button class="btn secondary" onclick="window.addGate('ind')">
+              Промышленные
+            </button>
+          </div>
         </div>
-      </div>
+      </dialog>
+      <!--Модальное окно для добавления документов-->
+      <dialog id="add-documents-modal" class="modal">
+        <div class="modal-box">
+          <h3>Добавление докуменов</h3>
+          <div class="file-inputs">
+            <!--Загрузка КП на сервевр-->
+            <form
+              id="uploadOfferForm"
+              action="/orders/{{.orderId}}/offer"
+              method="POST"
+              enctype="multipart/form-data"
+            >
+              <input type="file" name="file" class="file-input" />
+              <button type="submit" class="btn secondary">Загрузить КП</button>
+            </form>
+
+            <!--Загрузка договора на сервевр-->
+            <form
+              id="uploadContractForm"
+              action="/orders/{{.orderId}}/contract"
+              method="POST"
+              enctype="multipart/form-data"
+            >
+              <input type="file" name="file" class="file-input" />
+              <button type="submit" class="btn secondary">
+                Загрузить договор
+              </button>
+            </form>
+            <!--Загрузка счета на сервевр-->
+            <form
+              action="/orders/{{.orderId}}/bill"
+              method="POST"
+              enctype="multipart/form-data"
+            >
+              <input type="file" name="file" class="file-input" />
+              <button type="submit" class="btn secondary">
+                Загрузить счет
+              </button>
+            </form>
+          </div>
+        </div>
+      </dialog>
+      <!--Модальное окно с документами-->
+      <dialog id="documents-modal" class="modal">
+        <div class="modal-box">
+          <h3>Список документов:</h3>
+          <table class="table" id="documents-list"></table>
+        </div>
+      </dialog>
     </main>
+    <!--Шаблон для строки в списке документов-->
+    <template id="document-info-template">
+      <tr>
+        <td class="document-name"></td>
+        <td>
+          <button class="btn secondary">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </td>
+      </tr>
+    </template>
     <script src="/web/assets/scripts/protobuf.min.js"></script>
   </body>
 </html>

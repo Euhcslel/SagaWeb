@@ -14,9 +14,15 @@ import (
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
+	userInfo, err := service.GetUserInfo(user)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
 	data := map[string]any{
 		"css":  "user.css",
-		"user": user,
+		"userInfo": userInfo,
 	}
 
 	if err := templates.ExecuteTemplate(w, "info.html", data); err != nil {

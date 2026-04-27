@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"project/internal/helpers"
+	"project/internal/service"
 	"project/internal/utils"
 	"time"
 )
@@ -47,7 +48,13 @@ var templates = template.Must(
 func MainHandler(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
+	dealers, err := service.GetDealersList()
+	if err != nil {
+		dealers = nil
+	}
+
 	data := map[string]any{
+		"dealers": dealers,
 		"css":  "home.css",
 		"user": user,
 	}

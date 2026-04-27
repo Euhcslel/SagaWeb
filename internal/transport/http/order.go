@@ -62,11 +62,14 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	statuses := enums.GetAllOrderStatuses()
+
 	data := map[string]any{
-		"css":     "/order.css",
-		"order":   order,
-		"user":    user,
-		"orderId": saleID,
+		"css":           "/order.css",
+		"order":         order,
+		"user":          user,
+		"orderStatuses": statuses,
+		"orderId":       saleID,
 	}
 
 	if err := templates.ExecuteTemplate(w, "order.html", data); err != nil {
@@ -102,7 +105,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css":              "calc.css",
+		"css":              "gate.css",
 		"gate":             pageData.Gate,
 		"options":          pageData.Options,
 		"cfg":              pageData.Configuraion,
@@ -117,12 +120,6 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
-}
-
-// Route: /orders/{order_id}/documents
-// Method: GET
-func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
-
 }
 
 // Route: /orders/{order_id}
@@ -208,21 +205,48 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 // Route: /orders/{order_id}/products
-// Method: POST
-func AddNewProductInOrder(w http.ResponseWriter, r *http.Request) {
-
-}
-
-// Route: /orders/{order_id}/products/{product_id}
 // Method: PUT
 func UpdateProductList(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Route: /orders/{order_id}/products/{product_id}
-// Method: DELETE
-func DeleteProductFromOrder(w http.ResponseWriter, r *http.Request) {
+// Route: /orders/{order_id}/status
+// Method: PUT
+func UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
 
+	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	defer r.Body.Close()
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var updateStatusRequest generated.UpdateOrderStatusRequest
+	if err := proto.Unmarshal(data, &updateStatusRequest); err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = service.UpdateOrderStatus(user, saleID, &updateStatusRequest)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if errors.Is(err, errs.ErrInvalidOrderStatus) {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	} else if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // Route: /orders/{order_id}/{gate_id}
@@ -290,4 +314,131 @@ func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
+}
+
+// Route: /orders/{order_id}/documents
+// Method: GET
+func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	resp, err := service.GetAllOrderDocuments(user, saleID)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	data, err := proto.Marshal(resp)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/x-protobuf")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
+// Route: /orders/{order_id}/offer
+// Method: POST
+func UploadOfferToOrder(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseMultipartForm(10 << 20) // 10MB
+	if err != nil {
+		http.Error(w, "Error parsing multipart form", http.StatusBadRequest)
+		return
+	}
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	err = service.UploadOfferToOrder(user, saleID, file, handler)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// Route: /orders/{order_id}/contract
+// Method: POST
+func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseMultipartForm(10 << 20) // 10MB
+	if err != nil {
+		http.Error(w, "Error parsing multipart form", http.StatusBadRequest)
+		return
+	}
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	err = service.UploadContractToOrder(user, saleID, file, handler)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// Route: /orders/{order_id}/bill
+// Method: POST
+func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseMultipartForm(10 << 20) // 10MB
+	if err != nil {
+		http.Error(w, "Error parsing multipart form", http.StatusBadRequest)
+		return
+	}
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	err = service.UploadBillToOrder(user, saleID, file, handler)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

@@ -1,13 +1,19 @@
 package repository
 
 import (
+	"project/internal/database"
+	"project/internal/domain/enums"
 	"project/internal/domain/gates_and_sales_manual_drive"
 	"project/internal/domain/gates_and_sales_options"
 	"project/internal/domain/industrial_gates_and_sales_drive"
 	"project/internal/domain/managers_and_dealers"
 	"project/internal/domain/residential_gates_and_sales_drive_rail"
 	"project/internal/domain/sales"
+	"project/internal/domain/sales_and_bills"
+	"project/internal/domain/sales_and_contracts"
+	"project/internal/domain/sales_and_documents"
 	"project/internal/domain/sales_and_gates"
+	"project/internal/domain/sales_and_offers"
 	"project/internal/domain/sales_and_products"
 	"project/internal/domain/users"
 
@@ -296,4 +302,90 @@ func UpdateGateManualDrive(db *gorm.DB, saleID int64, gateID int64, chainLength 
 
 func UpdateGate(db *gorm.DB, gate sales_and_gates.SalesAndGate) error {
 	return db.Save(&gate).Error
+}
+
+func UpdateOrderStatus(db *gorm.DB, sale *sales.Sale, status enums.OrderStatus) error {
+	sale.Status = status
+	return db.Save(&sale).Error
+}
+
+func GetDocumentsNameList(db *gorm.DB, saleID int64) ([]string, error) {
+	var documentsNameList []string
+	if err := db.Model(&sales_and_documents.SalesAndDocument{}).
+		Where("sale_id = ?", saleID).
+		Pluck("name", &documentsNameList).Error; err != nil {
+		return nil, err
+	}
+
+	return documentsNameList, nil
+}
+
+func GetOffersNumberList(db *gorm.DB, saleID int64) ([]string, error) {
+	var offersNumberList []string
+	if err := db.Model(&sales_and_offers.SalesAndOffer{}).
+		Where("sale_id = ?", saleID).
+		Pluck("offer_number", &offersNumberList).Error; err != nil {
+		return nil, err
+	}
+
+	return offersNumberList, nil
+}
+
+func GetContractsNumberList(db *gorm.DB, saleID int64) ([]string, error) {
+	var contractsNumberList []string
+	if err := db.Model(&sales_and_contracts.SalesAndContract{}).
+		Where("sale_id = ?", saleID).
+		Pluck("contract_number", &contractsNumberList).Error; err != nil {
+		return nil, err
+	}
+
+	return contractsNumberList, nil
+}
+
+func GetBillsNumberList(db *gorm.DB, saleID int64) ([]string, error) {
+	var billsNumberList []string
+	if err := db.Model(&sales_and_bills.SalesAndBill{}).
+		Where("sale_id = ?", saleID).
+		Pluck("bill_number", &billsNumberList).Error; err != nil {
+		return nil, err
+	}
+
+	return billsNumberList, nil
+}
+
+func GetOrderStatus(user *users.User, saleID int64) (string, error) {
+	var status string
+	if err := database.DB.Model(&sales.Sale{}).
+		Where("id = ?", saleID).
+		Pluck("status", &status).Error; err != nil {
+		return "", err
+	}
+	return status, nil
+}
+
+func AttachOfferToOrder(db *gorm.DB, saleID int64, offerNumber string, path string) error {
+	offerAndSale := sales_and_offers.SalesAndOffer{
+		SaleID:      saleID,
+		OfferNumber: offerNumber,
+		Path:        path,
+	}
+	return db.Create(&offerAndSale).Error
+}
+
+func AttachContractToOrder(db *gorm.DB, saleID int64, contractNumber string, path string) error {
+	contractAndSale := sales_and_contracts.SalesAndContract{
+		SaleID:         saleID,
+		ContractNumber: contractNumber,
+		Path:           path,
+	}
+	return db.Create(&contractAndSale).Error
+}
+
+func AttachBillToOrder(db *gorm.DB, saleID int64, billNumber string, path string) error {
+	billAndSale := sales_and_bills.SalesAndBill{
+		SaleID:     saleID,
+		BillNumber: billNumber,
+		Path:       path,
+	}
+	return db.Create(&billAndSale).Error
 }

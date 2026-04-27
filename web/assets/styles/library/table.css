@@ -1,0 +1,138 @@
+.table {
+    font-size: 0.875rem;
+    border-radius: var(--radius-box);
+    position: relative;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+
+    &[dir="rtl"] {
+        text-align: right;
+    }
+
+    tr.row-hover {
+
+        &,
+        &:nth-child(even) {
+            &:hover {
+                background-color: var(--color-base-200);
+            }
+        }
+    }
+
+    :where(th, td) {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+    }
+
+    :where(thead, tfoot) {
+        color: oklch(from var(--color-base-content) l c h / 0.6);
+        white-space: nowrap;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    :where(tfoot tr:first-child :is(td, th)) {
+        border-top: var(--border) solid color-mix(in oklch, var(--color-base-content) 5%, #0000);
+    }
+
+    :where(.table-pin-rows thead tr) {
+        background-color: var(--color-base-100);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    :where(.table-pin-rows tfoot tr) {
+        background-color: var(--color-base-100);
+        position: sticky;
+        bottom: 0;
+        z-index: 1;
+    }
+
+    :where(.table-pin-cols tr th) {
+        background-color: var(--color-base-100);
+        position: sticky;
+        right: 0;
+        left: 0;
+    }
+
+    :where(thead tr :is(td, th), tbody tr:not(:last-child) :is(td, th)) {
+        border-bottom: var(--border) solid color-mix(in oklch, var(--color-base-content) 5%, #0000);
+    }
+}
+
+.table-zebra {
+    tbody {
+        tr {
+            &:where(:nth-child(even)) {
+                background-color: var(--color-base-200);
+
+                :where(.table-pin-cols tr th) {
+                    background-color: var(--color-base-200);
+                }
+            }
+
+            &.row-hover {
+
+                &,
+                &:where(:nth-child(even)) {
+                    &:hover {
+                        background-color: var(--color-base-300);
+                    }
+                }
+            }
+        }
+    }
+}
+
+.table-xs {
+    :not(thead, tfoot) tr {
+        font-size: 0.6875rem;
+    }
+
+    :where(th, td) {
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+.table-sm {
+    :not(thead, tfoot) tr {
+        font-size: 0.75rem;
+    }
+
+    :where(th, td) {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+.table-md {
+    :not(thead, tfoot) tr {
+        font-size: 0.875rem;
+    }
+
+    :where(th, td) {
+        padding: 0.75rem 1rem;
+    }
+}
+
+.table-lg {
+    :not(thead, tfoot) tr {
+        font-size: 1.125rem;
+    }
+
+    :where(th, td) {
+        padding: 1rem 1.25rem;
+    }
+}
+
+.table-xl {
+    :not(thead, tfoot) tr {
+        font-size: 1.375rem;
+    }
+
+    :where(th, td) {
+        padding: 1.25rem 1.5rem;
+    }
+}

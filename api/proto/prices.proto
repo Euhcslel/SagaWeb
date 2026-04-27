@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package proto;
-option go_package = "project/pkg/proto_files";
+option go_package = "../project/internal/generated";
 
 message DealerSizePrices {
     int64 dealer_price = 1;

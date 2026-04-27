@@ -1,20 +1,136 @@
 {{template "html-start" .}}
-<div id="user-info">
-  <h1 class="full-name">{{.user.Fullname}}</h1>
-  <ul style="list-style-type: none">
-    <li>
-      <span style="font-weight: 200">ID: </span>
-      <span class="user-id">{{.user.ID}}</span>
-    </li>
-    <li>
-      <span style="font-weight: 200">Email: </span>
-      <span class="email">{{.user.Email}}</span>
-    </li>
-    <li>
-      <span style="font-weight: 200">Phone: </span>
-      <span class="phone">{{.user.PhoneNumber}}</span>
-    </li>
-  </ul>
+<div class="card">
+  <div class="card-body">
+    <h2 class="card-title">Информация о пользователе</h2>
+    {{if .userInfo.IsDealer}}
+    <!--ФИО-->
+    <label class="input validator">
+      ФИО
+      <input
+        type="text"
+        value="{{.userInfo.Fullname}}"
+        required
+        placeholder="ФИО"
+        pattern="^[А-Яа-яЁё\s]+$"
+        minlength="1"
+        maxlength="50"
+        title="Только буквы кириллицы"
+      />
+    </label>
+    <p class="validator-hint">Только буквы кириллицы</p>
+    <!--Email-->
+    <label class="input validator">
+      Email
+      <input
+        type="email"
+        value="{{.userInfo.Email}}"
+        placeholder="mail@site.com"
+        required
+      />
+    </label>
+    <div class="validator-hint hidden">Введите корректный email</div>
+    <!--Phone-->
+    <label class="input validator">
+      Номер телефона
+      <input
+        type="tel"
+        class="tabular-nums"
+        value="{{.userInfo.Phone}}"
+        required
+        placeholder="Номер телефона"
+        pattern="8[0-9]*"
+        minlength="11"
+        maxlength="11"
+        title="Длина должна быть 11 символов и начинаться с цифры 8"
+      />
+    </label>
+    <p class="validator-hint">
+      Длина должна быть 11 символов и начинаться с цифры 8
+    </p>
+    <!--Название компании-->
+    <label class="input validator">
+      Название компании
+      <input
+        type="text"
+        value="{{.userInfo.Dealer.CompanyName}}"
+        required
+        placeholder="Название компании"
+        pattern="^[A-Za-zА-Яа-яЁё\s]+$"
+        minlength="3"
+        maxlength="100"
+        title="Только буквы латиницы или кириллицы"
+      />
+    </label>
+    <p class="validator-hint">
+      Длина должна быть от 3 до 100 символов
+      <br />включать буквы латиницы или кириллицы
+    </p>
+    <!--Адрес-->
+    <label class="input validator">
+      Адрес
+      <input
+        type="text"
+        value="{{.userInfo.Dealer.Address}}"
+        placeholder="Адрес"
+        pattern="^[A-Za-zА-Яа-яЁё\s,]+$"
+        maxlength="150"
+        title="Только буквы латиницы или кириллицы"
+      />
+    </label>
+    <p class="validator-hint">
+      Длина должна быть до 150 символов
+      <br />включать буквы латиницы или кириллицы
+    </p>
+    {{else}}
+    <!--ФИО-->
+    <label class="input validator">
+      ФИО
+      <input
+        type="text"
+        value="{{.userInfo.Fullname}}"
+        required
+        placeholder="ФИО"
+        pattern="^[А-Яа-яЁё\s]+$"
+        minlength="1"
+        maxlength="50"
+        title="Только буквы кириллицы"
+      />
+    </label>
+    <p class="validator-hint">Только буквы кириллицы</p>
+    <!--Email-->
+    <label class="input validator">
+      Email
+      <input
+        type="email"
+        value="{{.userInfo.Email}}"
+        placeholder="mail@site.com"
+        required
+      />
+    </label>
+    <!--Phone-->
+    <label class="input validator">
+      Номер телефона
+      <input
+        type="tel"
+        class="tabular-nums"
+        value="{{.userInfo.Phone}}"
+        required
+        placeholder="Номер телефона"
+        pattern="8[0-9]*"
+        minlength="11"
+        maxlength="11"
+        title="Длина должна быть 11 символов и начинаться с цифры 8"
+      />
+    </label>
+    <p class="validator-hint">
+      Длина должна быть 11 символов и начинаться с цифры 8
+    </p>
+    {{end}}
+  </div>
+  <div class="card-actions">
+    <form action="/sign_out" method="post">
+      <button class="btn secondary" type="submit">Выйти</button>
+    </form>
+  </div>
 </div>
-<form action="/sign_out" method="post"><button type="submit">Выйти</button></form>
 {{template "html-end"}}

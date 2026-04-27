@@ -2,6 +2,10 @@ package service
 
 import (
 	"errors"
+	"io"
+	"mime/multipart"
+	"os"
+	"path/filepath"
 	"project/internal/database"
 	"project/internal/domain/enums"
 	"project/internal/domain/gates_and_sales_manual_drive"
@@ -17,6 +21,7 @@ import (
 	"project/internal/generated"
 	"project/internal/repository"
 	"project/internal/types"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -84,10 +89,16 @@ func GetUserOrderByID(user *users.User, saleID int64) (types.Order, error) {
 		optionsMap[opt.RowNumber] = append(optionsMap[opt.RowNumber], opt.Option)
 	}
 
+	status, err := repository.GetOrderStatus(user, saleID)
+	if err != nil {
+		return types.Order{}, err
+	}
+
 	// Группируем в gates
 	order := types.Order{
 		Gates:    []types.Gate{},
 		Products: []sales_and_products.SalesAndProduct{},
+		Status:   status,
 	}
 
 	for _, og := range orderGates {
@@ -236,7 +247,7 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 			return sales_and_gates.SalesAndGate{}, err
 		}
 
-		err = repository.CreateResidentialDriveForGate(database.DB, saleID, gate.RowNumber, cfg.IndustrialDrives[0].ID, cfg.Rails[0].ID)
+		err = repository.CreateResidentialDriveForGate(database.DB, saleID, gate.RowNumber, cfg.ResidentialDrives[0].ID, cfg.Rails[0].ID)
 		if err != nil {
 			return sales_and_gates.SalesAndGate{}, err
 		}
@@ -265,13 +276,13 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		order = sales.Sale{
 			ClientID:  &user.ID,
 			ManagerID: managerId,
-			Status:    enums.OrderStatusNew,
+			Status:    enums.OrderStatusPending,
 		}
 	} else {
 		order = sales.Sale{
 			ClientID:  nil,
 			ManagerID: user.ID,
-			Status:    enums.OrderStatusNew,
+			Status:    enums.OrderStatusPending,
 		}
 	}
 
@@ -283,11 +294,11 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	// Содаем товары заказа
 	if len(orderData.Products) != 0 {
 		var salesAndProducts []sales_and_products.SalesAndProduct
-		for productId, amount := range orderData.Products {
+		for _, product := range orderData.Products {
 			salesAndProducts = append(salesAndProducts, sales_and_products.SalesAndProduct{
 				SaleID:    order.ID,
-				ProductID: productId,
-				Amount:    amount,
+				ProductID: product.ProductId,
+				Amount:    product.Amount,
 			})
 		}
 
@@ -364,12 +375,12 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 
 		// Создаем дополнительные опции у ворот
 		var gateAndSalesOptions []gates_and_sales_options.GatesAndSalesOption
-		for optionId, amount := range gate.Options {
+		for _, option := range gate.Options {
 			gateAndSalesOption := gates_and_sales_options.GatesAndSalesOption{
 				SaleID:    order.ID,
 				RowNumber: int64(i + 1),
-				OptionID:  optionId,
-				Amount:    amount,
+				OptionID:  option.OptionId,
+				Amount:    option.Amount,
 			}
 
 			gateAndSalesOptions = append(gateAndSalesOptions, gateAndSalesOption)
@@ -469,7 +480,7 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 				}
 			}
 		} else {
-			if err := repository.UpdateGateResidentialDrive(database.DB, saleID, int64(gateID), gateData.Drive.GetIndustrial().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
+			if err := repository.UpdateGateResidentialDrive(database.DB, saleID, int64(gateID), gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
 				return err
 			}
 		}
@@ -504,4 +515,181 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 	}
 
 	return nil
+}
+
+func UpdateOrderStatus(user *users.User, saleID int64, updateStatusRequest *generated.UpdateOrderStatusRequest) error {
+	sale, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		return err
+	}
+
+	status, err := enums.GetOrderStatusFromProto(&updateStatusRequest.Status)
+	if err != nil {
+		return err
+	}
+
+	if err = repository.UpdateOrderStatus(database.DB, sale, status); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UploadOfferToOrder(user *users.User, saleID int64, file multipart.File, handler *multipart.FileHeader) error {
+	_, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		return err
+	}
+
+	offerDirectoryPath := os.Getenv("OFFERS_DIRECTORY")
+	if offerDirectoryPath == "" {
+		return err
+	}
+
+	dst, err := os.Create(offerDirectoryPath + "/" + handler.Filename)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		return err
+	}
+
+	ext := filepath.Ext(handler.Filename)
+	name := strings.TrimSuffix(handler.Filename, ext)
+	if err = repository.AttachOfferToOrder(database.DB, saleID, name, handler.Filename); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UploadContractToOrder(user *users.User, saleID int64, file multipart.File, handler *multipart.FileHeader) error {
+	_, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		return err
+	}
+
+	contractDirectoryPath := os.Getenv("CONTRACTS_DIRECTORY")
+	if contractDirectoryPath == "" {
+		return err
+	}
+
+	dst, err := os.Create(contractDirectoryPath + "/" + handler.Filename)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		return err
+	}
+
+	ext := filepath.Ext(handler.Filename)
+	name := strings.TrimSuffix(handler.Filename, ext)
+	if err = repository.AttachContractToOrder(database.DB, saleID, name, handler.Filename); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UploadBillToOrder(user *users.User, saleID int64, file multipart.File, handler *multipart.FileHeader) error {
+	_, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		return err
+	}
+
+	billDirectoryPath := os.Getenv("BILLS_DIRECTORY")
+	if billDirectoryPath == "" {
+		return err
+	}
+
+	dst, err := os.Create(billDirectoryPath + "/" + handler.Filename)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		return err
+	}
+
+	ext := filepath.Ext(handler.Filename)
+	name := strings.TrimSuffix(handler.Filename, ext)
+	if err = repository.AttachBillToOrder(database.DB, saleID, name, handler.Filename); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetAllOrderDocuments(user *users.User, saleID int64) (*generated.DocumentsList, error) {
+	_, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp *generated.DocumentsList
+
+	offersNumberList, err := repository.GetOffersNumberList(database.DB, saleID)
+	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
+		return nil, err
+	}
+
+	offers := make([]*generated.Offer, 0, len(offersNumberList))
+	for _, number := range offersNumberList {
+		offers = append(offers, &generated.Offer{
+			OfferNumber: number,
+		})
+	}
+
+	contractsNumberList, err := repository.GetContractsNumberList(database.DB, saleID)
+	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
+		return nil, err
+	}
+
+	contracts := make([]*generated.Contract, 0, len(contractsNumberList))
+	for _, number := range contractsNumberList {
+		contracts = append(contracts, &generated.Contract{
+			ContractNumber: number,
+		})
+	}
+
+	billsNumberList, err := repository.GetBillsNumberList(database.DB, saleID)
+	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
+		return nil, err
+	}
+
+	bills := make([]*generated.Bill, 0, len(billsNumberList))
+	for _, number := range billsNumberList {
+		bills = append(bills, &generated.Bill{
+			BillNumber: number,
+		})
+	}
+
+	documentsNameList, err := repository.GetDocumentsNameList(database.DB, saleID)
+	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
+		return nil, err
+	}
+
+	documents := make([]*generated.Document, 0, len(documentsNameList))
+	for _, name := range documentsNameList {
+		documents = append(documents, &generated.Document{
+			Name: name,
+		})
+	}
+
+	resp = &generated.DocumentsList{
+		Documents: documents,
+		Offers:    offers,
+		Bills:     bills,
+		Contracts: contracts,
+	}
+
+	return resp, nil
 }

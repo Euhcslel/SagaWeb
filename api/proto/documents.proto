@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "../project/internal/generated";
+
+message Contract {
+    string contractNumber = 1;
+}
+
+message Bill {
+    string billNumber = 1;
+}
+
+message Offer {
+    string offerNumber = 1;
+}
+
+message Document {
+    string name = 1;
+}
+
+message DocumentsList {
+    repeated Document documents = 1;
+    repeated Offer offers       = 2;
+    repeated Bill bills         = 3;
+    repeated Contract contracts = 4;
+}

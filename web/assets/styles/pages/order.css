@@ -1,0 +1,40 @@
+.order-gates {
+  width: 50%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-xl);
+}
+
+.order-content {
+  display: flex;
+  padding: var(--spacing-l);
+}
+
+.order-header {
+  padding: var(--spacing-l);
+  display: flex;
+  gap: var(--spacing-l);
+  align-items: center;
+}
+
+.add-button-container {
+  grid-column: span 2;
+  display: flex;
+  justify-content: center;
+}
+
+.order-products {
+  margin: 0 auto;
+}
+
+.file-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
+
+  form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--spacing-l);
+  }
+}

@@ -3,43 +3,31 @@
   <div class="description">
     <div class="cta-block">
       <h1>Секционные ворота от производителя SAGA</h1>
-      <hr class="gradient-line" />
+      <div class="divider"></div>
       <div>
         <p>Узнайте стоимость ваших ворот за пару кликов</p>
         <div class="horizontal-container">
-          <a class="button primary" href="/calculator"
+          <a class="btn primary" href="/calculator"
             ><span>Онлайн калькулятор</span>
           </a>
-          <a class="button secondary">Позвонить нам</a>
+          <a class="btn secondary">Позвонить нам</a>
         </div>
       </div>
     </div>
   </div>
   <div class="logo">
     <img src="/web/assets/images/logo_with_name.png" alt="Логотип" />
-    <div
-      class="decoration"
-      style="transform: translate(-16%, -16%); background-color: #ccd49c"
-    ></div>
-    <div
-      class="decoration"
-      style="transform: translate(16%, 16%); background-color: #bfc3ab"
-    ></div>
-    <div
-      class="decoration"
-      style="transform: translate(32%, -32%); background-color: #b4ba83"
-    ></div>
-    <div
-      class="decoration"
-      style="transform: translate(-32%, 32%); background-color: #dde1c9"
-    ></div>
+    <div class="decoration top-left"></div>
+    <div class="decoration top-right"></div>
+    <div class="decoration bottom-right"></div>
+    <div class="decoration bottom-left"></div>
   </div>
 </section>
 
 <section id="about">
   <div class="history">
     <h1>О компании Saga Doors</h1>
-    <hr class="gradient-line" />
+    <div class="divider"></div>
     <p>
       Saga Doors — молодой, динамично развивающийся производитель воротных
       систем. Компания работает на рынке более года и уже успела зарекомендовать
@@ -65,9 +53,9 @@
 <section id="dealers-list">
   <div class="table-container">
     <h1>Список дилеров</h1>
-    <hr class="gradient-line" />
+    <div class="divider"></div>
     <div class="table-scroll">
-      <table>
+      <table class="table">
         <thead>
           <tr>
             <th>Название</th>
@@ -77,34 +65,26 @@
           </tr>
         </thead>
         <tbody>
+          {{range .dealers}}
           <tr>
-            <td>ИП Кузнецов</td>
-            <td>kuznetsov@mail.ru</td>
-            <td>+7 (999) 999-99-99</td>
-            <td>г. Екатеринбург</td>
+            <td>{{.Dealer.CompanyName}}</td>
+            <td>{{.Email}}</td>
+            <td>{{.Phone}}</td>
+            <td>{{.Dealer.Address}}</td>
             <td>
+              {{if .Dealer.Address}}
               <button
-                onclick="showAddress('Екатеринбург')"
-                class="button secondary"
+                class="btn secondary"
+                onclick="showAddress('{{.Dealer.Address}}')"
               >
                 Показать
               </button>
+              {{else}} - {{end}}
             </td>
           </tr>
-          <tr>
-            <td>ИП Кузнецов</td>
-            <td>kuznetsov@mail.ru</td>
-            <td>+7 (999) 999-99-99</td>
-            <td>г. Москва</td>
-            <td>
-              <button
-                onclick="showAddress('Москва')"
-                class="button secondary"
-              >
-                Показать
-              </button>
-            </td>
-          </tr>
+          {{else}}
+          <p>Дилеров пока что нет :(</p>
+          {{end}}
         </tbody>
       </table>
     </div>
@@ -118,7 +98,7 @@
 
 <section id="for-dealer">
   <div class="description">
-    <div style="width: 75%; margin-top: -2rem">
+    <div>
       <h1>Станьте частью нашей дилерской сети</h1>
       <ul class="benefits">
         <li>Финансовые выгода и условия</li>
@@ -129,33 +109,115 @@
   </div>
   <div class="form">
     <form action="/reg" method="post">
-      <input type="hidden" name="accountType" value="dealer" />
-      <div class="input-container">
-        <label for="fullname">ФИО</label>
-        <input type="text" name="fullname" id="fullname" />
-      </div>
-      <div class="input-container">
-        <label for="company">Название компании</label>
-        <input type="text" name="company" id="company" />
-      </div>
-      <div class="input-container">
-        <label for="phone">Номер телефона</label>
-        <div class="phone">
-          <span class="prefix">+7</span>
-          <input type="tel" pattern="[0-9]*" name="phone" id="phone" />
-        </div>
-      </div>
-      <div class="input-container">
-        <label for="email">Почта</label>
-        <input type="email" name="email" id="email" />
-      </div>
-      <div class="checkbox-container">
-        <input type="checkbox" required name="consent" value="1" />
-        <p>Согласие на обработку данных</p>
-      </div>
-      <button type="submit" class="button primary">
-        Отправить заявку
-      </button>
+      <!--ФИО пользователя-->
+      <label class="input validator">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <g
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            stroke-width="2.5"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </g>
+        </svg>
+        <input
+          type="text"
+          required
+          placeholder="ФИО"
+          pattern="^[А-Яа-яЁё\s]+$"
+          minlength="3"
+          maxlength="30"
+          title="Только буквы кириллицы"
+        />
+      </label>
+      <p class="validator-hint">
+        Длина должна быть от 3 до 30 символов
+        <br />включать только буквы кириллицы
+      </p>
+      <!--Название компании-->
+      <label class="input validator">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <g
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            stroke-width="2.5"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </g>
+        </svg>
+        <input
+          type="text"
+          required
+          placeholder="Название компании"
+          pattern="^[A-Za-zА-Яа-яЁё\s]+$"
+          minlength="3"
+          maxlength="100"
+          title="Только буквы латиницы или кириллицы"
+        />
+      </label>
+      <p class="validator-hint">
+        Длина должна быть от 3 до 100 символов
+        <br />включать буквы латиницы или кириллицы
+      </p>
+      <!--Номер телефона-->
+      <label class="input validator">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+          <g fill="none">
+            <path
+              d="M7.25 11.5C6.83579 11.5 6.5 11.8358 6.5 12.25C6.5 12.6642 6.83579 13 7.25 13H8.75C9.16421 13 9.5 12.6642 9.5 12.25C9.5 11.8358 9.16421 11.5 8.75 11.5H7.25Z"
+              fill="currentColor"
+            ></path>
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M6 1C4.61929 1 3.5 2.11929 3.5 3.5V12.5C3.5 13.8807 4.61929 15 6 15H10C11.3807 15 12.5 13.8807 12.5 12.5V3.5C12.5 2.11929 11.3807 1 10 1H6ZM10 2.5H9.5V3C9.5 3.27614 9.27614 3.5 9 3.5H7C6.72386 3.5 6.5 3.27614 6.5 3V2.5H6C5.44771 2.5 5 2.94772 5 3.5V12.5C5 13.0523 5.44772 13.5 6 13.5H10C10.5523 13.5 11 13.0523 11 12.5V3.5C11 2.94772 10.5523 2.5 10 2.5Z"
+              fill="currentColor"
+            ></path>
+          </g>
+        </svg>
+        <input
+          type="tel"
+          class="tabular-nums"
+          required
+          placeholder="Номер телефона"
+          pattern="8[0-9]*"
+          minlength="11"
+          maxlength="11"
+          title="Длина должна быть 11 символов и начинаться с цифры 8"
+        />
+      </label>
+      <p class="validator-hint">
+        Длина должна быть 11 символов и начинаться с цифры 8
+      </p>
+      <!--Email-->
+      <label class="input validator">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <g
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            stroke-width="2.5"
+            fill="none"
+            stroke="currentColor"
+          >
+            <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+          </g>
+        </svg>
+        <input type="email" placeholder="mail@site.com" required />
+      </label>
+      <div class="validator-hint hidden">Введите корректный email</div>
+      <!--Согласие на обработку данных-->
+      <label class="label">
+        <input type="checkbox" checked="checked" class="checkbox" required />
+        Согласие на обработку данных
+      </label>
+      <button type="submit" class="btn primary">Отправить заявку</button>
     </form>
   </div>
 </section>

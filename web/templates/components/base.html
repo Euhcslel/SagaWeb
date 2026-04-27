@@ -4,99 +4,151 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/web/assets/styles/base.css" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
     <link rel="icon" href="/web/assets/images/favicon.ico" />
     {{if .css}}
-    <link rel="stylesheet" href="/web/assets/styles/{{.css}}" />
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
     {{end}}
     <title>Saga Doors</title>
   </head>
   <body>
     {{template "header-nav" .}}
     <main>{{end}} {{define "html-end"}}</main>
+
     <footer id="footer">
-      <div class="content">
-        <div class="section-company">
-          <img
-            src="/web/assets/images/logo.png"
-            alt=""
-            width="48px"
-            height="48px"
-          />
-          <p>Saga Doors</p>
+      <div class="footer footer-horizontal">
+        <img
+          src="/web/assets/images/logo.png"
+          alt="Логотип"
+          width="96px"
+          height="96px"
+        />
+        <div class="divider divider-horizontal"></div>
+        <nav>
+          <h6 class="footer-title">О компании</h6>
+          <a href="#about" class="link link-hover">О нас</a>
+          <a href="#dealers-list" class="link link-hover">Наши дилеры</a>
+          <a href="#for-dealer" class="link link-hover">Стать дилером</a>
+          <a href="#footer" class="link link-hover">Контакты</a>
+        </nav>
+        <div class="divider divider-horizontal"></div>
+
+        <div>
+          <h6 class="footer-title">Контакты</h6>
+          <p>+7 (343) 343 96-99</p>
+          <p>г. Березовский</p>
         </div>
-        <hr class="separator" />
-        <div class="section-about">
-          <ul>
-            <li>О компании</li>
-            <li><a href="/#main">Главная</a></li>
-            <li><a href="/#about">О нас</a></li>
-            <li><a href="/#dealers-list">Наши дилеры</a></li>
-            <li><a href="/#for-dealer">Стать дилером</a></li>
-          </ul>
-        </div>
-        <hr class="separator" />
-        <div class="section-contacts">
-          <ul>
-            <li>Контакты</li>
-            <li>+7 (343) 343 96-99</li>
-            <li>г. Березовский</li>
-          </ul>
-        </div>
-        <hr class="separator" />
-        <div class="section-details">
-          <ul>
-            <li>Реквизиты</li>
-            <li>ООО Сага Дорс</li>
-            <li>ИНН 6671287803</li>
-          </ul>
+        <div class="divider divider-horizontal"></div>
+
+        <div>
+          <h6 class="footer-title">Реквизиты</h6>
+          <p>ООО Сага Дорс</p>
+          <p>ИНН 6671287803</p>
         </div>
       </div>
-      <hr class="separator" />
-      <div class="bottom">
-        <p>© 2026 Сага Дорс. Все права защищены</p>
-        <div class="social-icons">
-          <img
-            src="/web/assets/images/max-messenger.svg"
-            alt="Мессенджер Max"
-            width="24px"
-            height="24px"
-          />
+      <div class="divider divider-vertical"></div>
+      <div class="footer footer-bottom">
+        <div>
+          <p>© 2026 Сага Дорс. Все права защищены</p>
         </div>
+        <nav aria-label="Мессенджеры">
+          <a href="#" aria-label="Мессенджер Max">
+            <img
+              src="/web/assets/images/max-messenger.svg"
+              alt="Мессенджер Max"
+              width="24px"
+              height="24px"
+            />
+          </a>
+        </nav>
       </div>
     </footer>
   </body>
 </html>
 {{end}} {{define "header-nav"}}
-<nav class="dark-theme">
-  <div class="nav-div">
-    <img src="/web/assets/images/logo.png" alt="Логотип" />
-    <ul>
-      <li><a class="button tertiary" href="/#main">Главная</a></li>
-      <li><a class="button tertiary" href="/#about">О нас</a></li>
-      <li>
-        <a class="button tertiary" href="/#dealers-list">Наши дилеры</a>
-      </li>
-      <li>
-        <a class="button tertiary" href="/#for-dealer">Стать дилером</a>
-      </li>
-      <li><a class="button tertiary" href="/#footer">Контакты</a></li>
+
+<div class="navbar dark">
+  <div class="navbar-start">
+    <a href="/"
+      ><img
+        src="/web/assets/images/logo.png"
+        alt="Логотип"
+        width="48px"
+        height="48px"
+    /></a>
+    <ul class="menu menu-horizontal">
+      <li><a class="btn tertiary" href="/#main">Главная</a></li>
+      <li><a class="btn tertiary" href="/#about">О нас</a></li>
+      <li><a class="btn tertiary" href="/#dealers-list">Наши дилеры</a></li>
+      <li><a class="btn tertiary" href="/#for-dealer">Стать дилером</a></li>
+      <li><a class="btn tertiary" href="/#footer">Контакты</a></li>
     </ul>
   </div>
-  <div class="nav-div">
-    <a href="/calculator" class="button tertiary">
-      <img src="/web/assets/images/calculator.svg" alt="Калькулятор" />
+  <div class="navbar-end">
+    <a href="/calculator" class="btn tertiary" aria-label="Калькулятор">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect width="16" height="20" x="4" y="2" rx="2" />
+        <line x1="8" x2="16" y1="6" y2="6" />
+        <line x1="16" x2="16" y1="14" y2="18" />
+        <path d="M16 10h.01" />
+        <path d="M12 10h.01" />
+        <path d="M8 10h.01" />
+        <path d="M12 14h.01" />
+        <path d="M8 14h.01" />
+        <path d="M12 18h.01" />
+        <path d="M8 18h.01" />
+      </svg>
     </a>
+
     {{if not .user}}
-    <a class="button primary" href="/sign_in">Войти</a>
+    <a class="btn primary" href="/sign_in">Войти</a>
     {{else}}
-    <a href="/orders" class="button tertiary">
-      <img src="/web/assets/images/orders.svg" alt="Заказы" />
+    <a href="/orders" class="btn tertiary" aria-label="Заказы">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M16 10a4 4 0 0 1-8 0" />
+        <path d="M3.103 6.034h17.794" />
+        <path
+          d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"
+        />
+      </svg>
     </a>
-    <a href="/user" class="button tertiary">
-      <img src="/web/assets/images/account_white.svg" alt="Профиль" />
+    <a href="/user" class="btn tertiary" aria-label="Профиль">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
     </a>
     {{end}}
   </div>
-</nav>
+</div>
 {{end}}

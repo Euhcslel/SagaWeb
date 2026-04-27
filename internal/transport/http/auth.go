@@ -43,10 +43,10 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := r.FormValue("username")
+	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	userId, err := service.SignIn(username, password)
+	userId, err := service.SignIn(email, password)
 	if err != nil {
 		switch {
 		case errors.Is(err, errs.ErrInvalidCredentials):

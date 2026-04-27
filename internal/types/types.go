@@ -41,6 +41,7 @@ type Gate struct {
 type Order struct {
 	Gates    []Gate
 	Products []sales_and_products.SalesAndProduct
+	Status   string
 }
 
 type ContextKey string
