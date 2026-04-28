@@ -216,3 +216,28 @@ const (
 	AdminRole       Role = "admin"
 	LogisticianRole Role = "logistician"
 )
+
+// Тип Тип документа (не используется в бд)
+type DocumentType string
+
+const (
+	ContractDocumentType = "contract"
+	OfferDocumentType    = "offer"
+	BillDocumentType     = "bill"
+	OtherDocumentType    = "other"
+)
+
+func GetDocumentTypeFromString(docType string) (DocumentType, error) {
+	switch docType {
+	case ContractDocumentType:
+		return ContractDocumentType, nil
+	case OfferDocumentType:
+		return OfferDocumentType, nil
+	case BillDocumentType:
+		return BillDocumentType, nil
+	case OtherDocumentType:
+		return OtherDocumentType, nil
+	default:
+		return "", errs.ErrInvalidDocumentType
+	}
+}

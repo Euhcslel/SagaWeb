@@ -442,3 +442,42 @@ func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// Route: /orders/{order_id}/documents/{document_type}/{document_name}
+// Method: GET
+func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	documentType := r.PathValue("document_type")
+	documentName := r.PathValue("document_name")
+
+	fileInfo, err := service.GetFileInfo(user, saleID, documentType, documentName)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename=" + fileInfo.FileName)
+	http.ServeFile(w, r, fileInfo.FilePath)
+}
+
+// Route: /orders/{order_id}/documents/{document_type}/{document_name}
+// Method: DELETE
+func DeleteOrderDocument(w http.ResponseWriter, r *http.Request) {
+	/*user := utils.UserFromContext(r.Context())
+
+	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	documentType := r.PathValue("document_type")
+	documentName := r.PathValue("document_name")*/
+}

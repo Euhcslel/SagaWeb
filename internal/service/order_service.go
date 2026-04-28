@@ -693,3 +693,82 @@ func GetAllOrderDocuments(user *users.User, saleID int64) (*generated.DocumentsL
 
 	return resp, nil
 }
+
+type FileInfo struct {
+	FilePath string
+	FileName string
+}
+
+func GetFileInfo(user *users.User, saleID int64, docType string, docName string) (*FileInfo, error) {
+	_, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		return nil, err
+	}
+
+	documentType, err := enums.GetDocumentTypeFromString(docType)
+	if err != nil {
+		return nil, err
+	}
+
+	fileInfo := FileInfo{}
+
+	switch documentType {
+	case enums.BillDocumentType:
+		fileInfo.FileName, err = repository.GetBillFileName(docName)
+		if err != nil {
+			return nil, err
+		}
+
+		billDirectoryPath := os.Getenv("BILLS_DIRECTORY")
+		if billDirectoryPath == "" {
+			return nil, err
+		}
+
+		fileInfo.FilePath = billDirectoryPath + "/" + fileInfo.FileName
+
+		return &fileInfo, nil
+	case enums.OfferDocumentType:
+		fileInfo.FileName, err = repository.GetOfferFileName(docName)
+		if err != nil {
+			return nil, err
+		}
+
+		offerDirectoryPath := os.Getenv("OFFERS_DIRECTORY")
+		if offerDirectoryPath == "" {
+			return nil, err
+		}
+		fileInfo.FilePath = offerDirectoryPath + "/" + fileInfo.FileName
+
+		return &fileInfo, nil
+	case enums.ContractDocumentType:
+		fileInfo.FileName, err = repository.GetContractFileName(docName)
+		if err != nil {
+			return nil, err
+		}
+
+		contractDirectoryPath := os.Getenv("CONTRACTS_DIRECTORY")
+		if contractDirectoryPath == "" {
+			return nil, err
+		}
+		fileInfo.FilePath = contractDirectoryPath + "/" + fileInfo.FileName
+
+		return &fileInfo, nil
+	case enums.OtherDocumentType:
+		fileInfo.FileName, err = repository.GetDocumentFileName(docName)
+		if err != nil {
+			return nil, err
+		}
+
+		documentsDirectoryPath := os.Getenv("DOCUMENTS_DIRECTORY")
+		if documentsDirectoryPath == "" {
+			return nil, err
+		}
+
+		fileInfo.FilePath = documentsDirectoryPath + "/" + fileInfo.FileName
+
+		return &fileInfo, nil
+		
+	default:
+		return nil, errs.ErrInvalidDocumentType
+	}
+}

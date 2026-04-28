@@ -389,3 +389,47 @@ func AttachBillToOrder(db *gorm.DB, saleID int64, billNumber string, path string
 	}
 	return db.Create(&billAndSale).Error
 }
+
+func GetBillFileName(billNumber string) (string, error) {
+	var fileName string
+	if err := database.DB.Model(&sales_and_bills.SalesAndBill{}).
+		Where("bill_number = ?", billNumber).
+		Pluck("path", &fileName).Error; err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func GetOfferFileName(offerNumber string) (string, error) {
+	var fileName string
+	if err := database.DB.Model(&sales_and_offers.SalesAndOffer{}).
+		Where("offer_number = ?", offerNumber).
+		Pluck("path", &fileName).Error; err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func GetContractFileName(contractNumber string) (string, error) {
+	var fileName string
+	if err := database.DB.Model(&sales_and_contracts.SalesAndContract{}).
+		Where("contract_number = ?", contractNumber).
+		Pluck("path", &fileName).Error; err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func GetDocumentFileName(documentName string) (string, error) {
+	var fileName string
+	if err := database.DB.Model(&sales_and_documents.SalesAndDocument{}).
+		Where("name = ?", documentName).
+		Pluck("path", &fileName).Error; err != nil {
+		return "", err
+	}
+
+	return fileName, nil
+}

@@ -82,47 +82,70 @@ window.loadDocuments = async () => {
 
   const docsTable = document.getElementById("documents-list");
   docsTable.innerHTML = "";
+
   const template = document.getElementById("document-info-template");
   let clone = template.content.cloneNode(true);
 
   if (docsList.offers != undefined) {
-    docsTable.appendChild(createHeaderRow("Коммерческие предложения"));
-    docsList.offers.forEach((offer) => {
-      clone.querySelector(".document-name").textContent = offer.offerNumber;
-      docsTable.appendChild(clone);
-    });
-  }
+    const offerDiv = document.createElement("tbody");
+    offerDiv.dataset.documentType = "offer";
+    offerDiv.appendChild(createHeaderRow("Коммерческие предложения"));
 
-  clone = template.content.cloneNode(true);
+    docsList.offers.forEach((offer) => {
+      const clone = template.content.cloneNode(true);
+      clone.querySelector(".document-name").textContent = offer.offerNumber;
+
+      offerDiv.appendChild(clone);
+    });
+
+    docsTable.appendChild(offerDiv);
+  }
 
   if (docsList.contracts != undefined) {
-    docsTable.appendChild(createHeaderRow("Договоры"));
+    const contractDiv = document.createElement("tbody");
+    contractDiv.dataset.documentType = "contract";
+    contractDiv.appendChild(createHeaderRow("Договоры"));
+
     docsList.contracts.forEach((contract) => {
+      const clone = template.content.cloneNode(true);
       clone.querySelector(".document-name").textContent =
         contract.contractNumber;
-      docsTable.appendChild(clone);
-    });
-  }
 
-  clone = template.content.cloneNode(true);
+      contractDiv.appendChild(clone);
+    });
+
+    docsTable.appendChild(contractDiv);
+  }
 
   if (docsList.bills != undefined) {
-    docsTable.appendChild(createHeaderRow("Счета"));
+    const billDiv = document.createElement("tbody");
+    billDiv.dataset.documentType = "bill";
+    billDiv.appendChild(createHeaderRow("Счета"));
+
     docsList.bills.forEach((bill) => {
+      const clone = template.content.cloneNode(true);
       clone.querySelector(".document-name").textContent = bill.billNumber;
-      docsTable.appendChild(clone);
+
+      billDiv.appendChild(clone);
     });
+
+    docsTable.appendChild(billDiv);
   }
 
-  clone = template.content.cloneNode(true);
-
   if (docsList.documents != undefined) {
-    docsTable.appendChild(createHeaderRow("Прочие документы"));
+    const documentDiv = document.createElement("tbody");
+    documentDiv.dataset.documentType = "document";
+    documentDiv.appendChild(createHeaderRow("Прочие документы"));
+
     docsList.documents.forEach((document) => {
+      const clone = template.content.cloneNode(true);
       clone.querySelector(".document-name").textContent =
         document.documentNumber;
-      docsTable.appendChild(clone);
+
+      documentDiv.appendChild(clone);
     });
+
+    docsTable.appendChild(documentDiv);
   }
 
   document.getElementById("documents-modal").showModal();
@@ -159,6 +182,45 @@ window.changeOrderStatus = async () => {
   });
 
   if (!res.ok) throw new Error("Order request failed");
+
+  window.location.reload();
+};
+
+window.downloadDocument = async (button) => {
+  const documentName = button
+    .closest("tr")
+    .querySelector(".document-name").textContent;
+
+  const documentType = button.closest("tbody").dataset.documentType;
+
+  const response = await fetch(window.location.pathname + `/documents/${documentType}/${documentName}`, {
+    method: "GET",
+  });
+
+  if (!response.ok) throw new Error("Download request failed");
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = documentName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+};
+
+window.deleteDocument = async (button) => {
+  const documentName = button
+    .closest("tr")
+    .querySelector(".document-name").textContent;
+  const documentType = button.closest("tbody").dataset.documentType;
+
+  const res = await fetch(window.location.path + `/${documentType}/${documentName}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) throw new Error("Delete request failed");
 
   window.location.reload();
 };
