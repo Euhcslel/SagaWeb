@@ -767,8 +767,89 @@ func GetFileInfo(user *users.User, saleID int64, docType string, docName string)
 		fileInfo.FilePath = documentsDirectoryPath + "/" + fileInfo.FileName
 
 		return &fileInfo, nil
-		
+
 	default:
 		return nil, errs.ErrInvalidDocumentType
 	}
+}
+
+func DeleteOrderDocument(user *users.User, saleID int64, docType string, docName string) error {
+	_, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		return err
+	}
+
+	documentType, err := enums.GetDocumentTypeFromString(docType)
+	if err != nil {
+		return err
+	}
+
+	switch documentType {
+	case enums.BillDocumentType:
+		fileName, err := repository.GetBillFileName(docName)
+		if err != nil {
+			return err
+		}
+
+		billDirectoryPath := os.Getenv("BILLS_DIRECTORY")
+		if billDirectoryPath == "" {
+			return err
+		}
+
+		os.Remove(billDirectoryPath + "/" + fileName)
+
+		if err := repository.DeleteOrderBill(docName); err != nil {
+			return err
+		}
+	case enums.OfferDocumentType:
+		fileName, err := repository.GetOfferFileName(docName)
+		if err != nil {
+			return err
+		}
+
+		offerDirectoryPath := os.Getenv("OFFERS_DIRECTORY")
+		if offerDirectoryPath == "" {
+			return err
+		}
+
+		os.Remove(offerDirectoryPath + "/" + fileName)
+
+		if err := repository.DeleteOrderOffer(docName); err != nil {
+			return err
+		}
+	case enums.ContractDocumentType:
+		fileName, err := repository.GetContractFileName(docName)
+		if err != nil {
+			return err
+		}
+
+		contractDirectoryPath := os.Getenv("CONTRACTS_DIRECTORY")
+		if contractDirectoryPath == "" {
+			return err
+		}
+
+		os.Remove(contractDirectoryPath + "/" + fileName)
+
+		if err := repository.DeleteOrderContract(docName); err != nil {
+			return err
+		}
+	case enums.OtherDocumentType:
+		fileName, err := repository.GetDocumentFileName(docName)
+		if err != nil {
+			return err
+		}
+
+		documentsDirectoryPath := os.Getenv("DOCUMENTS_DIRECTORY")
+		if documentsDirectoryPath == "" {
+			return err
+		}
+
+		os.Remove(documentsDirectoryPath + "/" + fileName)
+
+		if err := repository.DeleteOrderDocument(docName); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

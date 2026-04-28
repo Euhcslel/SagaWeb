@@ -433,3 +433,31 @@ func GetDocumentFileName(documentName string) (string, error) {
 
 	return fileName, nil
 }
+
+func DeleteOrderBill(billNumber string) error {
+	return database.DB.Model(&sales_and_bills.SalesAndBill{}).
+		Where("bill_number = ?", billNumber).
+		Delete(&sales_and_bills.SalesAndBill{}).
+		Error
+}
+
+func DeleteOrderOffer(offerNumber string) error {
+	return database.DB.Model(&sales_and_offers.SalesAndOffer{}).
+		Where("offer_number = ?", offerNumber).
+		Delete(&sales_and_offers.SalesAndOffer{}).
+		Error
+}
+
+func DeleteOrderContract(contractNumber string) error {
+	return database.DB.Model(&sales_and_contracts.SalesAndContract{}).
+		Where("contract_number = ?", contractNumber).
+		Delete(&sales_and_contracts.SalesAndContract{}).
+		Error
+}
+
+func DeleteOrderDocument(documentName string) error {
+	return database.DB.Model(&sales_and_documents.SalesAndDocument{}).
+		Where("name = ?", documentName).
+		Delete(&sales_and_documents.SalesAndDocument{}).
+		Error
+}

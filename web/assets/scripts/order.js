@@ -216,7 +216,7 @@ window.deleteDocument = async (button) => {
     .querySelector(".document-name").textContent;
   const documentType = button.closest("tbody").dataset.documentType;
 
-  const res = await fetch(window.location.path + `/${documentType}/${documentName}`, {
+  const res = await fetch(window.location.pathname + `/documents/${documentType}/${documentName}`, {
     method: "DELETE",
   });
 
