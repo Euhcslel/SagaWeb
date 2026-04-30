@@ -7,6 +7,7 @@ import (
 	"project/internal/domain/enums"
 	"project/internal/domain/industrial_gate_drives"
 	"project/internal/domain/lift_types"
+	"project/internal/domain/manual_drive_prices"
 	"project/internal/domain/options"
 	"project/internal/domain/products"
 	"project/internal/domain/rails"
@@ -114,4 +115,12 @@ func GetOptions() ([]options.Option, error) {
 		return nil, err
 	}
 	return options, nil
+}
+
+func GetManualDrivePrices() (manual_drive_prices.ManualDrivePrice, error) {
+	var manualDrivePrice manual_drive_prices.ManualDrivePrice
+	if err := database.DB.First(&manualDrivePrice).Error; err != nil {
+		return manual_drive_prices.ManualDrivePrice{}, err
+	}
+	return manualDrivePrice, nil
 }

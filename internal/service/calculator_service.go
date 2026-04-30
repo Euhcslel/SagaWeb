@@ -134,6 +134,11 @@ func GetGateCfg(gateType enums.GateType, isDealer bool) (types.Config, error) {
 		}
 	}
 
+	cfg.ManualDrive, err = repository.GetManualDrivePrices()
+	if err != nil {
+		return types.Config{}, err
+	}
+
 	cfg.LiftTypes, err = repository.GetLiftTypes()
 	if err != nil {
 		return types.Config{}, err
@@ -170,6 +175,9 @@ func GetGateCfg(gateType enums.GateType, isDealer bool) (types.Config, error) {
 	}
 
 	if !isDealer {
+		cfg.ManualDrive.ChainMeterWholesalePrice = decimal.NewFromInt(0)
+		cfg.ManualDrive.RcpWholesalePrice = decimal.NewFromInt(0)
+		
 		for i := range cfg.LiftTypes {
 			cfg.LiftTypes[i].WholesaleMarkup = decimal.NewFromInt(0)
 		}

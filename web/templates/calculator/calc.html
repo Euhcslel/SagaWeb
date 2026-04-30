@@ -310,10 +310,10 @@
               >Длина цепи
               <input
                 oninput="window.updateGatePrice(this.closest('.gate-item'))"
-                data-chain-drive-retail-price="14500"
-                data-chain-drive-wholesale-price="10200"
-                data-chain-retail-price="540"
-                data-chain-wholesale-price="450"
+                data-chain-drive-retail-price="{{.ResidentialConfiguration.ManualDrive.RcpRetailPrice}}"
+                data-chain-drive-wholesale-price="{{.ResidentialConfiguration.ManualDrive.RcpWholesalePrice}}"
+                data-chain-retail-price="{{.ResidentialConfiguration.ManualDrive.ChainMeterRetailPrice}}"
+                data-chain-wholesale-price="{{.ResidentialConfiguration.ManualDrive.ChainMeterWholesalePrice}}"
                 name="chain-length"
                 class="chain-length input"
                 type="number"
