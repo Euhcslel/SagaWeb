@@ -1,93 +1,15 @@
-// Функция, которая обновляет цену на текущие ворота.
-// Вызывается при изменении занчений select и input, которые влияют на стоимость ворот
-window.updateGatePrice = () => {
-  var retailGatePrice = 0;
-  var wholesaleGatePrice = 0;
+import {
+  gateTypeProto,
+  removeItem,
+  addGateOption,
+  updateOptionsPrice,
+  updateGatePrice,
+} from "./gate-form-utils.js";
 
-  const gate = document.querySelector(".configuration");
-
-  const size = gate.querySelector(".sizes");
-  const sizeRetailPrice = Number(size.dataset.retailPrice || 0);
-  const sizeWholesalePrice = Number(size.dataset.wholesalePrice || 0);
-
-  const liftType = gate.querySelector("#lift-type");
-  const selectedLiftType = liftType.options[liftType.selectedIndex];
-  const liftTypeRetailMarkup = Number(selectedLiftType.dataset.retailMarkup);
-  const liftTypeWholesaleMarkup = Number(
-    selectedLiftType.dataset.wholesaleMarkup,
-  );
-
-  const cycleAmount = gate.querySelector("#cycle-amount");
-  const selectedCycleAmount = cycleAmount.options[cycleAmount.selectedIndex];
-  const cycleAmountRetailMarkup = Number(
-    selectedCycleAmount.dataset.retailMarkup,
-  );
-  const cycleAmountWholesaleMarkup = Number(
-    selectedCycleAmount.dataset.wholesaleMarkup,
-  );
-
-  var driveRetailPrice = 0;
-  var driveWholesalePrice = 0;
-  const driveType = gate.querySelector(".drive-type");
-  switch (driveType.value) {
-    case "manual": {
-      const chainLengthInput = gate.querySelector(".chain-length");
-      const chainLength = Number(chainLengthInput.value);
-      driveRetailPrice +=
-        Number(chainLengthInput.dataset.chainDriveRetailPrice) +
-        Number(chainLength) * Number(chainLengthInput.dataset.chainRetailPrice);
-      driveWholesalePrice +=
-        Number(chainLengthInput.dataset.chainDriveWholesalePrice) +
-        Number(chainLength) *
-          Number(chainLengthInput.dataset.chainWholesalePrice);
-      break;
-    }
-    case "residential": {
-      const drive = gate.querySelector("#drive");
-      const selectedDrive = drive.options[drive.selectedIndex];
-      const rail = gate.querySelector("#rail");
-      const selectedRail = rail.options[rail.selectedIndex];
-      driveRetailPrice +=
-        Number(selectedDrive.dataset.retailPrice) +
-        Number(selectedRail.dataset.retailPrice);
-      driveWholesalePrice +=
-        Number(selectedDrive.dataset.wholesalePrice) +
-        Number(selectedRail.dataset.wholesalePrice);
-      break;
-    }
-    case "industrial": {
-      const drive = gate.querySelector("#drive");
-      const selectedDrive = drive.options[drive.selectedIndex];
-      driveRetailPrice += Number(selectedDrive.dataset.retailPrice);
-      driveWholesalePrice += Number(selectedDrive.dataset.wholesalePrice);
-      break;
-    }
-  }
-
-  var optionList = document.querySelector(".option-list");
-  var optionListRetailPrice = Number(optionList.dataset.retailPrice || 0);
-  var optionListWholesalePrice = Number(optionList.dataset.wholesalePrice || 0);
-
-  retailGatePrice =
-    sizeRetailPrice +
-    (sizeRetailPrice * liftTypeRetailMarkup) / 100 +
-    (sizeRetailPrice * cycleAmountRetailMarkup) / 100 +
-    driveRetailPrice +
-    optionListRetailPrice;
-
-  wholesaleGatePrice =
-    sizeWholesalePrice +
-    (sizeWholesalePrice * liftTypeWholesaleMarkup) / 100 +
-    (sizeWholesalePrice * cycleAmountWholesaleMarkup) / 100 +
-    driveWholesalePrice +
-    optionListWholesalePrice;
-
-  gate.dataset.retailPrice = retailGatePrice;
-  gate.dataset.wholesalePrice = wholesaleGatePrice;
-  document.getElementById("gate-retail-price").textContent = retailGatePrice;
-  document.getElementById("gate-wholesale-price").textContent =
-    wholesaleGatePrice;
-};
+window.removeItem = removeItem;
+window.addGateOption = addGateOption;
+window.updateOptionsPrice = updateOptionsPrice;
+window.updateGatePrice = updateGatePrice;
 
 // Proto-схемы
 let Proto = {
@@ -143,30 +65,7 @@ window.updateGateSizePrice = async () => {
   sizes.dataset.retailPrice = price.retail;
   sizes.dataset.wholesalePrice = price.wholesale;
 
-  updateGatePrice();
-};
-
-// Функция, которая обновляет цену за дополнительные опции у ворот.
-// Вызывается при изменении значений или состава дополнительных опций
-window.updateOptionsPrice = () => {
-  var optionsRetailPrice = 0;
-  var optionsWholesalePrice = 0;
-
-  const optionList = document.querySelector(".option-list");
-  const optionItems = optionList.getElementsByClassName("option-item");
-  [...optionItems].forEach((optionItem) => {
-    const optionSelect = optionItem.querySelector(".option");
-    const selectedOption = optionSelect.options[optionSelect.selectedIndex];
-    const amount = Number(optionItem.querySelector(".amount").value);
-    optionsRetailPrice += Number(selectedOption.dataset.retailPrice) * amount;
-    optionsWholesalePrice +=
-      Number(selectedOption.dataset.wholesalePrice) * amount;
-  });
-
-  optionList.dataset.retailPrice = optionsRetailPrice;
-  optionList.dataset.wholesalePrice = optionsWholesalePrice;
-
-  updateGatePrice();
+  updateGatePrice(document.querySelector(".gate-item"));
 };
 
 // Функция, срабатывающая при изменении привода
@@ -184,14 +83,7 @@ window.updateDriveType = () => {
   driveAutoBlock.hidden = isManual;
   railLabel.hidden = isManual || gateType !== "res";
 
-  updateGatePrice();
-};
-
-// Обект, хранящий номер типа ворот.
-// Нужен при отправке заказа
-const gateTypeProto = {
-  industrial: 0,
-  residential: 1,
+  updateGatePrice(document.querySelector(".gate-item"));
 };
 
 window.SaveGateConfiguration = async () => {
@@ -256,8 +148,6 @@ window.SaveGateConfiguration = async () => {
     amount: Number(document.getElementById("amount").value),
   };
 
-  console.log(payload);
-
   const err = Proto.GateConfig.verify(payload);
   if (err) {
     throw new Error(err);
@@ -283,26 +173,7 @@ window.SaveGateConfiguration = async () => {
   window.location.reload();
 };
 
-// Функция, которая добавляет новую опцию в список.
-// Клонирует шаблон option-template
-window.addOption = (element) => {
-  const optionList = document.querySelector(".option-list");
-  const optionTemplate = document.getElementById("option-template");
-
-  const optionClone = optionTemplate.content.cloneNode(true);
-  optionList.append(optionClone);
-
-  updateOptionsPrice(element);
-};
-
-// Функция, удаляющая элемент из списка дополнительных опций
-window.removeOptionItem = (element) => {
-  const item = element.closest(".option-item");
-  if (!item) return;
-  item.remove();
-};
-
 await initProtobuf();
 await updateGateSizePrice();
-updateOptionsPrice();
+updateOptionsPrice(document.querySelector(".additional-options"));
 updateDriveType();

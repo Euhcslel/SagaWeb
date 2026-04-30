@@ -20,11 +20,11 @@ main {
   bottom: 0;
 }
 
-form {
+form .gate-item {
   display: flex;
   flex-direction: row;
 
-  .additional-options {
+  .options-list {
     margin: 0 auto;
   }
 }

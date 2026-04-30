@@ -1,15 +1,18 @@
+import {
+  OrderStatus,
+  removeItem,
+  addProduct,
+  updateProductsPrice,
+} from "./gate-form-utils.js";
+
+window.removeItem = removeItem;
+window.addProduct = addProduct;
+window.updateProductsPrice = updateProductsPrice;
+
 const Proto = {
   DocumentsList: null,
   UpdateOrderStatusRequest: null,
   UpdateProductsRequest: null,
-};
-
-const OrderStatus = {
-  pending: 0,
-  confirmed: 1,
-  paid: 2,
-  done: 3,
-  cancelled: 4,
 };
 
 // Функция, инициализирующая proto-схемы
@@ -28,6 +31,7 @@ async function initProtobuf() {
   );
 }
 
+// Функция, удаляющая ворота из заказа
 window.deleteGate = async (gateId) => {
   const path = window.location.pathname;
   const parts = path.split("/");
@@ -42,6 +46,7 @@ window.deleteGate = async (gateId) => {
   window.location.reload();
 };
 
+// Функция, удаляющая заказ пользователя
 window.deleteOrder = async (saleId) => {
   const res = await fetch("/orders/" + saleId, {
     method: "DELETE",
@@ -52,6 +57,7 @@ window.deleteOrder = async (saleId) => {
   window.location.href = "/orders";
 };
 
+// Функция, добавляющая новые ворота в заказ
 window.addGate = async (gateType) => {
   if (!gateType) return;
 
@@ -77,6 +83,7 @@ window.addGate = async (gateType) => {
   }
 };
 
+// Функция, подгружающая список документов
 window.loadDocuments = async () => {
   const res = await fetch(`${window.location.pathname}/documents`);
 
@@ -157,6 +164,7 @@ window.loadDocuments = async () => {
   document.getElementById("documents-modal").showModal();
 };
 
+// Функция, создающая строку заголовка для таблицы документов
 function createHeaderRow(text) {
   const row = document.createElement("tr");
   const cell = document.createElement("td");
@@ -166,6 +174,7 @@ function createHeaderRow(text) {
   return row;
 }
 
+// Функция, изменяющая статус заказа
 window.changeOrderStatus = async () => {
   const statusSelect = document.getElementById("status");
   const selectedStatus = statusSelect.options[statusSelect.selectedIndex].value;
@@ -192,6 +201,7 @@ window.changeOrderStatus = async () => {
   window.location.reload();
 };
 
+// Функция, скачивающая документ
 window.downloadDocument = async (button) => {
   const documentName = button
     .closest("tr")
@@ -219,6 +229,7 @@ window.downloadDocument = async (button) => {
   window.URL.revokeObjectURL(url);
 };
 
+// Функция, удаляющая документ
 window.deleteDocument = async (button) => {
   const documentName = button
     .closest("tr")
@@ -237,18 +248,7 @@ window.deleteDocument = async (button) => {
   window.location.reload();
 };
 
-// Функция, которая добавляет новый товар в список.
-// Клонирует шаблон product-template
-window.addProduct = () => {
-  const productList = document.getElementById("product-list");
-  const productTemplate = document.getElementById("product-template");
-
-  const productClone = productTemplate.content.cloneNode(true);
-  productList.append(productClone);
-
-  updateProductsPrice();
-};
-
+// Функция, сохраниющая изменения товаров в заказе
 window.saveProducts = async () => {
   const productList = document.getElementById("product-list");
 
@@ -298,11 +298,6 @@ window.saveProducts = async () => {
   window.location.reload();
 };
 
-// Функция, удаляющая элемент из списка товаров или дополнительных опций
-window.removeProductItem = (element) => {
-  const item = element.closest(".product-item");
-  if (!item) return;
-  item.remove();
-};
+window.updateOrderPrice = () => {}
 
 await initProtobuf();

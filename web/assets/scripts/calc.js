@@ -1,3 +1,23 @@
+import {
+  gateTypeProto,
+  removeItem,
+  addGateOption,
+  addProduct,
+  updateOptionsPrice,
+  updateProductsPrice,
+  updateGatePrice as sharedUpdateGatePrice,
+} from "./gate-form-utils.js";
+
+window.removeItem = removeItem;
+window.addGateOption = addGateOption;
+window.updateOptionsPrice = updateOptionsPrice;
+window.addProduct = addProduct;
+window.updateProductsPrice = updateProductsPrice;
+window.updateGatePrice = (gate) => {
+  sharedUpdateGatePrice(gate);
+  updateOrderPrice();
+}
+
 // Proto-схемы
 let Proto = {
   SizePrice: null,
@@ -71,7 +91,7 @@ window.addGateElement = () => {
 
 // Функция, которая срабатывает при смене типа ворот
 // обновляет динамические значения формы, которые зависят от типа ворот
-window.updateGateType = (select) => {
+window.updateGateType = async (select) => {
   const gate = select.closest(".gate-item");
   const cfg = configuration[select.value + "Configuration"];
 
@@ -105,6 +125,7 @@ window.updateGateType = (select) => {
   }
 
   updateDriveType(gate.querySelector(".drive-type"));
+  await updateGateSizePrice(width);
 };
 
 // Функция, которая используется для заполнения элементов select
@@ -204,97 +225,6 @@ async function fetchSizePrice(w, h, t) {
   return { retail: d.client.clientPrice / 100, wholesale: 0 };
 }
 
-// Функция, которая обновляет цену на текущие ворота.
-// Вызывается при изменении занчений select и input, которые влияют на стоимость ворот
-window.updateGatePrice = (gate) => {
-  var retailGatePrice = 0;
-  var wholesaleGatePrice = 0;
-
-  const size = gate.querySelector(".sizes");
-  const sizeRetailPrice = Number(size.dataset.retailPrice || 0);
-  const sizeWholesalePrice = Number(size.dataset.wholesalePrice || 0);
-
-  const liftType = gate.querySelector(".lift-type");
-  const selectedLiftType = liftType.options[liftType.selectedIndex];
-  const liftTypeRetailMarkup = Number(selectedLiftType.dataset.retailMarkup);
-  const liftTypeWholesaleMarkup = Number(
-    selectedLiftType.dataset.wholesaleMarkup,
-  );
-
-  const cycleAmount = gate.querySelector(".cycle-amount");
-  const selectedCycleAmount = cycleAmount.options[cycleAmount.selectedIndex];
-  const cycleAmountRetailMarkup = Number(
-    selectedCycleAmount.dataset.retailMarkup,
-  );
-  const cycleAmountWholesaleMarkup = Number(
-    selectedCycleAmount.dataset.wholesaleMarkup,
-  );
-
-  var driveRetailPrice = 0;
-  var driveWholesalePrice = 0;
-  const driveType = gate.querySelector(".drive-type");
-  switch (driveType.value) {
-    case "manual": {
-      const chainLengthInput = gate.querySelector(".chain-length");
-      const chainLength = Number(chainLengthInput.value);
-      driveRetailPrice +=
-        Number(chainLengthInput.dataset.chainDriveRetailPrice) +
-        Number(chainLength) * Number(chainLengthInput.dataset.chainRetailPrice);
-      driveWholesalePrice +=
-        Number(chainLengthInput.dataset.chainDriveWholesalePrice) +
-        Number(chainLength) *
-          Number(chainLengthInput.dataset.chainWholesalePrice);
-      break;
-    }
-    case "residential": {
-      const drive = gate.querySelector(".drive");
-      const selectedDrive = drive.options[drive.selectedIndex];
-      const rail = gate.querySelector(".rail");
-      const selectedRail = rail.options[rail.selectedIndex];
-      driveRetailPrice +=
-        Number(selectedDrive.dataset.retailPrice) +
-        Number(selectedRail.dataset.retailPrice);
-      driveWholesalePrice +=
-        Number(selectedDrive.dataset.wholesalePrice) +
-        Number(selectedRail.dataset.wholesalePrice);
-      break;
-    }
-    case "industrial": {
-      const drive = gate.querySelector(".drive");
-      const selectedDrive = drive.options[drive.selectedIndex];
-      driveRetailPrice += Number(selectedDrive.dataset.retailPrice);
-      driveWholesalePrice += Number(selectedDrive.dataset.wholesalePrice);
-      break;
-    }
-  }
-
-  var optionList = gate.querySelector(".option-list");
-  var optionListRetailPrice = Number(optionList.dataset.retailPrice || 0);
-  var optionListWholesalePrice = Number(optionList.dataset.wholesalePrice || 0);
-
-  retailGatePrice =
-    sizeRetailPrice +
-    (sizeRetailPrice * liftTypeRetailMarkup) / 100 +
-    (sizeRetailPrice * cycleAmountRetailMarkup) / 100 +
-    driveRetailPrice +
-    optionListRetailPrice;
-
-  wholesaleGatePrice =
-    sizeWholesalePrice +
-    (sizeWholesalePrice * liftTypeWholesaleMarkup) / 100 +
-    (sizeWholesalePrice * cycleAmountWholesaleMarkup) / 100 +
-    driveWholesalePrice +
-    optionListWholesalePrice;
-
-  gate.dataset.retailPrice = retailGatePrice;
-  gate.dataset.wholesalePrice = wholesaleGatePrice;
-  document.getElementById("gate-retail-price").textContent = retailGatePrice;
-  document.getElementById("gate-wholesale-price").textContent =
-    wholesaleGatePrice;
-
-  updateOrderPrice();
-};
-
 // Функция, которая пересчитывает стоимость всего заказа
 window.updateOrderPrice = () => {
   var totalRetailPrice = 0;
@@ -322,78 +252,6 @@ window.updateOrderPrice = () => {
     "order-wholesale-price",
   );
   orderWholesalePriceElement.textContent = totalWholesalePrice;
-};
-
-// Функция, которая обновляет цену за дополнительные опции у ворот.
-// Вызывается при изменении значений или состава дополнительных опций
-window.updateOptionsPrice = (element) => {
-  var optionsRetailPrice = 0;
-  var optionsWholesalePrice = 0;
-
-  const additionalOptionsBlock = element.closest(".additional-options");
-  const optionList = additionalOptionsBlock.querySelector(".option-list");
-  const optionItems = optionList.getElementsByClassName("option-item");
-  [...optionItems].forEach((optionItem) => {
-    const optionSelect = optionItem.querySelector(".option");
-    const selectedOption = optionSelect.options[optionSelect.selectedIndex];
-    const amount = Number(optionItem.querySelector(".amount").value);
-    optionsRetailPrice += Number(selectedOption.dataset.retailPrice) * amount;
-    optionsWholesalePrice +=
-      Number(selectedOption.dataset.wholesalePrice) * amount;
-  });
-
-  optionList.dataset.retailPrice = optionsRetailPrice;
-  optionList.dataset.wholesalePrice = optionsWholesalePrice;
-
-  updateGatePrice(element.closest(".gate-item"));
-};
-
-// Функция, которая добавляет новую опцию в список.
-// Клонирует шаблон option-template
-window.addGateOption = (element) => {
-  const additionalOptionsBlock = element.closest(".additional-options");
-  const optionList = additionalOptionsBlock.querySelector(".option-list");
-  const optionTemplate = document.getElementById("option-template");
-
-  const optionClone = optionTemplate.content.cloneNode(true);
-  optionList.append(optionClone);
-
-  updateOptionsPrice(element);
-};
-
-// Функция, которая обновляет цену за товары.
-// Вызывается при изменении значений или состава товаров
-window.updateProductsPrice = () => {
-  var productsRetailPrice = 0;
-  var productsWholesalePrice = 0;
-
-  const productList = document.getElementById("product-list");
-  const productItems = productList.getElementsByClassName("product-item");
-  [...productItems].forEach((productItem) => {
-    const productSelect = productItem.querySelector(".product");
-    const selectedOption = productSelect.options[productSelect.selectedIndex];
-    const amount = Number(productItem.querySelector(".amount").value);
-    productsRetailPrice += Number(selectedOption.dataset.retailPrice) * amount;
-    productsWholesalePrice +=
-      Number(selectedOption.dataset.wholesalePrice) * amount;
-  });
-
-  productList.dataset.retailPrice = productsRetailPrice;
-  productList.dataset.wholesalePrice = productsWholesalePrice;
-
-  updateOrderPrice();
-};
-
-// Функция, которая добавляет новый товар в список.
-// Клонирует шаблон product-template
-window.addProduct = () => {
-  const productList = document.getElementById("product-list");
-  const productTemplate = document.getElementById("product-template");
-
-  const productClone = productTemplate.content.cloneNode(true);
-  productList.append(productClone);
-
-  updateProductsPrice();
 };
 
 // Функция, формирующая список товаров для отправки заказа
@@ -457,13 +315,6 @@ function buildDrivePayload(gate) {
 function getSelectedOption(select) {
   return select.options[select.selectedIndex];
 }
-
-// Обект, хранящий номер типа ворот.
-// Нужен при отправке заказа
-const gateTypeProto = {
-  industrial: 0,
-  residential: 1,
-};
 
 // Функция для формирования списка ворот с заказе.
 // Возвращает массив объектов ворот
@@ -546,13 +397,11 @@ function buildGatePayload() {
 // Функция дя оформления заказа.
 // Собирает все данные с формы, кодирует для protobuf и отправляет на сервер
 window.placeOrder = async () => {
-  // Формирование payload
   const payload = {
     orderGates: buildGatePayload(),
     products: buildProductsList(),
   };
 
-  // Кодирование в protobuf
   const err = Proto.OrderRequest.verify(payload);
   if (err) throw new Error(err);
 
@@ -568,23 +417,6 @@ window.placeOrder = async () => {
   if (!res.ok) throw new Error("Order request failed");
 
   window.location.href = "/orders";
-};
-
-// Функция, удаляющая элемент из списка товаров или дополнительных опций
-window.removeItem = (element, itemContainer) => {
-  const item = element.closest(itemContainer);
-  if (!item) return;
-
-  const additionalOptionsBlock = element.closest(".additional-options");
-  const gate = element.closest(".gate-item");
-
-  item.remove();
-
-  if (additionalOptionsBlock) {
-    updateOptionsPrice(additionalOptionsBlock);
-  } else {
-    updateProductsPrice();
-  }
 };
 
 // Инициализация proto-схем после загрузки
