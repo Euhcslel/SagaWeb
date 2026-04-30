@@ -12,6 +12,7 @@ import (
 	"project/internal/domain/gates_and_sales_options"
 	"project/internal/domain/industrial_gates_and_sales_drive"
 	"project/internal/domain/options"
+	"project/internal/domain/products"
 	"project/internal/domain/residential_gates_and_sales_drive_rail"
 	"project/internal/domain/sales"
 	"project/internal/domain/sales_and_gates"
@@ -59,16 +60,21 @@ func GetAllUserOrders(user *users.User) ([]sales.Sale, error) {
 	}
 }
 
-func GetUserOrderByID(user *users.User, saleID int64) (types.Order, error) {
+type orderPageData struct {
+	Order    types.Order
+	Products []products.Product
+}
+
+func GetOrderPageData(user *users.User, saleID int64) (*orderPageData, error) {
 	_, err := getAccessibleSale(user, saleID)
 	if err != nil {
-		return types.Order{}, err
+		return nil, err
 	}
 
 	// Получаем все ворота выбранного заказа
 	orderGates, err := repository.GetOrderGatesByOrderID(database.DB, saleID)
 	if err != nil {
-		return types.Order{}, err
+		return nil, err
 	}
 
 	// Собираем все ID ворот
@@ -80,7 +86,7 @@ func GetUserOrderByID(user *users.User, saleID int64) (types.Order, error) {
 	// Получаем все опции всех ворот
 	gateOptions, err := repository.GetAllOptionsForOrder(database.DB, gateIDs)
 	if err != nil {
-		return types.Order{}, err
+		return nil, err
 	}
 
 	// Группируем опции по ID ворот
@@ -91,7 +97,7 @@ func GetUserOrderByID(user *users.User, saleID int64) (types.Order, error) {
 
 	status, err := repository.GetOrderStatus(user, saleID)
 	if err != nil {
-		return types.Order{}, err
+		return nil, err
 	}
 
 	// Группируем в gates
@@ -111,10 +117,20 @@ func GetUserOrderByID(user *users.User, saleID int64) (types.Order, error) {
 	// Получаем все товары
 	order.Products, err = repository.GetAllOrderProducts(database.DB, saleID)
 	if err != nil {
-		return types.Order{}, err
+		return nil, err
 	}
 
-	return order, nil
+	products, err := repository.GetAllProducts()
+	if err != nil {
+		return nil, err
+	}
+
+	pageData := &orderPageData{
+		Order:    order,
+		Products: products,
+	}
+
+	return pageData, nil
 }
 
 type CurrentGatePageData struct {
@@ -263,6 +279,9 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	role := user.Role
 
 	tx := database.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
 
 	// Создаем заказ
 	var order sales.Sale
@@ -849,6 +868,45 @@ func DeleteOrderDocument(user *users.User, saleID int64, docType string, docName
 		if err := repository.DeleteOrderDocument(docName); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func UpdateProductsInOrder(user *users.User, saleID int64, updateProductsRequest *generated.UpdateProductsRequest) error {
+	_, err := getAccessibleSale(user, saleID)
+	if err != nil {
+		return err
+	}
+
+	var productList []sales_and_products.SalesAndProduct
+	for _, product := range updateProductsRequest.Products {
+		productList = append(productList, sales_and_products.SalesAndProduct{
+			SaleID:    saleID,
+			ProductID: product.ProductId,
+			Amount:    product.Amount,
+		})
+	}
+
+	tx := database.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := repository.DeleteAllOrderProducts(tx, saleID); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if len(productList) > 0 {
+		if err := repository.CreateOrderProducts(tx, productList); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
 	}
 
 	return nil

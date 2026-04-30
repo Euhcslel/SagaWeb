@@ -25,3 +25,11 @@ func CreateDealerRegRequest(request dealers_reg_requests.DealerRegRequest) error
 func DeleteSession(token string) error {
 	return database.DB.Where("token = ?", token).Delete(sessions.Session{}).Error
 }
+
+func GetAllDealerRegRequests() ([]dealers_reg_requests.DealerRegRequest, error) {
+	var requests []dealers_reg_requests.DealerRegRequest
+	if err := database.DB.Find(&requests).Error; err != nil {
+		return nil, err
+	}
+	return requests, nil
+}

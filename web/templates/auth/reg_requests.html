@@ -1,0 +1,9 @@
+{{template "html-start" .}}
+<div>
+  {{range .regRequests}}
+    {{.ID}}: {{.Company}} ({{.Email}})
+  {{else}}
+  <p>Нет новых заявок на регистрацию</p>
+  {{end}}
+</div>
+{{template "html-end" .}}

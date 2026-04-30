@@ -1,13 +1,25 @@
 {{template "html-start" .}}
-<h1>Дилеры пользователя {{.user.Username}}</h1>
-<ul>
-  {{range .dealers}}
-  <li>{{.Dealer.Username}}</li>
-  <li>{{.Dealer.Fullname}}</li>
-  <li>{{.Dealer.Email}}</li>
-  <li>{{.Dealer.PhoneNumber}}</li>
-  {{else}}
-  <h2>У данного менеджера отсутствуют дилеры</h2>
-  {{end}}
-</ul>
+<h1>Дилеры пользователя {{.user.Fullname}}</h1>
+<table class="table">
+  <thead>
+    <tr>
+      <th>ФИО дилера</th>
+      <th>Email</th>
+      <th>Номер телефона</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .dealers}}
+    <tr>
+      <td>{{.Dealer.Fullname}}</td>
+      <td>{{.Dealer.Email}}</td>
+      <td>{{.Dealer.PhoneNumber}}</td>
+    </tr>
+    {{else}}
+    <tr>
+      <td colspan="3">У данного менеджера отсутствуют дилеры</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
 {{template "html-end"}}

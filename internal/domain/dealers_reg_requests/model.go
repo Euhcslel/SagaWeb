@@ -12,7 +12,6 @@ type DealerRegRequest struct {
 	Fullname     string                 `gorm:"column:fullname;not null"`
 	Email        string                 `gorm:"column:email;not null"`
 	PhoneNumber  string                 `gorm:"column:phone_number;not null"`
-	PasswordHash []byte                 `gorm:"column:password_hash;"`
 	Status       enums.RegRequestStatus `gorm:"type:reg_request_status;not null;default:'pending'"`
 }
 

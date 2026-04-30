@@ -56,7 +56,7 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	order, err := service.GetUserOrderByID(user, saleID)
+	pageData, err := service.GetOrderPageData(user, saleID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
@@ -66,7 +66,8 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 
 	data := map[string]any{
 		"css":           "/order.css",
-		"order":         order,
+		"products":      pageData.Products,
+		"order":         pageData.Order,
 		"user":          user,
 		"orderStatuses": statuses,
 		"orderId":       saleID,
@@ -207,7 +208,31 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 // Route: /orders/{order_id}/products
 // Method: PUT
 func UpdateProductList(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
 
+	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	defer r.Body.Close()
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	var updateProductsRequest generated.UpdateProductsRequest
+	if err := proto.Unmarshal(data, &updateProductsRequest); err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if err := service.UpdateProductsInOrder(user, saleID, &updateProductsRequest); err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 }
 
 // Route: /orders/{order_id}/status
@@ -463,7 +488,7 @@ func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Disposition", "attachment; filename=" + fileInfo.FileName)
+	w.Header().Set("Content-Disposition", "attachment; filename="+fileInfo.FileName)
 	http.ServeFile(w, r, fileInfo.FilePath)
 }
 

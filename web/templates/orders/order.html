@@ -123,15 +123,82 @@
             </button>
           </div>
         </div>
-        <div class="order-products">
-          <p>Товары</p>
-          <ul>
-            {{range .order.Products}}
-            <li>{{.Product.Name}} x {{.Amount}}</li>
+        <!-- Товары -->
+        <div class="order-products" id="products">
+          <div id="product-list">
+            {{range .order.Products}} {{$orderProduct := .}}
+
+            <div class="product-item">
+              <select class="product select" name="product">
+                {{range $.products}}
+                <option
+                  value="{{.ID}}"
+                  data-retail-price="{{.RetailPrice}}"
+                  data-wholesale-price="{{.WholesalePrice}}"
+                  {{if
+                  eq
+                  .ID
+                  $orderProduct.ProductID}}selected{{end}}
+                >
+                  {{.Name}}
+                </option>
+                {{end}}
+              </select>
+
+              <div class="controls">
+                <input
+                  type="number"
+                  name="amount"
+                  class="amount input"
+                  min="1"
+                  value="{{$orderProduct.Amount}}"
+                />
+
+                <button
+                  type="button"
+                  class="btn secondary"
+                  onclick="removeProductItem(this)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
+              </div>
+            </div>
             {{else}}
-            <li>Нет никаких товаров</li>
+            <p>Нет товаров в заказе</p>
             {{end}}
-          </ul>
+          </div>
+          <div>
+            <button
+              id="add-product"
+              type="button"
+              class="btn primary"
+              onclick="window.addProduct()"
+            >
+              Добавить
+            </button>
+            <button
+              id="save-products"
+              type="button"
+              class="btn secondary"
+              onclick="window.saveProducts()"
+            >
+              Сохранить
+            </button>
+          </div>
         </div>
       </div>
       <!--Модальное окно для добавления новых ворот в заказ-->
@@ -243,6 +310,52 @@
           </button>
         </td>
       </tr>
+    </template>
+    <!--Блок для выбора товаров-->
+    <template id="product-template">
+      <div class="product-item">
+        <select class="product select" name="product">
+          {{range .products}}
+          <option
+            value="{{.ID}}"
+            data-retail-price="{{.RetailPrice}}"
+            data-wholesale-price="{{.WholesalePrice}}"
+          >
+            {{.Name}}
+          </option>
+          {{end}}
+        </select>
+        <div class="controls">
+          <input
+            type="number"
+            name="amount"
+            class="amount input"
+            min="1"
+            value="1"
+          />
+          <button
+            type="button"
+            class="btn secondary"
+            onclick="removeProductItem(this)"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </template>
     <script src="/web/assets/scripts/protobuf.min.js"></script>
   </body>

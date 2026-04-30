@@ -7,6 +7,7 @@ import (
 	"project/internal/domain/gates_and_sales_options"
 	"project/internal/domain/industrial_gates_and_sales_drive"
 	"project/internal/domain/managers_and_dealers"
+	"project/internal/domain/products"
 	"project/internal/domain/residential_gates_and_sales_drive_rail"
 	"project/internal/domain/sales"
 	"project/internal/domain/sales_and_bills"
@@ -460,4 +461,19 @@ func DeleteOrderDocument(documentName string) error {
 		Where("name = ?", documentName).
 		Delete(&sales_and_documents.SalesAndDocument{}).
 		Error
+}
+
+func DeleteAllOrderProducts(db *gorm.DB, saleID int64) error {
+	return db.
+		Where("sale_id = ?", saleID).
+		Delete(&sales_and_products.SalesAndProduct{}).Error
+}
+
+func GetAllProducts() ([]products.Product, error) {
+	var products []products.Product
+	if err := database.DB.Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	return products, nil
 }

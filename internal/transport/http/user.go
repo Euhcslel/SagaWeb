@@ -23,6 +23,7 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	data := map[string]any{
 		"css":  "user.css",
 		"userInfo": userInfo,
+		"user": user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "info.html", data); err != nil {

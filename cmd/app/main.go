@@ -62,7 +62,8 @@ func main() {
 	mux.Handle("POST /sign_in", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignIn)))
 	mux.Handle("GET /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUpForm)))
 	mux.Handle("POST /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUp)))
-	mux.Handle("POST /sign_out", http.HandlerFunc(handlers.SignOut))
+	mux.Handle("POST /sign_out", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignOut)))
+	mux.Handle("GET /reg_requests", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealersRegRequests)))
 
 	// Аккаунт
 	mux.Handle("GET /user", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserInfo)))

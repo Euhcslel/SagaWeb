@@ -29,18 +29,12 @@ func SignIn(email, password string) (int64, error) {
 	return userId, nil
 }
 
-func SignUp(fullname, company, phone, email, password string) error {
-	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
+func SignUp(fullname, company, phone, email string) error {
 	request := dealers_reg_requests.DealerRegRequest{
 		Company:      company,
 		Fullname:     fullname,
 		PhoneNumber:  phone,
 		Email:        email,
-		PasswordHash: passwordHash,
 		Status:       enums.RegRequestStatusPending,
 	}
 
@@ -49,4 +43,8 @@ func SignUp(fullname, company, phone, email, password string) error {
 
 func SignOut(sessionToken string) error {
 	return repository.DeleteSession(sessionToken)
+}
+
+func GetDealersRegRequests() ([]dealers_reg_requests.DealerRegRequest, error) {
+	return repository.GetAllDealerRegRequests()
 }

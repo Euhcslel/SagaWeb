@@ -577,6 +577,50 @@ func (x *Product) GetAmount() int32 {
 	return 0
 }
 
+type UpdateProductsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Products      []*Product             `protobuf:"bytes,1,rep,name=products,proto3" json:"products,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateProductsRequest) Reset() {
+	*x = UpdateProductsRequest{}
+	mi := &file_api_proto_order_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProductsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProductsRequest) ProtoMessage() {}
+
+func (x *UpdateProductsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_order_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProductsRequest.ProtoReflect.Descriptor instead.
+func (*UpdateProductsRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_order_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpdateProductsRequest) GetProducts() []*Product {
+	if x != nil {
+		return x.Products
+	}
+	return nil
+}
+
 var File_api_proto_order_proto protoreflect.FileDescriptor
 
 const file_api_proto_order_proto_rawDesc = "" +
@@ -622,7 +666,9 @@ const file_api_proto_order_proto_rawDesc = "" +
 	"\aProduct\x12\x1d\n" +
 	"\n" +
 	"product_id\x18\x01 \x01(\x03R\tproductId\x12\x16\n" +
-	"\x06amount\x18\x02 \x01(\x05R\x06amount*0\n" +
+	"\x06amount\x18\x02 \x01(\x05R\x06amount\"C\n" +
+	"\x15UpdateProductsRequest\x12*\n" +
+	"\bproducts\x18\x01 \x03(\v2\x0e.proto.ProductR\bproducts*0\n" +
 	"\bGateType\x12\x11\n" +
 	"\rGATE_TYPE_IND\x10\x00\x12\x11\n" +
 	"\rGATE_TYPE_RES\x10\x01B\x1fZ\x1d../project/internal/generatedb\x06proto3"
@@ -640,17 +686,18 @@ func file_api_proto_order_proto_rawDescGZIP() []byte {
 }
 
 var file_api_proto_order_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_api_proto_order_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_proto_order_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_api_proto_order_proto_goTypes = []any{
-	(GateType)(0),            // 0: proto.GateType
-	(*GateConfig)(nil),       // 1: proto.GateConfig
-	(*Option)(nil),           // 2: proto.Option
-	(*Drive)(nil),            // 3: proto.Drive
-	(*IndustrialDrive)(nil),  // 4: proto.IndustrialDrive
-	(*ResidentialDrive)(nil), // 5: proto.ResidentialDrive
-	(*ManualDrive)(nil),      // 6: proto.ManualDrive
-	(*OrderRequest)(nil),     // 7: proto.OrderRequest
-	(*Product)(nil),          // 8: proto.Product
+	(GateType)(0),                 // 0: proto.GateType
+	(*GateConfig)(nil),            // 1: proto.GateConfig
+	(*Option)(nil),                // 2: proto.Option
+	(*Drive)(nil),                 // 3: proto.Drive
+	(*IndustrialDrive)(nil),       // 4: proto.IndustrialDrive
+	(*ResidentialDrive)(nil),      // 5: proto.ResidentialDrive
+	(*ManualDrive)(nil),           // 6: proto.ManualDrive
+	(*OrderRequest)(nil),          // 7: proto.OrderRequest
+	(*Product)(nil),               // 8: proto.Product
+	(*UpdateProductsRequest)(nil), // 9: proto.UpdateProductsRequest
 }
 var file_api_proto_order_proto_depIdxs = []int32{
 	0, // 0: proto.GateConfig.gate_type:type_name -> proto.GateType
@@ -661,11 +708,12 @@ var file_api_proto_order_proto_depIdxs = []int32{
 	6, // 5: proto.Drive.manual:type_name -> proto.ManualDrive
 	1, // 6: proto.OrderRequest.order_gates:type_name -> proto.GateConfig
 	8, // 7: proto.OrderRequest.products:type_name -> proto.Product
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	8, // 8: proto.UpdateProductsRequest.products:type_name -> proto.Product
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_order_proto_init() }
@@ -684,7 +732,7 @@ func file_api_proto_order_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_order_proto_rawDesc), len(file_api_proto_order_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

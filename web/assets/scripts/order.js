@@ -1,6 +1,7 @@
 const Proto = {
   DocumentsList: null,
   UpdateOrderStatusRequest: null,
+  UpdateProductsRequest: null,
 };
 
 const OrderStatus = {
@@ -19,6 +20,11 @@ async function initProtobuf() {
   const statusRoot = await protobuf.load("/api/proto/status.proto");
   Proto.UpdateOrderStatusRequest = statusRoot.lookupType(
     "proto.UpdateOrderStatusRequest",
+  );
+
+  const productsRoot = await protobuf.load("/api/proto/order.proto");
+  Proto.UpdateProductsRequest = productsRoot.lookupType(
+    "proto.UpdateProductsRequest",
   );
 }
 
@@ -193,9 +199,12 @@ window.downloadDocument = async (button) => {
 
   const documentType = button.closest("tbody").dataset.documentType;
 
-  const response = await fetch(window.location.pathname + `/documents/${documentType}/${documentName}`, {
-    method: "GET",
-  });
+  const response = await fetch(
+    window.location.pathname + `/documents/${documentType}/${documentName}`,
+    {
+      method: "GET",
+    },
+  );
 
   if (!response.ok) throw new Error("Download request failed");
 
@@ -216,13 +225,84 @@ window.deleteDocument = async (button) => {
     .querySelector(".document-name").textContent;
   const documentType = button.closest("tbody").dataset.documentType;
 
-  const res = await fetch(window.location.pathname + `/documents/${documentType}/${documentName}`, {
-    method: "DELETE",
-  });
+  const res = await fetch(
+    window.location.pathname + `/documents/${documentType}/${documentName}`,
+    {
+      method: "DELETE",
+    },
+  );
 
   if (!res.ok) throw new Error("Delete request failed");
 
   window.location.reload();
+};
+
+// Функция, которая добавляет новый товар в список.
+// Клонирует шаблон product-template
+window.addProduct = () => {
+  const productList = document.getElementById("product-list");
+  const productTemplate = document.getElementById("product-template");
+
+  const productClone = productTemplate.content.cloneNode(true);
+  productList.append(productClone);
+
+  updateProductsPrice();
+};
+
+window.saveProducts = async () => {
+  const productList = document.getElementById("product-list");
+
+  const productMap = new Map();
+
+  productList.querySelectorAll(".product-item").forEach((item) => {
+    const productId = Number(item.querySelector(".product").value);
+    const amount = Number(item.querySelector(".amount").value);
+
+    const currentAmount = productMap.get(productId) || 0;
+    productMap.set(productId, currentAmount + amount);
+  });
+
+  const products = Array.from(productMap.entries()).map(
+    ([productId, amount]) => ({
+      productId,
+      amount,
+    }),
+  );
+
+  const payload = {
+    products,
+  };
+
+  const err = Proto.UpdateProductsRequest.verify(payload);
+  if (err) {
+    throw new Error(err);
+  }
+
+  const msg = Proto.UpdateProductsRequest.create(payload);
+  const buf = Proto.UpdateProductsRequest.encode(msg).finish();
+
+  const path = window.location.pathname;
+
+  const res = await fetch(path + "/products", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/x-protobuf",
+    },
+    body: buf,
+  });
+
+  if (!res.ok) {
+    throw new Error("Order request failed");
+  }
+
+  window.location.reload();
+};
+
+// Функция, удаляющая элемент из списка товаров или дополнительных опций
+window.removeProductItem = (element) => {
+  const item = element.closest(".product-item");
+  if (!item) return;
+  item.remove();
 };
 
 await initProtobuf();
