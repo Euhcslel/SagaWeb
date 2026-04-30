@@ -313,41 +313,51 @@
             </div>
           </div>
         </div>
-        <div class="options">
+        <div class="additional-options">
+          <h2>Дополнительные опции</h2>
           <ul
             class="option-list"
             data-retail-price="0"
             data-wholesale-price="0"
           >
-            {{range .options}}
+            {{range .options}} {{$gateOption := .}}
+
             <li class="option-item">
               <select
                 name="option"
                 class="option select"
                 onchange="window.updateOptionsPrice(this)"
               >
+                {{range $.cfg.Options}}
                 <option
-                  value="{{.Option.ID}}"
-                  data-retail-price="{{.Option.RetailPrice}}"
-                  data-wholesale-price="{{.Option.WholesalePrice}}"
+                  value="{{.ID}}"
+                  data-retail-price="{{.RetailPrice}}"
+                  data-wholesale-price="{{.WholesalePrice}}"
+                  {{if
+                  eq
+                  .ID
+                  $gateOption.OptionID}}selected{{end}}
                 >
-                  {{.Option.Name}}
+                  {{.Name}}
                 </option>
+                {{end}}
               </select>
+
               <div class="controls">
                 <input
                   type="number"
                   name="amount"
                   class="amount input"
                   min="1"
-                  value="1"
+                  value="{{$gateOption.Amount}}"
                   oninput="window.updateOptionsPrice(this)"
                 />
+
                 <button
                   type="button"
                   class="btn secondary"
                   onclick="
-                    removeItem(this, '.option-div');
+                    removeOptionItem(this);
                     window.updateOptionsPrice(this);
                   "
                 >
@@ -355,12 +365,23 @@
                 </button>
               </div>
             </li>
+
             {{else}}
             <li>
-              <p>Нет доступных опций</p>
+              <p>Нет выбранных опций</p>
             </li>
             {{end}}
           </ul>
+          <div>
+            <button
+              id="add-option"
+              type="button"
+              class="btn primary"
+              onclick="window.addOption()"
+            >
+              Добавить
+            </button>
+          </div>
         </div>
       </form>
       <footer class="footer footer-horizontal calc-footer dark">
@@ -385,6 +406,43 @@
         </div>
       </footer>
     </main>
+    <!--Блок для выбора дополнительных опций к воротам-->
+    <template id="option-template">
+      <div class="option-item">
+        <select
+          name="option"
+          class="option select"
+          onchange="window.updateOptionsPrice(this)"
+        >
+          {{range .cfg.Options}}
+          <option
+            value="{{.ID}}"
+            data-retail-price="{{.RetailPrice}}"
+            data-wholesale-price="{{.WholesalePrice}}"
+          >
+            {{.Name}}
+          </option>
+          {{end}}
+        </select>
+        <div class="controls">
+          <input
+            type="number"
+            name="amount"
+            class="amount input"
+            min="1"
+            value="1"
+            oninput="window.updateOptionsPrice(this)"
+          />
+          <button
+            type="button"
+            class="btn secondary"
+            onclick="removeOptionItem(this)"
+          >
+            Удалить
+          </button>
+        </div>
+      </div>
+    </template>
     <script src="/web/assets/scripts/protobuf.min.js"></script>
   </body>
 </html>

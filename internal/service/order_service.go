@@ -447,6 +447,8 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 		return err
 	}
 
+	tx := database.DB.Begin()
+
 	gate.Width = gateData.Width
 	gate.Height = gateData.Height
 	gate.Headroom = gateData.Headroom
@@ -459,77 +461,124 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 	case *generated.Drive_Industrial:
 		//Если это другой тип привода у ворот
 		if gate.DriveType != enums.IndDriveType {
-			if err := repository.CreateIndustrialDriveForGate(database.DB, saleID, int64(gateID), gateData.Drive.GetIndustrial().DriveId); err != nil {
+			if err := repository.CreateIndustrialDriveForGate(tx, saleID, gateID, gateData.Drive.GetIndustrial().DriveId); err != nil {
+				tx.Rollback()
 				return err
 			}
 
 			// Удаляем предыдущий привод
 			switch gate.DriveType {
 			case enums.ResDriveType:
-				if err := repository.DeleteGateResidentialDrive(database.DB, saleID, int64(gateID)); err != nil {
+				if err := repository.DeleteGateResidentialDrive(tx, saleID, gateID); err != nil {
+					tx.Rollback()
 					return err
 				}
 			case enums.ManualDriveType:
-				if err := repository.DeleteGateManualDrive(database.DB, saleID, int64(gateID)); err != nil {
+				if err := repository.DeleteGateManualDrive(tx, saleID, gateID); err != nil {
+					tx.Rollback()
 					return err
 				}
 			}
 			// Если у ворот тот же самый тип привода
 		} else {
-			if err := repository.UpdateGateIndustrialDrive(database.DB, saleID, int64(gateID), gateData.Drive.GetIndustrial().DriveId); err != nil {
+			if err := repository.UpdateGateIndustrialDrive(tx, saleID, gateID, gateData.Drive.GetIndustrial().DriveId); err != nil {
+				tx.Rollback()
 				return err
 			}
 		}
 
 	case *generated.Drive_Residential:
 		if gate.DriveType != enums.ResDriveType {
-			if err := repository.CreateResidentialDriveForGate(database.DB, saleID, int64(gateID), gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
+			if err := repository.CreateResidentialDriveForGate(tx, saleID, gateID, gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
+				tx.Rollback()
 				return err
 			}
 
 			switch gate.DriveType {
 			case enums.IndDriveType:
-				if err := repository.DeleteGateIndustrialDrive(database.DB, saleID, int64(gateID)); err != nil {
+				if err := repository.DeleteGateIndustrialDrive(tx, saleID, gateID); err != nil {
+					tx.Rollback()
 					return err
 				}
 
 			case enums.ManualDriveType:
-				if err := repository.DeleteGateManualDrive(database.DB, saleID, int64(gateID)); err != nil {
+				if err := repository.DeleteGateManualDrive(tx, saleID, gateID); err != nil {
+					tx.Rollback()
 					return err
 				}
 			}
 		} else {
-			if err := repository.UpdateGateResidentialDrive(database.DB, saleID, int64(gateID), gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
+			if err := repository.UpdateGateResidentialDrive(tx, saleID, gateID, gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
+				tx.Rollback()
 				return err
 			}
 		}
 	case *generated.Drive_Manual:
 		if gate.DriveType != enums.ManualDriveType {
-			if err := repository.CreateManualDriveForGate(database.DB, saleID, int64(gateID), gateData.Drive.GetManual().ChainLength); err != nil {
+			if err := repository.CreateManualDriveForGate(tx, saleID, gateID, gateData.Drive.GetManual().ChainLength); err != nil {
+				tx.Rollback()
 				return err
 			}
 
 			switch gate.DriveType {
 			case enums.ResDriveType:
-				if err := repository.DeleteGateResidentialDrive(database.DB, saleID, int64(gateID)); err != nil {
+				if err := repository.DeleteGateResidentialDrive(tx, saleID, gateID); err != nil {
+					tx.Rollback()
 					return err
 				}
 
 			case enums.IndDriveType:
-				if err := repository.DeleteGateIndustrialDrive(database.DB, saleID, int64(gateID)); err != nil {
+				if err := repository.DeleteGateIndustrialDrive(tx, saleID, gateID); err != nil {
+					tx.Rollback()
 					return err
 				}
 			}
 		} else {
-			if err := repository.UpdateGateManualDrive(database.DB, saleID, int64(gateID), gateData.Drive.GetManual().ChainLength); err != nil {
+			if err := repository.UpdateGateManualDrive(tx, saleID, gateID, gateData.Drive.GetManual().ChainLength); err != nil {
+				tx.Rollback()
 				return err
 			}
 		}
 	}
 
 	gate.DriveType, err = enums.GetDriveTypeFromProto(gateData.Drive)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-	if err := repository.UpdateGate(database.DB, gate); err != nil {
+	if err := repository.UpdateGate(tx, gate); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	var optionsList []gates_and_sales_options.GatesAndSalesOption
+	for _, option := range gateData.Options {
+		optionsList = append(optionsList, gates_and_sales_options.GatesAndSalesOption{
+			SaleID:    saleID,
+			RowNumber: gateID,
+			OptionID:  option.OptionId,
+			Amount:    option.Amount,
+		})
+	}
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := repository.DeleteAllGateOptions(tx, saleID, gateID); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if len(optionsList) > 0 {
+		if err := repository.CreateGateOptions(tx, optionsList); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		return err
 	}
 

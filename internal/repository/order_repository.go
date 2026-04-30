@@ -477,3 +477,9 @@ func GetAllProducts() ([]products.Product, error) {
 
 	return products, nil
 }
+
+func DeleteAllGateOptions(db *gorm.DB, saleID int64, gateID int64) error {
+	return db.
+		Where("sale_id = ? AND row_number = ?", saleID, gateID).
+		Delete(&gates_and_sales_options.GatesAndSalesOption{}).Error
+}

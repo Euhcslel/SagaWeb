@@ -19,3 +19,25 @@ main {
   position: fixed;
   bottom: 0;
 }
+
+form {
+  display: flex;
+  flex-direction: row;
+
+  .additional-options {
+    margin: 0 auto;
+  }
+}
+
+.option-item {
+  display: flex;
+  gap: var(--spacing-m);
+  align-items: center;
+  margin-bottom: var(--spacing-m);
+
+  .controls {
+    display: flex;
+    gap: var(--spacing-s);
+    align-items: center;
+  }
+}

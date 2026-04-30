@@ -195,8 +195,8 @@ const gateTypeProto = {
 };
 
 window.SaveGateConfiguration = async () => {
-  // Формирование payload
   let drive;
+
   switch (document.querySelector(".drive-type").value) {
     case "manual":
       drive = {
@@ -205,6 +205,7 @@ window.SaveGateConfiguration = async () => {
         },
       };
       break;
+
     case "residential":
       drive = {
         residential: {
@@ -213,6 +214,7 @@ window.SaveGateConfiguration = async () => {
         },
       };
       break;
+
     case "industrial":
       drive = {
         industrial: {
@@ -222,6 +224,25 @@ window.SaveGateConfiguration = async () => {
       break;
   }
 
+  const optionMap = new Map();
+
+  document.querySelectorAll(".option-item").forEach((optionItem) => {
+    const optionId = Number(optionItem.querySelector(".option").value);
+    const amount = Number(optionItem.querySelector(".amount").value);
+
+    if (!optionId || Number.isNaN(amount) || amount <= 0) {
+      return;
+    }
+
+    const currentAmount = optionMap.get(optionId) || 0;
+    optionMap.set(optionId, currentAmount + amount);
+  });
+
+  const options = Array.from(optionMap.entries()).map(([optionId, amount]) => ({
+    optionId,
+    amount,
+  }));
+
   const payload = {
     gateType: gateTypeProto[document.getElementById("gate-type").dataset.value],
     width: Number(document.getElementById("width").value),
@@ -230,19 +251,17 @@ window.SaveGateConfiguration = async () => {
     cycleAmountId: Number(document.getElementById("cycle-amount").value),
     colorOutId: Number(document.getElementById("color-out").value),
     drive: drive,
-    options: [...document.querySelectorAll(".option-item")].map(
-      (optionItem) => ({
-        optionId: Number(optionItem.querySelector(".option").value),
-        amount: Number(optionItem.querySelector(".amount").value),
-      }),
-    ),
+    options: options,
     headroom: Number(document.getElementById("headroom").value),
     amount: Number(document.getElementById("amount").value),
   };
-  
-  // Кодирование в protobuf
+
+  console.log(payload);
+
   const err = Proto.GateConfig.verify(payload);
-  if (err) throw new Error(err);
+  if (err) {
+    throw new Error(err);
+  }
 
   const msg = Proto.GateConfig.create(payload);
   const buf = Proto.GateConfig.encode(msg).finish();
@@ -251,13 +270,36 @@ window.SaveGateConfiguration = async () => {
 
   const res = await fetch(path, {
     method: "PUT",
-    headers: { "Content-Type": "application/x-protobuf" },
+    headers: {
+      "Content-Type": "application/x-protobuf",
+    },
     body: buf,
   });
 
-  if (!res.ok) throw new Error("Order request failed");
+  if (!res.ok) {
+    throw new Error("Order request failed");
+  }
 
   window.location.reload();
+};
+
+// Функция, которая добавляет новую опцию в список.
+// Клонирует шаблон option-template
+window.addOption = (element) => {
+  const optionList = document.querySelector(".option-list");
+  const optionTemplate = document.getElementById("option-template");
+
+  const optionClone = optionTemplate.content.cloneNode(true);
+  optionList.append(optionClone);
+
+  updateOptionsPrice(element);
+};
+
+// Функция, удаляющая элемент из списка дополнительных опций
+window.removeOptionItem = (element) => {
+  const item = element.closest(".option-item");
+  if (!item) return;
+  item.remove();
 };
 
 await initProtobuf();
