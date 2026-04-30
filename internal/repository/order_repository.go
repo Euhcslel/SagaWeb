@@ -2,12 +2,18 @@ package repository
 
 import (
 	"project/internal/database"
+	"project/internal/domain/cycle_amount"
 	"project/internal/domain/enums"
 	"project/internal/domain/gates_and_sales_manual_drive"
 	"project/internal/domain/gates_and_sales_options"
+	"project/internal/domain/industrial_gate_drives"
 	"project/internal/domain/industrial_gates_and_sales_drive"
+	"project/internal/domain/lift_types"
 	"project/internal/domain/managers_and_dealers"
+	"project/internal/domain/options"
 	"project/internal/domain/products"
+	"project/internal/domain/rails"
+	"project/internal/domain/residential_gate_drives"
 	"project/internal/domain/residential_gates_and_sales_drive_rail"
 	"project/internal/domain/sales"
 	"project/internal/domain/sales_and_bills"
@@ -482,4 +488,64 @@ func DeleteAllGateOptions(db *gorm.DB, saleID int64, gateID int64) error {
 	return db.
 		Where("sale_id = ? AND row_number = ?", saleID, gateID).
 		Delete(&gates_and_sales_options.GatesAndSalesOption{}).Error
+}
+
+func GetIndustrialDriveById(db *gorm.DB, driveID int64) (industrial_gate_drives.IndustrialGateDrive, error) {
+	var industrialDrive industrial_gate_drives.IndustrialGateDrive
+	if err := db.Where("id = ?", driveID).First(&industrialDrive).Error; err != nil {
+		return industrial_gate_drives.IndustrialGateDrive{}, err
+	}
+
+	return industrialDrive, nil
+}
+
+func GetResidentialDriveById(db *gorm.DB, driveID int64) (residential_gate_drives.ResidentialGateDrive, error) {
+	var residentialDrive residential_gate_drives.ResidentialGateDrive
+	if err := db.Where("id = ?", driveID).First(&residentialDrive).Error; err != nil {
+		return residential_gate_drives.ResidentialGateDrive{}, err
+	}
+
+	return residentialDrive, nil
+}
+
+func GetRailById(db *gorm.DB, railID int64) (rails.Rail, error) {
+	var rail rails.Rail
+	if err := db.Where("id = ?", railID).First(&rail).Error; err != nil {
+		return rails.Rail{}, err
+	}
+
+	return rail, nil
+}
+
+func GetOptionsByIDs(tx *gorm.DB, optionIDs []int64) ([]options.Option, error) {
+	var optionsList []options.Option
+
+	err := tx.
+		Where("id IN ?", optionIDs).
+		Find(&optionsList).
+		Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return optionsList, nil
+}
+
+func GetLiftTypeById(db *gorm.DB, liftTypeId int64) (lift_types.LiftType, error) {
+	var liftType lift_types.LiftType
+	if err := db.Where("id = ?", liftTypeId).First(&liftType).Error; err != nil {
+		return lift_types.LiftType{}, err
+	}
+
+	return liftType, nil
+}
+
+func GetCycleAmountById(db *gorm.DB, cycleAmountId int64) (cycle_amount.CycleAmount, error) {
+	var cycleAmount cycle_amount.CycleAmount
+	if err := db.Where("id = ?", cycleAmountId).First(&cycleAmount).Error; err != nil {
+		return cycle_amount.CycleAmount{}, err
+	}
+
+	return cycleAmount, nil
 }

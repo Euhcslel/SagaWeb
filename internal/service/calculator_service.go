@@ -46,7 +46,7 @@ func GetCalculatorPageData(user *users.User) (CalculatorPageData, error) {
 	}, nil
 }
 
-func GetPriceBasedOnSize(width, height int, gateType enums.GateType, user *users.User) (*generated.SizePrice, error) {
+func GetPriceBasedOnSize(width, height int64, gateType enums.GateType, user *users.User) (*generated.SizePrice, error) {
 	role := enums.ClientRole
 	if user != nil {
 		role = user.Role
@@ -177,7 +177,7 @@ func GetGateCfg(gateType enums.GateType, isDealer bool) (types.Config, error) {
 	if !isDealer {
 		cfg.ManualDrive.ChainMeterWholesalePrice = decimal.NewFromInt(0)
 		cfg.ManualDrive.RcpWholesalePrice = decimal.NewFromInt(0)
-		
+
 		for i := range cfg.LiftTypes {
 			cfg.LiftTypes[i].WholesaleMarkup = decimal.NewFromInt(0)
 		}

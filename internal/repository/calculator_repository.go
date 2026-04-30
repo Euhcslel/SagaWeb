@@ -16,7 +16,7 @@ import (
 	"project/internal/types"
 )
 
-func GetSizeForDimensions(width, height int, gateType enums.GateType) (sizes.Size, error) {
+func GetSizeForDimensions(width, height int64, gateType enums.GateType) (sizes.Size, error) {
 	var size sizes.Size
 	if err := database.DB.Model(&sizes.Size{}).
 		Where("width >= ? AND height >= ?", width, height).

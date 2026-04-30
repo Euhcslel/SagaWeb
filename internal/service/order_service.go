@@ -7,10 +7,12 @@ import (
 	"os"
 	"path/filepath"
 	"project/internal/database"
+	"project/internal/domain/cycle_amount"
 	"project/internal/domain/enums"
 	"project/internal/domain/gates_and_sales_manual_drive"
 	"project/internal/domain/gates_and_sales_options"
 	"project/internal/domain/industrial_gates_and_sales_drive"
+	"project/internal/domain/lift_types"
 	"project/internal/domain/options"
 	"project/internal/domain/products"
 	"project/internal/domain/residential_gates_and_sales_drive_rail"
@@ -24,6 +26,7 @@ import (
 	"project/internal/types"
 	"strings"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -200,6 +203,11 @@ func DeleteUserOrder(user *users.User, saleID int64) error {
 	return nil
 }
 
+type PricePair struct {
+	RetailPrice    decimal.Decimal
+	WholesalePrice decimal.Decimal
+}
+
 func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sales_and_gates.SalesAndGate, error) {
 	_, err := getAccessibleSale(user, saleID)
 	if err != nil {
@@ -214,17 +222,27 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 			return sales_and_gates.SalesAndGate{}, err
 		}
 
+		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
+			gateType, PricePair{WholesalePrice: cfg.IndustrialDrives[0].WholesalePrice,
+				RetailPrice: cfg.IndustrialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
+			PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
+		if err != nil {
+			return sales_and_gates.SalesAndGate{}, err
+		}
+
 		gate := sales_and_gates.SalesAndGate{
-			SaleID:        saleID,
-			GateType:      gateType,
-			Width:         int32(cfg.WidthParams.MinValue),
-			Height:        int32(cfg.HeightParams.MinValue),
-			Headroom:      0,
-			LiftTypeID:    cfg.LiftTypes[0].ID,
-			CycleAmountID: cfg.CycleAmounts[0].ID,
-			ColorOutID:    cfg.Colors[0].ID,
-			DriveType:     "industrial",
-			Amount:        1,
+			SaleID:             saleID,
+			GateType:           gateType,
+			Width:              int32(cfg.WidthParams.MinValue),
+			Height:             int32(cfg.HeightParams.MinValue),
+			Headroom:           0,
+			LiftTypeID:         cfg.LiftTypes[0].ID,
+			CycleAmountID:      cfg.CycleAmounts[0].ID,
+			ColorOutID:         cfg.Colors[0].ID,
+			DriveType:          enums.IndDriveType,
+			Amount:             1,
+			GateRetailPrice:    gatePrice.RetailPrice,
+			GateWholesalePrice: gatePrice.WholesalePrice,
 		}
 
 		gate, err = repository.CreateNewGate(database.DB, gate)
@@ -245,17 +263,27 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 			return sales_and_gates.SalesAndGate{}, err
 		}
 
+		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
+			gateType, PricePair{WholesalePrice: cfg.ResidentialDrives[0].WholesalePrice,
+				RetailPrice: cfg.ResidentialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
+			PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
+		if err != nil {
+			return sales_and_gates.SalesAndGate{}, err
+		}
+
 		gate := sales_and_gates.SalesAndGate{
-			SaleID:        saleID,
-			GateType:      gateType,
-			Width:         int32(cfg.WidthParams.MinValue),
-			Height:        int32(cfg.HeightParams.MinValue),
-			Headroom:      0,
-			LiftTypeID:    cfg.LiftTypes[0].ID,
-			CycleAmountID: cfg.CycleAmounts[0].ID,
-			ColorOutID:    cfg.Colors[0].ID,
-			DriveType:     "residential",
-			Amount:        1,
+			SaleID:             saleID,
+			GateType:           gateType,
+			Width:              int32(cfg.WidthParams.MinValue),
+			Height:             int32(cfg.HeightParams.MinValue),
+			Headroom:           0,
+			LiftTypeID:         cfg.LiftTypes[0].ID,
+			CycleAmountID:      cfg.CycleAmounts[0].ID,
+			ColorOutID:         cfg.Colors[0].ID,
+			DriveType:          enums.ResDriveType,
+			Amount:             1,
+			GateRetailPrice:    gatePrice.RetailPrice,
+			GateWholesalePrice: gatePrice.WholesalePrice,
 		}
 
 		gate, err = repository.CreateNewGate(database.DB, gate)
@@ -273,6 +301,32 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 	default:
 		return sales_and_gates.SalesAndGate{}, errs.ErrInvalidGateType
 	}
+}
+
+func calculateGatePrice(width, height int64, gateType enums.GateType,
+	drivePrices PricePair, liftType lift_types.LiftType,
+	cycleAmount cycle_amount.CycleAmount, optionsPrices PricePair) (*PricePair, error) {
+	var gateRetailPrice decimal.Decimal
+	var gateWholesalePrice decimal.Decimal
+
+	sizePrice, err := repository.GetSizeForDimensions(width, height, gateType)
+	if err != nil {
+		return nil, err
+	}
+
+	gateRetailPrice = gateRetailPrice.Add(sizePrice.RetailPrice).
+		Add(drivePrices.RetailPrice).
+		Add(liftType.RetailMarkup.Div(decimal.NewFromInt(100)).Mul(sizePrice.RetailPrice)).
+		Add(cycleAmount.RetailMarkup.Div(decimal.NewFromInt(100)).Mul(sizePrice.RetailPrice)).
+		Add(optionsPrices.RetailPrice)
+
+	gateWholesalePrice = gateWholesalePrice.Add(sizePrice.WholesalePrice).
+		Add(drivePrices.WholesalePrice).
+		Add(liftType.WholesaleMarkup.Div(decimal.NewFromInt(100)).Mul(sizePrice.WholesalePrice)).
+		Add(cycleAmount.WholesaleMarkup.Div(decimal.NewFromInt(100)).Mul(sizePrice.WholesalePrice)).
+		Add(optionsPrices.WholesalePrice)
+
+	return &PricePair{RetailPrice: gateRetailPrice, WholesalePrice: gateWholesalePrice}, nil
 }
 
 func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
@@ -341,18 +395,132 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 			return err
 		}
 
+		var drivePrices PricePair
+		switch d := gate.Drive.DriveType.(type) {
+		case *generated.Drive_Industrial:
+			driveID := d.Industrial.DriveId
+			drive, err := repository.GetIndustrialDriveById(tx, driveID)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			drivePrices = PricePair{WholesalePrice: drive.WholesalePrice, RetailPrice: drive.RetailPrice}
+
+		case *generated.Drive_Residential:
+			driveID := d.Residential.DriveId
+			railID := d.Residential.RailId
+			drive, err := repository.GetResidentialDriveById(tx, driveID)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			rail, err := repository.GetRailById(tx, railID)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			drivePrices = PricePair{WholesalePrice: drive.WholesalePrice.Add(rail.WholesalePrice),
+				RetailPrice: drive.RetailPrice.Add(rail.RetailPrice)}
+
+		case *generated.Drive_Manual:
+			chain := d.Manual.ChainLength
+			manualPrices, err := repository.GetManualDrivePrices()
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			drivePrices = PricePair{
+				WholesalePrice: manualPrices.ChainMeterWholesalePrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpWholesalePrice),
+				RetailPrice:    manualPrices.ChainMeterRetailPrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpRetailPrice)}
+		}
+
+		liftType, err := repository.GetLiftTypeById(tx, gate.LiftTypeId)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		cycleAmount, err := repository.GetCycleAmountById(tx, gate.CycleAmountId)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		var optionsPrices PricePair
+
+		if len(gate.Options) > 0 {
+			optionIDs := make([]int64, 0, len(gate.Options))
+
+			for _, gateOption := range gate.Options {
+				if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
+					continue
+				}
+
+				optionIDs = append(optionIDs, gateOption.OptionId)
+			}
+
+			if len(optionIDs) > 0 {
+				optionsList, err := repository.GetOptionsByIDs(tx, optionIDs)
+				if err != nil {
+					tx.Rollback()
+					return err
+				}
+
+				optionsByID := make(map[int64]options.Option, len(optionsList))
+
+				for _, option := range optionsList {
+					optionsByID[option.ID] = option
+				}
+
+				for _, gateOption := range gate.Options {
+					if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
+						continue
+					}
+
+					option, ok := optionsByID[gateOption.OptionId]
+					if !ok {
+						tx.Rollback()
+						return errors.New("option not found")
+					}
+
+					amount := decimal.NewFromInt32(gateOption.Amount)
+
+					optionsPrices.RetailPrice = optionsPrices.RetailPrice.Add(
+						option.RetailPrice.Mul(amount),
+					)
+
+					optionsPrices.WholesalePrice = optionsPrices.WholesalePrice.Add(
+						option.WholesalePrice.Mul(amount),
+					)
+				}
+			}
+		}
+
+		gatePrices, err := calculateGatePrice(int64(gate.Width), int64(gate.Height), gateType,
+			drivePrices, liftType, cycleAmount, optionsPrices)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
 		orderDetails := sales_and_gates.SalesAndGate{
-			SaleID:        order.ID,
-			RowNumber:     int64(i + 1),
-			GateType:      gateType,
-			Width:         gate.Width,
-			Height:        gate.Height,
-			Headroom:      gate.Headroom,
-			LiftTypeID:    gate.LiftTypeId,
-			ColorOutID:    gate.ColorOutId,
-			CycleAmountID: gate.CycleAmountId,
-			DriveType:     driveType,
-			Amount:        gate.Amount,
+			SaleID:             order.ID,
+			RowNumber:          int64(i + 1),
+			GateType:           gateType,
+			Width:              gate.Width,
+			Height:             gate.Height,
+			Headroom:           gate.Headroom,
+			LiftTypeID:         gate.LiftTypeId,
+			ColorOutID:         gate.ColorOutId,
+			CycleAmountID:      gate.CycleAmountId,
+			DriveType:          driveType,
+			Amount:             gate.Amount,
+			GateRetailPrice:    gatePrices.RetailPrice,
+			GateWholesalePrice: gatePrices.WholesalePrice,
 		}
 
 		newGate, err := repository.CreateNewGate(tx, orderDetails)
@@ -394,12 +562,12 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 
 		// Создаем дополнительные опции у ворот
 		var gateAndSalesOptions []gates_and_sales_options.GatesAndSalesOption
-		for _, option := range gate.Options {
+		for _, gateOption := range gate.Options {
 			gateAndSalesOption := gates_and_sales_options.GatesAndSalesOption{
 				SaleID:    order.ID,
 				RowNumber: int64(i + 1),
-				OptionID:  option.OptionId,
-				Amount:    option.Amount,
+				OptionID:  gateOption.OptionId,
+				Amount:    gateOption.Amount,
 			}
 
 			gateAndSalesOptions = append(gateAndSalesOptions, gateAndSalesOption)
@@ -457,6 +625,19 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 	gate.CycleAmountID = gateData.CycleAmountId
 	gate.Amount = gateData.Amount
 
+	liftType, err := repository.GetLiftTypeById(tx, gateData.LiftTypeId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	cycleAmount, err := repository.GetCycleAmountById(tx, gateData.CycleAmountId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	var drivePrices PricePair
 	switch gateData.Drive.DriveType.(type) {
 	case *generated.Drive_Industrial:
 		//Если это другой тип привода у ворот
@@ -487,6 +668,15 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 			}
 		}
 
+		driveID := gateData.Drive.GetIndustrial().DriveId
+		drive, err := repository.GetIndustrialDriveById(tx, driveID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		drivePrices = PricePair{WholesalePrice: drive.WholesalePrice, RetailPrice: drive.RetailPrice}
+
 	case *generated.Drive_Residential:
 		if gate.DriveType != enums.ResDriveType {
 			if err := repository.CreateResidentialDriveForGate(tx, saleID, gateID, gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
@@ -513,6 +703,24 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 				return err
 			}
 		}
+
+		driveID := gateData.Drive.GetResidential().DriveId
+		railID := gateData.Drive.GetResidential().RailId
+		drive, err := repository.GetResidentialDriveById(tx, driveID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		rail, err := repository.GetRailById(tx, railID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		drivePrices = PricePair{WholesalePrice: drive.WholesalePrice.Add(rail.WholesalePrice),
+			RetailPrice: drive.RetailPrice.Add(rail.RetailPrice)}
+
 	case *generated.Drive_Manual:
 		if gate.DriveType != enums.ManualDriveType {
 			if err := repository.CreateManualDriveForGate(tx, saleID, gateID, gateData.Drive.GetManual().ChainLength); err != nil {
@@ -539,15 +747,21 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 				return err
 			}
 		}
+
+		chain := gateData.Drive.GetManual().ChainLength
+		manualPrices, err := repository.GetManualDrivePrices()
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		drivePrices = PricePair{
+			WholesalePrice: manualPrices.ChainMeterWholesalePrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpWholesalePrice),
+			RetailPrice:    manualPrices.ChainMeterRetailPrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpRetailPrice)}
 	}
 
 	gate.DriveType, err = enums.GetDriveTypeFromProto(gateData.Drive)
 	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	if err := repository.UpdateGate(tx, gate); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -562,8 +776,54 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 		})
 	}
 
-	if tx.Error != nil {
-		return tx.Error
+	var optionsPrices PricePair
+
+	if len(gateData.Options) > 0 {
+		optionIDs := make([]int64, 0, len(gateData.Options))
+
+		for _, gateOption := range gateData.Options {
+			if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
+				continue
+			}
+
+			optionIDs = append(optionIDs, gateOption.OptionId)
+		}
+
+		if len(optionIDs) > 0 {
+			optionsList, err := repository.GetOptionsByIDs(tx, optionIDs)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			optionsByID := make(map[int64]options.Option, len(optionsList))
+
+			for _, option := range optionsList {
+				optionsByID[option.ID] = option
+			}
+
+			for _, gateOption := range gateData.Options {
+				if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
+					continue
+				}
+
+				option, ok := optionsByID[gateOption.OptionId]
+				if !ok {
+					tx.Rollback()
+					return errors.New("option not found")
+				}
+
+				amount := decimal.NewFromInt32(gateOption.Amount)
+
+				optionsPrices.RetailPrice = optionsPrices.RetailPrice.Add(
+					option.RetailPrice.Mul(amount),
+				)
+
+				optionsPrices.WholesalePrice = optionsPrices.WholesalePrice.Add(
+					option.WholesalePrice.Mul(amount),
+				)
+			}
+		}
 	}
 
 	if err := repository.DeleteAllGateOptions(tx, saleID, gateID); err != nil {
@@ -576,6 +836,21 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 			tx.Rollback()
 			return err
 		}
+	}
+
+	gatePrices, err := calculateGatePrice(int64(gateData.Width), int64(gateData.Height),
+		gate.GateType, drivePrices, liftType, cycleAmount, optionsPrices)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	gate.GateRetailPrice = gatePrices.RetailPrice
+	gate.GateWholesalePrice = gatePrices.WholesalePrice
+
+	if err := repository.UpdateGate(tx, gate); err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	if err := tx.Commit().Error; err != nil {

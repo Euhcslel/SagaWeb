@@ -16,8 +16,8 @@ import (
 )
 
 type SizeParams struct {
-	MinValue uint64
-	MaxValue uint64
+	MinValue int64
+	MaxValue int64
 }
 
 type Config struct {

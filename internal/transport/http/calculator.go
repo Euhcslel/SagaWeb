@@ -41,13 +41,13 @@ func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
 	query := r.URL.Query()
-	width, err := strconv.Atoi(query.Get("width"))
+	width, err := strconv.ParseInt(query.Get("width"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	height, err := strconv.Atoi(query.Get("height"))
+	height, err := strconv.ParseInt(query.Get("height"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
