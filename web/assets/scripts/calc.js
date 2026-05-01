@@ -16,7 +16,7 @@ window.updateProductsPrice = updateProductsPrice;
 window.updateGatePrice = (gate) => {
   sharedUpdateGatePrice(gate);
   updateOrderPrice();
-}
+};
 
 // Proto-схемы
 let Proto = {
@@ -34,21 +34,35 @@ async function initProtobuf() {
 }
 
 // Функция, удаляющая вкладку ворот и соответствующий шаблон формы
-window.removeGateElement = (event) => {
-  const gateTabs = document.getElementById("gate-tabs");
-  const gateList = document.getElementById("gate-list");
-
+window.removeGateElement = async (event) => {
   const tabElement = event.currentTarget.closest("#gate-tabs > li");
-  const tabIndex = Array.from(gateTabs.children).indexOf(tabElement);
 
-  tabElement.remove();
-  gateList.children[tabIndex]?.remove();
+  const result = await Swal.fire({
+    title: "Удалить ворота?",
+    text: "Вы уверены, что хотите удалить ворота из заказа?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Да, удалить",
+    cancelButtonText: "Отмена",
+  });
 
-  const firstInput = gateTabs.querySelector(
-    'li:first-child input[type="radio"]',
-  );
-  if (firstInput) {
-    firstInput.checked = true;
+  if (result.isConfirmed) {
+    const gateTabs = document.getElementById("gate-tabs");
+    const gateList = document.getElementById("gate-list");
+
+    const tabIndex = Array.from(gateTabs.children).indexOf(tabElement);
+
+    tabElement.remove();
+    gateList.children[tabIndex]?.remove();
+
+    const firstInput = gateTabs.querySelector(
+      'li:first-child input[type="radio"]',
+    );
+    if (firstInput) {
+      firstInput.checked = true;
+    }
+
+    updateOrderPrice();
   }
 };
 
@@ -62,11 +76,13 @@ window.onChangeGateButton = (e) => {
 
   const gate = document.getElementsByClassName("gate-item")[index];
 
-  document.getElementById("gate-retail-price").textContent =
-    (gate?.dataset.retailPrice || 0).toFixed(2);
+  document.getElementById("gate-retail-price").textContent = (
+    gate?.dataset.retailPrice || 0
+  ).toFixed(2);
 
-  document.getElementById("gate-wholesale-price").textContent =
-    (gate?.dataset.wholesalePrice || 0).toFixed(2);
+  document.getElementById("gate-wholesale-price").textContent = (
+    gate?.dataset.wholesalePrice || 0
+  ).toFixed(2);
 };
 
 // Функция, добавляющая новую вкладку и шаблон формы
@@ -397,26 +413,37 @@ function buildGatePayload() {
 // Функция дя оформления заказа.
 // Собирает все данные с формы, кодирует для protobuf и отправляет на сервер
 window.placeOrder = async () => {
-  const payload = {
-    orderGates: buildGatePayload(),
-    products: buildProductsList(),
-  };
-
-  const err = Proto.OrderRequest.verify(payload);
-  if (err) throw new Error(err);
-
-  const msg = Proto.OrderRequest.create(payload);
-  const buf = Proto.OrderRequest.encode(msg).finish();
-
-  const res = await fetch("/orders", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-protobuf" },
-    body: buf,
+  const result = await Swal.fire({
+    title: "Оформить заказ?",
+    text: "Вы готовы оформить заказ?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Да, оформить заказ",
+    cancelButtonText: "Отмена",
   });
 
-  if (!res.ok) throw new Error("Order request failed");
+  if (result.isConfirmed) {
+    const payload = {
+      orderGates: buildGatePayload(),
+      products: buildProductsList(),
+    };
 
-  window.location.href = "/orders";
+    const err = Proto.OrderRequest.verify(payload);
+    if (err) throw new Error(err);
+
+    const msg = Proto.OrderRequest.create(payload);
+    const buf = Proto.OrderRequest.encode(msg).finish();
+
+    const res = await fetch("/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-protobuf" },
+      body: buf,
+    });
+
+    if (!res.ok) throw new Error("Order request failed");
+
+    window.location.href = "/orders";
+  }
 };
 
 // Инициализация proto-схем после загрузки

@@ -228,3 +228,7 @@ input:where([type="button"], [type="reset"], [type="submit"]),
 [hidden]:where(:not([hidden="until-found"])) {
   display: none !important;
 }
+
+.swal2-container {
+  z-index: 99999 !important;
+}

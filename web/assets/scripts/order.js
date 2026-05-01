@@ -33,28 +33,50 @@ async function initProtobuf() {
 
 // Функция, удаляющая ворота из заказа
 window.deleteGate = async (gateId) => {
-  const path = window.location.pathname;
-  const parts = path.split("/");
-  const saleId = parts[2];
-
-  const res = await fetch("/orders/" + saleId + "/" + gateId, {
-    method: "DELETE",
+  const result = await Swal.fire({
+    title: "Удалить ворота?",
+    text: "Вы уверены, что хотите удалить ворота из заказа?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Да, удалить",
+    cancelButtonText: "Отмена",
   });
 
-  if (!res.ok) throw new Error("Delete request failed");
+  if (result.isConfirmed) {
+    const path = window.location.pathname;
+    const parts = path.split("/");
+    const saleId = parts[2];
 
-  window.location.reload();
+    const res = await fetch("/orders/" + saleId + "/" + gateId, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) throw new Error("Delete request failed");
+
+    window.location.reload();
+  }
 };
 
 // Функция, удаляющая заказ пользователя
 window.deleteOrder = async (saleId) => {
-  const res = await fetch("/orders/" + saleId, {
-    method: "DELETE",
+  const result = await Swal.fire({
+    title: "Удалить заказ?",
+    text: "Вы уверены, что хотите удалить заказ?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Да, удалить",
+    cancelButtonText: "Отмена",
   });
 
-  if (!res.ok) throw new Error("Delete request failed");
+  if (result.isConfirmed) {
+    const res = await fetch("/orders/" + saleId, {
+      method: "DELETE",
+    });
 
-  window.location.href = "/orders";
+    if (!res.ok) throw new Error("Delete request failed");
+
+    window.location.href = "/orders";
+  }
 };
 
 // Функция, добавляющая новые ворота в заказ
@@ -231,9 +253,34 @@ window.downloadDocument = async (button) => {
 
 // Функция, удаляющая документ
 window.deleteDocument = async (button) => {
+  const documentsModal = button.closest("dialog");
+
+  if (documentsModal) {
+    documentsModal.close();
+  }
+
+  const result = await Swal.fire({
+    title: "Удалить документ?",
+    text: "Вы уверены, что хотите удалить этот документ?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Да, удалить",
+    cancelButtonText: "Отмена",
+  });
+
+  if (!result.isConfirmed) {
+    if (documentsModal) {
+      documentsModal.showModal();
+    }
+
+    return;
+  }
+
   const documentName = button
     .closest("tr")
-    .querySelector(".document-name").textContent;
+    .querySelector(".document-name")
+    .textContent.trim();
+
   const documentType = button.closest("tbody").dataset.documentType;
 
   const res = await fetch(
@@ -243,7 +290,9 @@ window.deleteDocument = async (button) => {
     },
   );
 
-  if (!res.ok) throw new Error("Delete request failed");
+  if (!res.ok) {
+    throw new Error("Delete request failed");
+  }
 
   window.location.reload();
 };
@@ -321,11 +370,14 @@ window.updateOrderPrice = () => {
   const orderWholesalePriceElement = document.getElementById(
     "order-wholesale-price",
   );
-  orderWholesalePriceElement.textContent =
-    (productsWholesalePrice + gatesWholesalePrice).toFixed(2);
+  orderWholesalePriceElement.textContent = (
+    productsWholesalePrice + gatesWholesalePrice
+  ).toFixed(2);
 
   const orderRetailPriceElement = document.getElementById("order-retail-price");
-  orderRetailPriceElement.textContent = (productsRetailPrice + gatesRetailPrice).toFixed(2);
+  orderRetailPriceElement.textContent = (
+    productsRetailPrice + gatesRetailPrice
+  ).toFixed(2);
 };
 
 await initProtobuf();

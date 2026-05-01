@@ -136,7 +136,11 @@
             {{range .order.Products}} {{$orderProduct := .}}
 
             <div class="product-item">
-              <select class="product select" name="product" onchange="window.updateProductsPrice()">
+              <select
+                class="product select"
+                name="product"
+                onchange="window.updateProductsPrice()"
+              >
                 {{range $.products}}
                 <option
                   value="{{.ID}}"
@@ -334,7 +338,11 @@
     <!--Блок для выбора товаров-->
     <template id="product-template">
       <div class="product-item">
-        <select class="product select" name="product" onchange="window.updateProductsPrice()">
+        <select
+          class="product select"
+          name="product"
+          onchange="window.updateProductsPrice()"
+        >
           {{range .products}}
           <option
             value="{{.ID}}"
@@ -379,5 +387,6 @@
       </div>
     </template>
     <script src="/web/assets/scripts/protobuf.min.js"></script>
+    <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
   </body>
 </html>
