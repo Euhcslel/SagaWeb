@@ -322,10 +322,10 @@ window.updateOrderPrice = () => {
     "order-wholesale-price",
   );
   orderWholesalePriceElement.textContent =
-    productsWholesalePrice + gatesWholesalePrice;
+    (productsWholesalePrice + gatesWholesalePrice).toFixed(2);
 
   const orderRetailPriceElement = document.getElementById("order-retail-price");
-  orderRetailPriceElement.textContent = productsRetailPrice + gatesRetailPrice;
+  orderRetailPriceElement.textContent = (productsRetailPrice + gatesRetailPrice).toFixed(2);
 };
 
 await initProtobuf();

@@ -63,10 +63,10 @@ window.onChangeGateButton = (e) => {
   const gate = document.getElementsByClassName("gate-item")[index];
 
   document.getElementById("gate-retail-price").textContent =
-    gate?.dataset.retailPrice || 0;
+    (gate?.dataset.retailPrice || 0).toFixed(2);
 
   document.getElementById("gate-wholesale-price").textContent =
-    gate?.dataset.wholesalePrice || 0;
+    (gate?.dataset.wholesalePrice || 0).toFixed(2);
 };
 
 // Функция, добавляющая новую вкладку и шаблон формы
@@ -246,12 +246,12 @@ window.updateOrderPrice = () => {
   totalWholesalePrice += Number(products.dataset.wholesalePrice || 0);
 
   const orderRetailPriceElement = document.getElementById("order-retail-price");
-  orderRetailPriceElement.textContent = totalRetailPrice;
+  orderRetailPriceElement.textContent = totalRetailPrice.toFixed(2);
 
   const orderWholesalePriceElement = document.getElementById(
     "order-wholesale-price",
   );
-  orderWholesalePriceElement.textContent = totalWholesalePrice;
+  orderWholesalePriceElement.textContent = totalWholesalePrice.toFixed(2);
 };
 
 // Функция, формирующая список товаров для отправки заказа

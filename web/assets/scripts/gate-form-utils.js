@@ -189,7 +189,7 @@ export function updateGatePrice(gate) {
 
   gate.dataset.retailPrice = retailGatePrice;
   gate.dataset.wholesalePrice = wholesaleGatePrice;
-  document.getElementById("gate-retail-price").textContent = retailGatePrice;
+  document.getElementById("gate-retail-price").textContent = retailGatePrice.toFixed(2);
   document.getElementById("gate-wholesale-price").textContent =
-    wholesaleGatePrice;
+    wholesaleGatePrice.toFixed(2);
 };
