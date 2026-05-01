@@ -55,7 +55,12 @@
         <!--Сетка с воротами в заказе-->
         <div class="order-gates">
           {{range .order.Gates}}
-          <div class="card">
+          <div
+            class="card gate"
+            data-retail-price="{{.Gate.GateRetailPrice}}"
+            data-wholesale-price="{{.Gate.GateWholesalePrice}}"
+            data-amount="{{.Gate.Amount}}"
+          >
             <div class="card-body">
               <h2 class="card-title">Ворота №{{.Gate.RowNumber}}</h2>
               <ul>
@@ -65,6 +70,8 @@
                 <li>{{.Gate.LiftType.Name}}</li>
                 <li>{{.Gate.ColorOut.Code}}</li>
                 <li>{{.Gate.CycleAmount.Name}}</li>
+                <li>{{.Gate.GateRetailPrice}}</li>
+                <li>{{.Gate.GateWholesalePrice}}</li>
               </ul>
               <div class="card-actions">
                 <!--Перейти в детали заказа-->
@@ -125,11 +132,11 @@
         </div>
         <!-- Товары -->
         <div class="order-products" id="products">
-          <div id="product-list">
+          <div id="product-list" data-retail-price="0" data-wholesale-price="0">
             {{range .order.Products}} {{$orderProduct := .}}
 
             <div class="product-item">
-              <select class="product select" name="product">
+              <select class="product select" name="product" onchange="window.updateProductsPrice()">
                 {{range $.products}}
                 <option
                   value="{{.ID}}"
@@ -152,6 +159,7 @@
                   class="amount input"
                   min="1"
                   value="{{$orderProduct.Amount}}"
+                  oninput="window.updateProductsPrice()"
                 />
 
                 <button
@@ -265,6 +273,18 @@
           <table class="table" id="documents-list"></table>
         </div>
       </dialog>
+      <footer class="footer footer-horizontal calc-footer dark">
+        <div>
+          <div class="price-row">
+            <p>Цена заказа (дилер):</p>
+            <p id="order-wholesale-price">0</p>
+          </div>
+          <div class="price-row">
+            <p>Цена заказа (клиент):</p>
+            <p id="order-retail-price">0</p>
+          </div>
+        </div>
+      </footer>
     </main>
     <!--Шаблон для строки в списке документов-->
     <template id="document-info-template">
@@ -314,7 +334,7 @@
     <!--Блок для выбора товаров-->
     <template id="product-template">
       <div class="product-item">
-        <select class="product select" name="product">
+        <select class="product select" name="product" onchange="window.updateProductsPrice()">
           {{range .products}}
           <option
             value="{{.ID}}"
@@ -332,6 +352,7 @@
             class="amount input"
             min="1"
             value="1"
+            oninput="window.updateProductsPrice()"
           />
           <button
             type="button"

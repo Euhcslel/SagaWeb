@@ -70,3 +70,15 @@
     align-items: center;
   }
 }
+
+.calc-footer {
+  position: fixed;
+  bottom: 0;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}

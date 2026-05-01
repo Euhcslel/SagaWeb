@@ -298,6 +298,35 @@ window.saveProducts = async () => {
   window.location.reload();
 };
 
-window.updateOrderPrice = () => {}
+window.updateOrderPrice = () => {
+  let gatesRetailPrice = 0;
+  let gatesWholesalePrice = 0;
+
+  const gates = document.getElementsByClassName("gate");
+  [...gates].forEach((gate) => {
+    const gateWholesalePrice = Number(gate.dataset.wholesalePrice);
+    const gateRetailPrice = Number(gate.dataset.retailPrice);
+    const amount = Number(gate.dataset.amount);
+
+    gatesRetailPrice += gateRetailPrice * amount;
+    gatesWholesalePrice += gateWholesalePrice * amount;
+  });
+
+  console.log(gatesWholesalePrice, gatesRetailPrice);
+  const productList = document.getElementById("product-list");
+  const productsRetailPrice = Number(productList.dataset.retailPrice);
+  const productsWholesalePrice = Number(productList.dataset.wholesalePrice);
+  console.log(productsRetailPrice, productsWholesalePrice);
+
+  const orderWholesalePriceElement = document.getElementById(
+    "order-wholesale-price",
+  );
+  orderWholesalePriceElement.textContent =
+    productsWholesalePrice + gatesWholesalePrice;
+
+  const orderRetailPriceElement = document.getElementById("order-retail-price");
+  orderRetailPriceElement.textContent = productsRetailPrice + gatesRetailPrice;
+};
 
 await initProtobuf();
+updateOrderPrice();
