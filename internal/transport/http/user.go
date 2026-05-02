@@ -3,9 +3,11 @@ package http
 import (
 	"errors"
 	"net/http"
+	"project/internal/domain/enums"
 	errs "project/internal/errors"
 	"project/internal/helpers"
 	"project/internal/service"
+	"project/internal/types"
 	"project/internal/utils"
 )
 
@@ -21,9 +23,9 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css":  "user.css",
+		"css":      "user.css",
 		"userInfo": userInfo,
-		"user": user,
+		"user":     user,
 	}
 
 	if err := templates.ExecuteTemplate(w, "info.html", data); err != nil {
@@ -54,4 +56,33 @@ func GetUserDealers(w http.ResponseWriter, r *http.Request) {
 	if err := templates.ExecuteTemplate(w, "dealers.html", data); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
+}
+
+// Route: /user
+// Method: POST
+func UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	if err := r.ParseForm(); err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	userInfo := types.UpdatedUserInfo{
+		Fullname: r.FormValue("fullname"),
+		Email:    r.FormValue("email"),
+		Phone:    r.FormValue("phone"),
+	}
+
+	if user.Role == enums.DealerRole {
+		userInfo.Company = r.FormValue("company")
+		userInfo.Address = r.FormValue("address")
+	}
+
+	if err := service.UpdateUserInfo(user, userInfo); err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/user", http.StatusSeeOther)
 }

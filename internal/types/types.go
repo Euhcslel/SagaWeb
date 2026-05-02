@@ -51,3 +51,12 @@ type ContextKey string
 const (
 	UserContextKey ContextKey = "user"
 )
+
+type UpdatedUserInfo struct {
+	Fullname string
+	Email    string
+	Phone    string
+
+	Company string
+	Address string
+}

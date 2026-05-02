@@ -7,6 +7,7 @@ import (
 	"project/internal/domain/users"
 	errs "project/internal/errors"
 	"project/internal/repository"
+	"project/internal/types"
 )
 
 func GetUserDealers(user *users.User) ([]managers_and_dealers.ManagerAndDealer, error) {
@@ -62,4 +63,41 @@ func GetUserInfo(user *users.User) (*UserInfo, error) {
 	}
 
 	return userInfo, nil
+}
+
+func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
+	tx := database.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := repository.UpdateUserInfo(tx, user.ID, userInfo); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if user.Role == enums.DealerRole {
+		dealer, err := repository.GetDealerById(tx, user.ID)
+		if err != nil {
+			tx.Rollback()
+
+			return err
+		}
+
+		if err := repository.UpdateDealerInfo(tx, dealer.UserID, userInfo); err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		if err := repository.UpdateCompanyInfo(tx, dealer.CompanyID, userInfo); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
 }

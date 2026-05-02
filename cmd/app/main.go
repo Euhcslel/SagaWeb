@@ -67,6 +67,8 @@ func main() {
 
 	// Аккаунт
 	mux.Handle("GET /user", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserInfo)))
+	mux.Handle("POST /user", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateUserInfo)))
+
 	mux.Handle("GET /user/dealers", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserDealers)))
 
 	// Заказы
