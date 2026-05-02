@@ -1,9 +1,14 @@
 {{template "html-start" .}}
 <div>
   {{range .regRequests}}
-    {{.ID}}: {{.Company}} ({{.Email}})
+  <div>{{.ID}}: {{.Company}} ({{.Email}})
+    <button class="btn secondary" onclick="confirmRegRequest({{.ID}})">Подтвердить</button>
+  </div>
+
   {{else}}
   <p>Нет новых заявок на регистрацию</p>
   {{end}}
 </div>
+<script src="/web/assets/scripts/reg_requests.js"></script>
+<script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
 {{template "html-end" .}}

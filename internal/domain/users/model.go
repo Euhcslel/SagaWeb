@@ -9,7 +9,6 @@ const TableNameUser = "users"
 
 type User struct {
 	ID           int64      `gorm:"column:id;primaryKey;autoIncrement:true"`
-	Username     string     `gorm:"column:username;not null;uniqueIndex"`
 	Fullname     string     `gorm:"column:fullname;not null;"`
 	Email        string     `gorm:"column:email"`
 	PhoneNumber  string     `gorm:"column:phone_number;not null"`

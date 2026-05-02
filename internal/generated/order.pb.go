@@ -68,21 +68,19 @@ func (GateType) EnumDescriptor() ([]byte, []int) {
 }
 
 type GateConfig struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	GateType           GateType               `protobuf:"varint,1,opt,name=gate_type,json=gateType,proto3,enum=proto.GateType" json:"gate_type,omitempty"`
-	Width              int32                  `protobuf:"varint,2,opt,name=width,proto3" json:"width,omitempty"`
-	Height             int32                  `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
-	LiftTypeId         int64                  `protobuf:"varint,4,opt,name=lift_type_id,json=liftTypeId,proto3" json:"lift_type_id,omitempty"`
-	ColorOutId         int64                  `protobuf:"varint,5,opt,name=color_out_id,json=colorOutId,proto3" json:"color_out_id,omitempty"`
-	Drive              *Drive                 `protobuf:"bytes,6,opt,name=drive,proto3" json:"drive,omitempty"`
-	CycleAmountId      int64                  `protobuf:"varint,7,opt,name=cycle_amount_id,json=cycleAmountId,proto3" json:"cycle_amount_id,omitempty"`
-	Options            []*Option              `protobuf:"bytes,8,rep,name=options,proto3" json:"options,omitempty"`
-	Headroom           int32                  `protobuf:"varint,9,opt,name=headroom,proto3" json:"headroom,omitempty"`
-	Amount             int32                  `protobuf:"varint,10,opt,name=amount,proto3" json:"amount,omitempty"`
-	GateRetailPrice    int64                  `protobuf:"varint,11,opt,name=gate_retail_price,json=gateRetailPrice,proto3" json:"gate_retail_price,omitempty"`
-	GateWholesalePrice int64                  `protobuf:"varint,12,opt,name=gate_wholesale_price,json=gateWholesalePrice,proto3" json:"gate_wholesale_price,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GateType      GateType               `protobuf:"varint,1,opt,name=gate_type,json=gateType,proto3,enum=proto.GateType" json:"gate_type,omitempty"`
+	Width         int32                  `protobuf:"varint,2,opt,name=width,proto3" json:"width,omitempty"`
+	Height        int32                  `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
+	LiftTypeId    int64                  `protobuf:"varint,4,opt,name=lift_type_id,json=liftTypeId,proto3" json:"lift_type_id,omitempty"`
+	ColorOutId    int64                  `protobuf:"varint,5,opt,name=color_out_id,json=colorOutId,proto3" json:"color_out_id,omitempty"`
+	Drive         *Drive                 `protobuf:"bytes,6,opt,name=drive,proto3" json:"drive,omitempty"`
+	CycleAmountId int64                  `protobuf:"varint,7,opt,name=cycle_amount_id,json=cycleAmountId,proto3" json:"cycle_amount_id,omitempty"`
+	Options       []*Option              `protobuf:"bytes,8,rep,name=options,proto3" json:"options,omitempty"`
+	Headroom      int32                  `protobuf:"varint,9,opt,name=headroom,proto3" json:"headroom,omitempty"`
+	Amount        int32                  `protobuf:"varint,10,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GateConfig) Reset() {
@@ -181,20 +179,6 @@ func (x *GateConfig) GetHeadroom() int32 {
 func (x *GateConfig) GetAmount() int32 {
 	if x != nil {
 		return x.Amount
-	}
-	return 0
-}
-
-func (x *GateConfig) GetGateRetailPrice() int64 {
-	if x != nil {
-		return x.GateRetailPrice
-	}
-	return 0
-}
-
-func (x *GateConfig) GetGateWholesalePrice() int64 {
-	if x != nil {
-		return x.GateWholesalePrice
 	}
 	return 0
 }
@@ -641,7 +625,7 @@ var File_api_proto_order_proto protoreflect.FileDescriptor
 
 const file_api_proto_order_proto_rawDesc = "" +
 	"\n" +
-	"\x15api/proto/order.proto\x12\x05proto\"\xb3\x03\n" +
+	"\x15api/proto/order.proto\x12\x05proto\"\xd5\x02\n" +
 	"\n" +
 	"GateConfig\x12,\n" +
 	"\tgate_type\x18\x01 \x01(\x0e2\x0f.proto.GateTypeR\bgateType\x12\x14\n" +
@@ -656,9 +640,7 @@ const file_api_proto_order_proto_rawDesc = "" +
 	"\aoptions\x18\b \x03(\v2\r.proto.OptionR\aoptions\x12\x1a\n" +
 	"\bheadroom\x18\t \x01(\x05R\bheadroom\x12\x16\n" +
 	"\x06amount\x18\n" +
-	" \x01(\x05R\x06amount\x12*\n" +
-	"\x11gate_retail_price\x18\v \x01(\x03R\x0fgateRetailPrice\x120\n" +
-	"\x14gate_wholesale_price\x18\f \x01(\x03R\x12gateWholesalePrice\"=\n" +
+	" \x01(\x05R\x06amount\"=\n" +
 	"\x06Option\x12\x1b\n" +
 	"\toption_id\x18\x01 \x01(\x03R\boptionId\x12\x16\n" +
 	"\x06amount\x18\x02 \x01(\x05R\x06amount\"\xba\x01\n" +

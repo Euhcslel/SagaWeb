@@ -135,25 +135,3 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
-
-// Route: /reg_requests
-// Method: GET
-func GetDealersRegRequests(w http.ResponseWriter, r *http.Request) {
-	user := utils.UserFromContext(r.Context())
-
-	regRequests, err := service.GetDealersRegRequests()
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	data := map[string]any{
-		"user": user,
-		"css":         "",
-		"regRequests": regRequests,
-	}
-	if err := templates.ExecuteTemplate(w, "reg_requests.html", data); err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
-	}
-}

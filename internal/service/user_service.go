@@ -1,13 +1,23 @@
 package service
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"errors"
+	"fmt"
+	"net/smtp"
+	"os"
 	"project/internal/database"
+	"project/internal/domain/dealers"
 	"project/internal/domain/enums"
 	"project/internal/domain/managers_and_dealers"
 	"project/internal/domain/users"
 	errs "project/internal/errors"
 	"project/internal/repository"
 	"project/internal/types"
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GetUserDealers(user *users.User) ([]managers_and_dealers.ManagerAndDealer, error) {
@@ -100,4 +110,141 @@ func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
 	}
 
 	return nil
+}
+
+func ConfirmDealerRegRequest(manager *users.User, requestId int64) error {
+	password, err := generatePassword(18)
+	if err != nil {
+		return err
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	tx := database.DB.Begin()
+
+	request, err := repository.GetRegRequestById(tx, requestId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	newUser := users.User{
+		Fullname:     request.Fullname,
+		PhoneNumber:  request.PhoneNumber,
+		Email:        request.Email,
+		PasswordHash: hash,
+		Role:         enums.DealerRole,
+	}
+	if err := repository.CreateUser(tx, &newUser); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	company, err := repository.GetOrCreateCompanyByName(tx, request.Company)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	newDealer := dealers.Dealer{
+		UserID:    newUser.ID,
+		CompanyID: company.ID,
+	}
+	if err := repository.CreateDealer(tx, &newDealer); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := repository.AttachDealerToManager(tx, manager.ID, newUser.ID); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := repository.DeleteRegRequest(tx, requestId); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+
+	// Подумать насчет goroutine
+	if err := sendPasswordEmail(newUser.Email, newUser.Fullname, password); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generatePassword(byteLength int) (string, error) {
+	b := make([]byte, byteLength)
+
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func sendPasswordEmail(toEmail, name, password string) error {
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPort := os.Getenv("SMTP_PORT")
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPass := os.Getenv("SMTP_PASSWORD")
+	fromEmail := os.Getenv("SMTP_FROM_EMAIL")
+
+	if smtpHost == "" || smtpPort == "" || smtpUser == "" || smtpPass == "" || fromEmail == "" {
+		return errors.New("smtp config is incomplete")
+	}
+
+	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
+
+	subject := "Ваш доступ к системе"
+
+	body := fmt.Sprintf(`Здравствуйте, %s!
+
+	Для вас создан аккаунт.
+
+
+	Логин: %s
+	Временный пароль: %s
+
+	С уважением, Saga Doors`,
+		name, toEmail, password)
+
+	message := buildEmailMessage(fromEmail, toEmail, subject, body)
+
+	addr := smtpHost + ":" + smtpPort
+
+	return smtp.SendMail(
+		addr,
+		auth,
+		fromEmail,
+		[]string{toEmail},
+		[]byte(message),
+	)
+}
+
+func buildEmailMessage(from, to, subject, body string) string {
+	return fmt.Sprintf(
+		"From: %s\r\n"+
+			"To: %s\r\n"+
+			"Subject: %s\r\n"+
+			"MIME-Version: 1.0\r\n"+
+			"Content-Type: text/plain; charset=\"UTF-8\"\r\n"+
+			"Date: %s\r\n"+
+			"\r\n"+
+			"%s\r\n",
+		from,
+		to,
+		subject,
+		time.Now().Format(time.RFC1123Z),
+		body,
+	)
+}
+
+func RejectDealerRegRequest(requestId int64) error {
+	return repository.DeleteDealerRegRequest(requestId)
 }

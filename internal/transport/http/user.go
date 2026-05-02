@@ -9,6 +9,7 @@ import (
 	"project/internal/service"
 	"project/internal/types"
 	"project/internal/utils"
+	"strconv"
 )
 
 // Route: /user
@@ -85,4 +86,58 @@ func UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/user", http.StatusSeeOther)
+}
+
+// Route: /dealers/requests
+// Method: GET
+func GetDealersRegRequests(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	regRequests, err := service.GetDealersRegRequests()
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]any{
+		"user":        user,
+		"css":         "",
+		"regRequests": regRequests,
+	}
+	if err := templates.ExecuteTemplate(w, "reg_requests.html", data); err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+}
+
+// Route: /dealers/requests/{request_id}/confirm
+// Method: POST
+func ConfirmDealerRegRequest(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	requestId, err := strconv.ParseInt(r.PathValue("request_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if err := service.ConfirmDealerRegRequest(user, requestId); err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+}
+
+// Route: /dealers/requests/{request_id}/reject
+// Method: POST
+func RejectDealerRegRequest(w http.ResponseWriter, r *http.Request) {
+	requestId, err := strconv.ParseInt(r.PathValue("request_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if err := service.RejectDealerRegRequest(requestId); err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
 }

@@ -63,13 +63,17 @@ func main() {
 	mux.Handle("GET /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUpForm)))
 	mux.Handle("POST /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUp)))
 	mux.Handle("POST /sign_out", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignOut)))
-	mux.Handle("GET /reg_requests", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealersRegRequests)))
 
 	// Аккаунт
 	mux.Handle("GET /user", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserInfo)))
 	mux.Handle("POST /user", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateUserInfo)))
 
 	mux.Handle("GET /user/dealers", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserDealers)))
+
+	// Заявки на регистрацию
+	mux.Handle("GET /dealers/requests", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealersRegRequests)))
+	mux.Handle("POST /dealers/requests/{request_id}/confirm", handlers.RequireAuth(http.HandlerFunc(handlers.ConfirmDealerRegRequest)))
+	mux.Handle("POST /dealers/requests/{request_id}/reject", handlers.RequireAuth(http.HandlerFunc(handlers.RejectDealerRegRequest)))
 
 	// Заказы
 	mux.Handle("GET /orders", handlers.RequireAuth(http.HandlerFunc(handlers.GetAllUserOrders)))
