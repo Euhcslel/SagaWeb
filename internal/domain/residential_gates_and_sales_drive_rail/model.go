@@ -1,8 +1,8 @@
 package residential_gates_and_sales_drive_rail
 
 import (
-	"project/internal/domain/rails"
-	"project/internal/domain/residential_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
+	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
 )
 
 const TableNameResidentialGatesAndSalesDriveRail = "residential_gates_and_sales_drive_rail"

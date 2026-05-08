@@ -2,8 +2,8 @@ package enums
 
 import (
 	"errors"
-	errs "project/internal/errors"
-	"project/internal/generated"
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
+	"github.com/Euhcslel/SagaWeb/internal/generated"
 )
 
 // Тип Статус заказа

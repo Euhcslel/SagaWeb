@@ -1,7 +1,7 @@
 package users
 
 import (
-	"project/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"time"
 )
 

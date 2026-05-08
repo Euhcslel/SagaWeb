@@ -1,18 +1,18 @@
 package types
 
 import (
-	"project/internal/domain/colors"
-	"project/internal/domain/cycle_amount"
-	"project/internal/domain/enums"
-	"project/internal/domain/industrial_gate_drives"
-	"project/internal/domain/lift_types"
-	"project/internal/domain/manual_drive_prices"
-	"project/internal/domain/options"
-	"project/internal/domain/products"
-	"project/internal/domain/rails"
-	"project/internal/domain/residential_gate_drives"
-	"project/internal/domain/sales_and_gates"
-	"project/internal/domain/sales_and_products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
+	"github.com/Euhcslel/SagaWeb/internal/domain/options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
+	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_gates"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_products"
 )
 
 type SizeParams struct {
@@ -43,7 +43,7 @@ type Gate struct {
 type Order struct {
 	Gates    []Gate
 	Products []sales_and_products.SalesAndProduct
-	Status   string
+	Status   enums.OrderStatus
 }
 
 type ContextKey string

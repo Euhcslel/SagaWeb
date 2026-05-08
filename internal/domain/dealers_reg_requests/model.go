@@ -1,7 +1,7 @@
 package dealers_reg_requests
 
 import (
-	"project/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 )
 
 const TableNameDealerRegRequest = "dealers_reg_requests"

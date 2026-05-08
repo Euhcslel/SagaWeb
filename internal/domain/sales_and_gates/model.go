@@ -1,11 +1,11 @@
 package sales_and_gates
 
 import (
-	"project/internal/domain/colors"
-	"project/internal/domain/cycle_amount"
-	"project/internal/domain/enums"
-	"project/internal/domain/lift_types"
-	"project/internal/domain/sales"
+	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales"
 
 	"github.com/shopspring/decimal"
 )

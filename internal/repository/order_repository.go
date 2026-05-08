@@ -1,28 +1,29 @@
 package repository
 
 import (
-	"project/internal/database"
-	"project/internal/domain/cycle_amount"
-	"project/internal/domain/enums"
-	"project/internal/domain/gates_and_sales_manual_drive"
-	"project/internal/domain/gates_and_sales_options"
-	"project/internal/domain/industrial_gate_drives"
-	"project/internal/domain/industrial_gates_and_sales_drive"
-	"project/internal/domain/lift_types"
-	"project/internal/domain/managers_and_dealers"
-	"project/internal/domain/options"
-	"project/internal/domain/products"
-	"project/internal/domain/rails"
-	"project/internal/domain/residential_gate_drives"
-	"project/internal/domain/residential_gates_and_sales_drive_rail"
-	"project/internal/domain/sales"
-	"project/internal/domain/sales_and_bills"
-	"project/internal/domain/sales_and_contracts"
-	"project/internal/domain/sales_and_documents"
-	"project/internal/domain/sales_and_gates"
-	"project/internal/domain/sales_and_offers"
-	"project/internal/domain/sales_and_products"
-	"project/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/gates_and_sales_manual_drive"
+	"github.com/Euhcslel/SagaWeb/internal/domain/gates_and_sales_options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gates_and_sales_drive"
+	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/managers_and_dealers"
+	"github.com/Euhcslel/SagaWeb/internal/domain/options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
+	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gates_and_sales_drive_rail"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_bills"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_contracts"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_documents"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_gates"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_offers"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
+	"log"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -68,10 +69,10 @@ func GetOrderGatesByOrderID(db *gorm.DB, saleID int64) ([]sales_and_gates.SalesA
 	return orderGates, nil
 }
 
-func GetAllOptionsForOrder(db *gorm.DB, gateIDs []int64) ([]gates_and_sales_options.GatesAndSalesOption, error) {
+func GetAllOptionsForOrder(db *gorm.DB, saleID int64, gateIDs []int64) ([]gates_and_sales_options.GatesAndSalesOption, error) {
 	var gateOptions []gates_and_sales_options.GatesAndSalesOption
 	if err := db.
-		Where("row_number IN ?", gateIDs).
+		Where("sale_id = ? AND row_number IN ?", saleID, gateIDs).
 		Preload("Option").
 		Find(&gateOptions).Error; err != nil {
 		return []gates_and_sales_options.GatesAndSalesOption{}, err
@@ -200,9 +201,10 @@ func CreateManualDriveForGate(db *gorm.DB, saleID int64, rowNumber int64, chainL
 func GetManagerIdByDealerId(db *gorm.DB, dealerID int64) (int64, error) {
 	var managerID int64
 	if err := db.Model(&managers_and_dealers.ManagerAndDealer{}).
-		Select("manager_id").
 		Where("dealer_id = ?", dealerID).
-		Find(&managerID).Error; err != nil {
+		Pluck("manager_id", &managerID).Error; err != nil {
+		log.Println(err)
+
 		return 0, err
 	}
 
@@ -226,12 +228,9 @@ func DeleteGateFromOrder(db *gorm.DB, gate sales_and_gates.SalesAndGate) error {
 }
 
 func DeleteGateResidentialDrive(db *gorm.DB, saleID int64, gateID int64) error {
-	var resGatesAndSalesDriveRail residential_gates_and_sales_drive_rail.ResidentialGatesAndSalesDriveRail
-	if err := db.Where("sale_id = ? AND row_number = ?", saleID, gateID).First(&resGatesAndSalesDriveRail).Error; err != nil {
-		return err
-	}
-
-	if err := db.Delete(&resGatesAndSalesDriveRail).Error; err != nil {
+	if err := db.Where("sale_id = ? AND row_number = ?", saleID, gateID).
+		Delete(&residential_gates_and_sales_drive_rail.ResidentialGatesAndSalesDriveRail{}).
+		Error; err != nil {
 		return err
 	}
 
@@ -239,12 +238,9 @@ func DeleteGateResidentialDrive(db *gorm.DB, saleID int64, gateID int64) error {
 }
 
 func DeleteGateIndustrialDrive(db *gorm.DB, saleID int64, gateID int64) error {
-	var indGatesAndSalesDriveRail industrial_gates_and_sales_drive.IndustrialGatesAndSalesDrive
-	if err := db.Where("sale_id = ? AND row_number = ?", saleID, gateID).First(&indGatesAndSalesDriveRail).Error; err != nil {
-		return err
-	}
-
-	if err := db.Delete(&indGatesAndSalesDriveRail).Error; err != nil {
+	if err := db.Where("sale_id = ? AND row_number = ?", saleID, gateID).
+		Delete(industrial_gates_and_sales_drive.IndustrialGatesAndSalesDrive{}).
+		Error; err != nil {
 		return err
 	}
 

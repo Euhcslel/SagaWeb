@@ -1,44 +1,23 @@
 package http
 
 import (
-	"encoding/json"
 	"html/template"
 	"net/http"
-	"project/internal/helpers"
-	"project/internal/service"
-	"project/internal/utils"
+	"github.com/Euhcslel/SagaWeb/internal/helpers"
+	"github.com/Euhcslel/SagaWeb/internal/service"
+	"github.com/Euhcslel/SagaWeb/internal/utils"
 	"time"
 )
-
-// Функция, для создания словаря из пар ключ-значение (для html-шаблонов)
-func dict(values ...any) map[string]any {
-	m := make(map[string]any, len(values)/2)
-	for i := 0; i < len(values); i += 2 {
-		m[values[i].(string)] = values[i+1]
-	}
-	return m
-}
 
 // Функция для форматирования даты и времени в шаблонах
 func FormatDateTime(t time.Time) string {
 	return t.Format("02.01.2006 15:04")
 }
 
-// Функция для преобразования в JSON для JS
-func toJSON(v any) template.JS {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return template.JS("{}")
-	}
-	return template.JS(b)
-}
-
 var templates = template.Must(
 	template.New("").
 		Funcs(template.FuncMap{
-			"dict":    dict,
 			"fmtTime": FormatDateTime,
-			"toJSON":  toJSON,
 		}).
 		ParseGlob("web/templates/**/*.html"),
 )

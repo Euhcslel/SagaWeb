@@ -31,9 +31,11 @@
   <body>
     {{template "header-nav" .}}
     <main>
-      <a class="btn secondary" href="/orders/{{.gate.SaleID}}"
-        >Вернуться назад</a
-      >
+      <div class="back-button">
+        <a class="btn secondary" href="/orders/{{.gate.SaleID}}"
+          >Вернуться назад</a
+        >
+      </div>
       <form action="" method="post">
         <div class="gate-item">
           <div class="configuration">
@@ -48,6 +50,10 @@
                 value="{{.gate.GateType.Label}}"
                 data-value="{{.gate.GateType}}"
                 readonly
+                {{if
+                ne
+                .orderStatus
+                `pending`}}disabled{{end}}
               />
             </label>
             <!--Количество-->
@@ -63,6 +69,10 @@
                 title="Значение должно быть не меньше 1"
                 value="{{.gate.Amount}}"
                 oninput="window.updateGateSizePrice()"
+                {{if
+                ne
+                .orderStatus
+                `pending`}}disabled{{end}}
               />
               <p class="validator-hint">Количество должно быть не меньше 1</p>
             </label>
@@ -81,6 +91,10 @@
                   min="{{.cfg.WidthParams.MinValue}}"
                   max="{{.cfg.WidthParams.MaxValue}}"
                   oninput="window.updateGateSizePrice()"
+                  {{if
+                  ne
+                  .orderStatus
+                  `pending`}}disabled{{end}}
                 />
                 <p class="validator-hint">
                   Ширина должна быть от {{.cfg.WidthParams.MinValue}} до
@@ -101,6 +115,10 @@
                   max="{{.cfg.HeightParams.MaxValue}}"
                   value="{{.gate.Height}}"
                   oninput="window.updateGateSizePrice()"
+                  {{if
+                  ne
+                  .orderStatus
+                  `pending`}}disabled{{end}}
                 />
                 <p class="validator-hint">
                   Высота должна быть от {{.cfg.HeightParams.MinValue}} до
@@ -118,6 +136,10 @@
                 type="number"
                 min="0"
                 value="{{.gate.Headroom}}"
+                {{if
+                ne
+                .orderStatus
+                `pending`}}disabled{{end}}
               />
             </label>
 
@@ -131,6 +153,10 @@
                 onchange="
                   window.updateGatePrice(document.querySelector('.gate-item'))
                 "
+                {{if
+                ne
+                .orderStatus
+                `pending`}}disabled{{end}}
               >
                 {{range .cfg.LiftTypes}}
                 <option
@@ -160,6 +186,10 @@
                 onchange="
                   window.updateGatePrice(document.querySelector('.gate-item'))
                 "
+                {{if
+                ne
+                .orderStatus
+                `pending`}}disabled{{end}}
               >
                 {{range .cfg.CycleAmounts}}
                 <option
@@ -180,7 +210,15 @@
             <!--Цвет ворот снаружи-->
             <label for="color-out"
               >Цвет ворот снаружи
-              <select class="select color-out" name="color-out" id="color-out">
+              <select
+                class="select color-out"
+                name="color-out"
+                id="color-out"
+                {{if
+                ne
+                .orderStatus
+                `pending`}}disabled{{end}}
+              >
                 {{range .cfg.Colors}}
                 <option
                   value="{{.ID}}"
@@ -204,6 +242,10 @@
                   name="drive-type"
                   class="drive-type select"
                   onchange="window.updateDriveType(this)"
+                  {{if
+                  ne
+                  .orderStatus
+                  `pending`}}disabled{{end}}
                 >
                   {{range .cfg.DriveTypes}}
                   <option
@@ -241,6 +283,10 @@
                   {{else}}
                   value="0"
                   {{end}}
+                  {{if
+                  ne
+                  .orderStatus
+                  `pending`}}disabled{{end}}
                 />
               </label>
 
@@ -248,7 +294,15 @@
                 {{if eq .gate.GateType "ind"}}
                 <label for="drive"
                   >Привод промышленный
-                  <select class="select drive" name="drive" id="drive">
+                  <select
+                    class="select drive"
+                    name="drive"
+                    id="drive"
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  >
                     {{range .cfg.IndustrialDrives}}
                     <option
                       value="{{.ID}}"
@@ -272,7 +326,15 @@
                 {{else}}
                 <label for="drive"
                   >Привод бытовой
-                  <select class="select drive" name="drive" id="drive">
+                  <select
+                    class="select drive"
+                    name="drive"
+                    id="drive"
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  >
                     {{range .cfg.ResidentialDrives}}
                     <option
                       value="{{.ID}}"
@@ -296,7 +358,15 @@
                 {{end}}
                 <label for="rail"
                   >Направляющая
-                  <select class="select rail" name="rail" id="rail">
+                  <select
+                    class="select rail"
+                    name="rail"
+                    id="rail"
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  >
                     {{range .cfg.Rails}}
                     <option
                       value="{{.ID}}"
@@ -334,6 +404,10 @@
                   name="option"
                   class="option select"
                   onchange="window.updateOptionsPrice(this)"
+                  {{if
+                  ne
+                  $.orderStatus
+                  `pending`}}disabled{{end}}
                 >
                   {{range $.cfg.Options}}
                   <option
@@ -358,6 +432,10 @@
                     min="1"
                     value="{{$gateOption.Amount}}"
                     oninput="window.updateOptionsPrice(this)"
+                    {{if
+                    ne
+                    $.orderStatus
+                    `pending`}}disabled{{end}}
                   />
 
                   <button
@@ -376,6 +454,7 @@
               </li>
               {{end}}
             </ul>
+            {{if eq .orderStatus `pending`}}
             <div>
               <button
                 id="add-option"
@@ -386,6 +465,7 @@
                 Добавить
               </button>
             </div>
+            {{end}}
           </div>
         </div>
       </form>
@@ -400,6 +480,7 @@
             <p id="gate-retail-price">0</p>
           </div>
         </div>
+        {{if eq .orderStatus `pending`}}
         <div>
           <button
             class="btn primary"
@@ -409,6 +490,7 @@
             Сохранить
           </button>
         </div>
+        {{end}}
       </footer>
     </main>
     <!--Блок для выбора дополнительных опций к воротам-->
@@ -418,6 +500,7 @@
           name="option"
           class="option select"
           onchange="window.updateOptionsPrice(this)"
+          width="300"
         >
           {{range .cfg.Options}}
           <option

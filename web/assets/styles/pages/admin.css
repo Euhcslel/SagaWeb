@@ -1,0 +1,39 @@
+.tables {
+  margin: var(--spacing-l);
+  gap: var(--spacing-l);
+
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  max-width: 520px;
+  margin: 40px auto;
+  padding: 28px;
+  background: light-dark(var(--color-base-200), var(--color-base-800));
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+form div {
+  width: 100%;
+}
+
+form input,
+textarea {
+  width: 100%;
+}
+
+.form-container {
+  padding: var(--spacing-l);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
+  align-items: start;
+}

@@ -1,8 +1,8 @@
 package dealers
 
 import (
-	"project/internal/domain/companies"
-	"project/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/domain/companies"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
 
 const TableNameDealer = "dealers"

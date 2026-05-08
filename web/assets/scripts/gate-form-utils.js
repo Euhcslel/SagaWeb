@@ -61,8 +61,8 @@ export function addProduct() {
 // Функция, которая обновляет цену за дополнительные опции у ворот.
 // Вызывается при изменении значений или состава дополнительных опций
 export function updateOptionsPrice(element) {
-  var optionsRetailPrice = 0;
-  var optionsWholesalePrice = 0;
+  let optionsRetailPrice = 0;
+  let optionsWholesalePrice = 0;
 
   const additionalOptions = element.closest(".additional-options");
   const optionList = additionalOptions.querySelector(".option-list");
@@ -85,8 +85,8 @@ export function updateOptionsPrice(element) {
 // Функция, которая обновляет цену за товары.
 // Вызывается при изменении значений или состава товаров
 export function updateProductsPrice() {
-  var productsRetailPrice = 0;
-  var productsWholesalePrice = 0;
+  let productsRetailPrice = 0;
+  let productsWholesalePrice = 0;
 
   const productList = document.getElementById("product-list");
   const productItems = productList.getElementsByClassName("product-item");
@@ -108,8 +108,8 @@ export function updateProductsPrice() {
 // Функция, которая обновляет цену на текущие ворота.
 // Вызывается при изменении занчений select и input, которые влияют на стоимость ворот
 export function updateGatePrice(gate) {
-  var retailGatePrice = 0;
-  var wholesaleGatePrice = 0;
+  let retailGatePrice = 0;
+  let wholesaleGatePrice = 0;
 
   const size = gate.querySelector(".sizes");
   const sizeRetailPrice = Number(size.dataset.retailPrice || 0);
@@ -131,8 +131,8 @@ export function updateGatePrice(gate) {
     selectedCycleAmount.dataset.wholesaleMarkup,
   );
 
-  var driveRetailPrice = 0;
-  var driveWholesalePrice = 0;
+  let driveRetailPrice = 0;
+  let driveWholesalePrice = 0;
   const driveType = gate.querySelector(".drive-type");
   switch (driveType.value) {
     case "manual": {

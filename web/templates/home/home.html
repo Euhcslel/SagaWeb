@@ -10,7 +10,7 @@
           <a class="btn primary" href="/calculator"
             ><span>Онлайн калькулятор</span>
           </a>
-          <a class="btn secondary">Позвонить нам</a>
+          <a class="btn secondary" href="#dealers-list">Позвонить нам</a>
         </div>
       </div>
     </div>
@@ -83,7 +83,7 @@
             </td>
           </tr>
           {{else}}
-          <p>Дилеров пока что нет :(</p>
+          <p>Дилеров пока что нет</p>
           {{end}}
         </tbody>
       </table>
@@ -108,7 +108,7 @@
     </div>
   </div>
   <div class="form">
-    <form action="/reg" method="post">
+    <form action="/sign_up" method="post">
       <!--ФИО пользователя-->
       <label class="input validator">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -124,6 +124,7 @@
           </g>
         </svg>
         <input
+          name="fullname"
           type="text"
           required
           placeholder="ФИО"
@@ -152,6 +153,7 @@
           </g>
         </svg>
         <input
+          name="company"
           type="text"
           required
           placeholder="Название компании"
@@ -182,6 +184,7 @@
           </g>
         </svg>
         <input
+          name="phone"
           type="tel"
           class="tabular-nums"
           required
@@ -209,7 +212,7 @@
             <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
           </g>
         </svg>
-        <input type="email" placeholder="mail@site.com" required />
+        <input name="email" type="email" placeholder="mail@site.com" required />
       </label>
       <div class="validator-hint hidden">Введите корректный email</div>
       <!--Согласие на обработку данных-->

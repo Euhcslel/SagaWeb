@@ -3,9 +3,9 @@ package http
 import (
 	"context"
 	"net/http"
-	"project/internal/helpers"
-	"project/internal/types"
-	"project/internal/utils"
+	"github.com/Euhcslel/SagaWeb/internal/helpers"
+	"github.com/Euhcslel/SagaWeb/internal/types"
+	"github.com/Euhcslel/SagaWeb/internal/utils"
 )
 
 // Middleware для проверки аутентификации

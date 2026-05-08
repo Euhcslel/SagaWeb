@@ -1,19 +1,19 @@
 package repository
 
 import (
-	"project/internal/database"
-	"project/internal/domain/colors"
-	"project/internal/domain/cycle_amount"
-	"project/internal/domain/enums"
-	"project/internal/domain/industrial_gate_drives"
-	"project/internal/domain/lift_types"
-	"project/internal/domain/manual_drive_prices"
-	"project/internal/domain/options"
-	"project/internal/domain/products"
-	"project/internal/domain/rails"
-	"project/internal/domain/residential_gate_drives"
-	"project/internal/domain/sizes"
-	"project/internal/types"
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
+	"github.com/Euhcslel/SagaWeb/internal/domain/options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
+	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sizes"
+	"github.com/Euhcslel/SagaWeb/internal/types"
 )
 
 func GetSizeForDimensions(width, height int64, gateType enums.GateType) (sizes.Size, error) {

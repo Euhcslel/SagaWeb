@@ -19,12 +19,14 @@
         <!--Вернуться к списку-->
         <a class="btn secondary" href="/orders">Вернуться к заказам</a>
         <!--Удалить заказ-->
+        {{if eq .order.Status "pending"}}
         <button
           class="btn secondary"
           onclick="window.deleteOrder({{.orderId}})"
         >
           Удалить заказ
         </button>
+        {{end}}
         <!--Добавить документ-->
         <button
           class="btn secondary"
@@ -37,6 +39,7 @@
           Список документов
         </button>
         <!--Статус-->
+        {{if ne .user.Role "dealer"}}
         <select
           name="status"
           id="status"
@@ -49,6 +52,9 @@
           </option>
           {{end}}
         </select>
+        {{else}}
+          <p>Статус: {{.order.Status.Label}}</p>
+        {{end}}
       </div>
       <!--Содержимое заказа-->
       <div class="order-content">
@@ -95,6 +101,7 @@
                   </svg>
                 </a>
                 <!--Удалить ворота из заказа-->
+                {{if eq $.order.Status "pending"}}
                 <button
                   class="btn secondary"
                   onclick="window.deleteGate({{.Gate.RowNumber}})"
@@ -115,12 +122,14 @@
                     <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                   </svg>
                 </button>
+                {{end}}
               </div>
             </div>
           </div>
           {{else}}
           <p>Нет никаких ворот</p>
           {{end}}
+          {{if eq .order.Status "pending"}}
           <div class="add-button-container">
             <button
               class="btn primary"
@@ -129,6 +138,7 @@
               Добавить ворота
             </button>
           </div>
+          {{end}}
         </div>
         <!-- Товары -->
         <div class="order-products" id="products">
@@ -140,6 +150,7 @@
                 class="product select"
                 name="product"
                 onchange="window.updateProductsPrice()"
+                {{if ne $.order.Status `pending`}}disabled{{end}}
               >
                 {{range $.products}}
                 <option
@@ -164,8 +175,10 @@
                   min="1"
                   value="{{$orderProduct.Amount}}"
                   oninput="window.updateProductsPrice()"
+                  {{if ne $.order.Status `pending`}}disabled{{end}}
                 />
 
+                {{if eq $.order.Status `pending`}}
                 <button
                   type="button"
                   class="btn secondary"
@@ -187,12 +200,14 @@
                     <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                   </svg>
                 </button>
+                {{end}}
               </div>
             </div>
             {{else}}
             <p>Нет товаров в заказе</p>
             {{end}}
           </div>
+          {{if eq $.order.Status `pending`}}
           <div>
             <button
               id="add-product"
@@ -211,6 +226,7 @@
               Сохранить
             </button>
           </div>
+          {{end}}
         </div>
       </div>
       <!--Модальное окно для добавления новых ворот в заказ-->
@@ -295,6 +311,7 @@
       <tr>
         <td class="document-name"></td>
         <td>
+          {{if eq .order.Status "pending"}}
           <button class="btn secondary" onclick="window.deleteDocument(this)">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -312,6 +329,7 @@
               <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
             </svg>
           </button>
+          {{end}}
           <button class="btn secondary" onclick="window.downloadDocument(this)">
             <svg
               xmlns="http://www.w3.org/2000/svg"

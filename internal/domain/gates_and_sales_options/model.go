@@ -1,7 +1,7 @@
 package gates_and_sales_options
 
 import (
-	"project/internal/domain/options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/options"
 )
 
 const TableNameGatesAndSalesOption = "gates_and_sales_options"

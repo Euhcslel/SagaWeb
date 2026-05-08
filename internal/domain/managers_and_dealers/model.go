@@ -1,7 +1,7 @@
 package managers_and_dealers
 
 import (
-	"project/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
 
 const TableNameManagerAndDealer = "managers_and_dealers"

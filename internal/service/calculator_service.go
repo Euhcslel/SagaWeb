@@ -1,16 +1,16 @@
 package service
 
 import (
-	"project/internal/domain/colors"
-	"project/internal/domain/enums"
-	"project/internal/domain/lift_types"
-	"project/internal/domain/options"
-	"project/internal/domain/products"
-	"project/internal/domain/users"
-	"project/internal/generated"
-	"project/internal/repository"
-	"project/internal/types"
-	"project/internal/utils"
+	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/generated"
+	"github.com/Euhcslel/SagaWeb/internal/repository"
+	"github.com/Euhcslel/SagaWeb/internal/types"
+	"github.com/Euhcslel/SagaWeb/internal/utils"
 
 	"github.com/shopspring/decimal"
 )

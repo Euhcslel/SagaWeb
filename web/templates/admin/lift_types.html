@@ -1,0 +1,71 @@
+{{template "html-start" .}}
+<div class="form-container">
+  <a href="/tables" class="btn secondary">Вернуться назад</a>
+  <form method="post">
+    <div>
+      <label for="name"
+        >Название типа подъём
+        <input class="input" type="text" id="name" name="name" required />
+      </label>
+    </div>
+
+    <div>
+      <label for="min-headroom"
+        >Минимальная притолока
+        <input
+          class="input"
+          type="number"
+          id="min-headroom"
+          name="min-headroom"
+          step="1"
+          required
+        />
+      </label>
+    </div>
+
+    <div>
+      <label for="max-headroom"
+        >Максимальная притолока
+        <input
+          class="input"
+          type="number"
+          id="max-headroom"
+          name="max-headroom"
+          step="1"
+          required
+        />
+      </label>
+    </div>
+
+    <div>
+      <label for="wholesale-markup"
+        >Оптовая наценка
+        <input
+          class="input"
+          type="number"
+          id="wholesale-markup"
+          name="wholesale-markup"
+          step="0.01"
+          required
+        />
+      </label>
+    </div>
+
+    <div>
+      <label for="retail-markup"
+        >Розничная наценка
+        <input
+          class="input"
+          type="number"
+          id="retail-markup"
+          name="retail-markup"
+          step="0.01"
+          required
+        />
+      </label>
+    </div>
+
+    <button class="btn secondary" type="submit">Сохранить</button>
+  </form>
+</div>
+{{template "html-end" .}}

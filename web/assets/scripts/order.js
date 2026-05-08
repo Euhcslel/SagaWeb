@@ -119,7 +119,6 @@ window.loadDocuments = async () => {
   docsTable.innerHTML = "";
 
   const template = document.getElementById("document-info-template");
-  let clone = template.content.cloneNode(true);
 
   if (docsList.offers != undefined) {
     const offerDiv = document.createElement("tbody");

@@ -1,8 +1,8 @@
 package sales
 
 import (
-	"project/internal/domain/enums"
-	"project/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	"time"
 )
 
@@ -13,7 +13,7 @@ type Sale struct {
 	ClientID  *int64            `gorm:"column:client_id;null;default:NULL"`
 	ManagerID int64             `gorm:"column:manager_id;not null"`
 	CreatedAt time.Time         `gorm:"column:created_at;default:CURRENT_TIMESTAMP"`
-	Status    enums.OrderStatus `gorm:"column:status;type:order_status;not null;default:'new'"`
+	Status    enums.OrderStatus `gorm:"column:status;type:order_status;not null;"`
 
 	Client  *users.User `gorm:"foreignKey:ClientID;references:ID"`
 	Manager users.User  `gorm:"foreignKey:ManagerID;references:ID"`

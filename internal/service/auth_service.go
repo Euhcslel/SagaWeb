@@ -2,10 +2,10 @@ package service
 
 import (
 	"errors"
-	errs "project/internal/errors"
-	"project/internal/domain/dealers_reg_requests"
-	"project/internal/domain/enums"
-	"project/internal/repository"
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealers_reg_requests"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/repository"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"

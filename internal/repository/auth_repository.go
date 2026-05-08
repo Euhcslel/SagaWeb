@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"project/internal/database"
-	"project/internal/domain/dealers_reg_requests"
-	"project/internal/domain/sessions"
-	"project/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealers_reg_requests"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sessions"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
 
 func GetUserByEmail(email string) (users.User, error) {

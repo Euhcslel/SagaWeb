@@ -3,14 +3,14 @@ package http
 import (
 	"errors"
 	"fmt"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
+	"github.com/Euhcslel/SagaWeb/internal/generated"
+	"github.com/Euhcslel/SagaWeb/internal/helpers"
+	"github.com/Euhcslel/SagaWeb/internal/service"
+	"github.com/Euhcslel/SagaWeb/internal/utils"
 	"io"
 	"net/http"
-	"project/internal/domain/enums"
-	errs "project/internal/errors"
-	"project/internal/generated"
-	"project/internal/helpers"
-	"project/internal/service"
-	"project/internal/utils"
 	"strconv"
 
 	"google.golang.org/protobuf/proto"
@@ -42,7 +42,7 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 // Route: /api/orders
 // Method: GET
 func GetAllUserOrdersAPI(w http.ResponseWriter, r *http.Request) {
-
+	//To do
 }
 
 // Route: /orders/{order_id}
@@ -109,11 +109,11 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		"css":              "gate.css",
 		"gate":             pageData.Gate,
 		"options":          pageData.Options,
-		"cfg":              pageData.Configuraion,
+		"cfg":              pageData.Configuration,
 		"industrialDrive":  pageData.IndustrialDrive,
 		"residentialDrive": pageData.ResidentialDrive,
 		"manualDrive":      pageData.ManualDrive,
-		"statuses":         enums.GetAllOrderStatuses(),
+		"orderStatus":      pageData.OrderStatus,
 		"user":             user,
 	}
 
@@ -270,8 +270,6 @@ func UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 // Route: /orders/{order_id}/{gate_id}
@@ -399,7 +397,7 @@ func UploadOfferToOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	http.Redirect(w, r, "/orders/"+fmt.Sprint(saleID), http.StatusSeeOther)
 }
 
 // Route: /orders/{order_id}/contract
@@ -432,7 +430,7 @@ func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	http.Redirect(w, r, "/orders/"+fmt.Sprint(saleID), http.StatusSeeOther)
 }
 
 // Route: /orders/{order_id}/bill
@@ -465,7 +463,7 @@ func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	http.Redirect(w, r, "/orders/"+fmt.Sprint(saleID), http.StatusSeeOther)
 }
 
 // Route: /orders/{order_id}/documents/{document_type}/{document_name}

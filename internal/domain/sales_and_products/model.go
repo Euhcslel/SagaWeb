@@ -1,7 +1,7 @@
 package sales_and_products
 
 import (
-	"project/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 )
 
 const TableNameSalesAndProduct = "sales_and_products"

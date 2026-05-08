@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/shopspring/decimal"
-	"project/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 )
 
 const TableNameSizesPriceHistory = "sizes_price_history"

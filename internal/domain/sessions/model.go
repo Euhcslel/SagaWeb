@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"project/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
 
 const TableNameSession = "sessions"
@@ -23,7 +23,9 @@ func (*Session) TableName() string {
 }
 
 func (s *Session) BeforeCreate(tx *gorm.DB) error {
-	tx.Where("user_id = ?", s.UserID).Delete(&Session{})
+	if err := tx.Where("user_id = ?", s.UserID).Delete(&Session{}).Error; err != nil {
+		return err
+	}
 	s.ExpiresAt = time.Now().AddDate(0, 1, 0)
 	return nil
 }

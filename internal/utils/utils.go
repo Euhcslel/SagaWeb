@@ -3,11 +3,11 @@ package utils
 import (
 	"context"
 	"net/http"
-	"project/internal/database"
-	"project/internal/domain/enums"
-	"project/internal/domain/sessions"
-	"project/internal/domain/users"
-	"project/internal/types"
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sessions"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/types"
 
 	"github.com/samborkent/uuidv7"
 )
@@ -65,8 +65,4 @@ func UserFromContext(ctx context.Context) *users.User {
 
 func HasDealerAccess(role enums.Role) bool {
 	return role == enums.DealerRole || role == enums.AdminRole || role == enums.ManagerRole || role == enums.LogisticianRole
-}
-
-func isManager(role enums.Role) bool {
-	return role == enums.ManagerRole
 }

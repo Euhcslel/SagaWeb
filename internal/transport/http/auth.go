@@ -3,10 +3,10 @@ package http
 import (
 	"errors"
 	"net/http"
-	errs "project/internal/errors"
-	"project/internal/helpers"
-	"project/internal/service"
-	"project/internal/utils"
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
+	"github.com/Euhcslel/SagaWeb/internal/helpers"
+	"github.com/Euhcslel/SagaWeb/internal/service"
+	"github.com/Euhcslel/SagaWeb/internal/utils"
 	"time"
 )
 

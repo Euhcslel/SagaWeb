@@ -3,12 +3,12 @@ package http
 import (
 	"errors"
 	"net/http"
-	"project/internal/domain/enums"
-	errs "project/internal/errors"
-	"project/internal/helpers"
-	"project/internal/service"
-	"project/internal/types"
-	"project/internal/utils"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
+	"github.com/Euhcslel/SagaWeb/internal/helpers"
+	"github.com/Euhcslel/SagaWeb/internal/service"
+	"github.com/Euhcslel/SagaWeb/internal/types"
+	"github.com/Euhcslel/SagaWeb/internal/utils"
 	"strconv"
 )
 

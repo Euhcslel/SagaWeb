@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"project/internal/database"
-	"project/internal/domain/enums"
-	"project/internal/domain/sizes"
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sizes"
 
 	"strconv"
 

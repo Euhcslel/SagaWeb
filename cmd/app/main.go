@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	handlers "github.com/Euhcslel/SagaWeb/internal/transport/http"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"project/internal/database"
-	handlers "project/internal/transport/http"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -105,6 +105,8 @@ func main() {
 
 	// Администратор
 	mux.Handle("GET /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseRedactor)))
+	mux.Handle("POST /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.AddNewDataBaseTableRow)))
+
 	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 
 	err = http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(mux))

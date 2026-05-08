@@ -94,6 +94,7 @@
 
             <!-- Товары -->
             <div class="tab-content" id="products">
+              <h2>Товары</h2>
               <ul id="product-list"></ul>
               <button
                 id="add-product"
@@ -108,14 +109,6 @@
         </div>
       </div>
       <footer class="footer footer-horizontal calc-footer dark">
-        <div>
-          <button class="btn secondary">Скачать коммерческое</button>
-        </div>
-        {{if .isDealer}}
-        <div>
-          <button class="btn secondary">Скачать договор</button>
-        </div>
-        {{end}}
         <div>
           <div class="price-row">
             <p>Цена текущих ворот (клиент):</p>
@@ -137,7 +130,7 @@
             <p id="order-wholesale-price">0</p>
           </div>
         </div>
-
+        {{if $.user}}
         <div>
           <button
             class="btn primary"
@@ -147,6 +140,7 @@
             Оформить заказ
           </button>
         </div>
+        {{end}}
       </footer>
     </main>
   </body>
@@ -176,7 +170,7 @@
           <div class="sizes">
             <!--Ширина-->
             <label>
-              Ширина
+              Ширина (B)
               <input
                 name="width"
                 class="width input validator"
@@ -197,7 +191,7 @@
 
             <!--Высота-->
             <label>
-              Высота
+              Высота (H)
               <input
                 name="height"
                 class="height input validator"
@@ -219,7 +213,7 @@
 
           <!--Высота притолки-->
           <label>
-            Высота притолки
+            Высота притолки (h)
             <input
               name="headroom"
               class="headroom input"
@@ -346,38 +340,40 @@
             </div>
           </div>
         </div>
-        <label
-          >Количество ворот
-          <input
-            name="gate-amount"
-            class="gate-amount input"
-            type="number"
-            min="1"
-            value="1"
-            oninput="window.updateOrderPrice()"
-          />
-        </label>
-        <figure class="standart-configuration">
-          <img
-            src="/web/assets/images/scheme.png"
-            alt="Схема ворот"
-            width="1536"
-            height="1024"
-          />
-          <figcaption>
-            Стандартная конфигурация:
-            <ul>
-              <li>
-                Полотно из сэндвич-панелей 40мм и усилением под петли и
-                регулируемые кронштейны
-              </li>
-              <li>Петли и регулируемые кронштейны из оцинкованной стали</li>
-              <li>Комплект подвесов с притолкой до 500мм в комплекте</li>
-              <li>Ручка двусторонняя, задвижка</li>
-              <li>Комплект амортизаторов (при установки вального привода)</li>
-            </ul>
-          </figcaption>
-        </figure>
+        <div class="standart-configuration-container">
+          <label
+            >Количество ворот
+            <input
+              name="gate-amount"
+              class="gate-amount input"
+              type="number"
+              min="1"
+              value="1"
+              oninput="window.updateOrderPrice()"
+            />
+          </label>
+          <figure class="standart-configuration">
+            <img
+              src="/web/assets/images/scheme.png"
+              alt="Схема ворот"
+              width="1536"
+              height="1024"
+            />
+            <figcaption>
+              Стандартная конфигурация:
+              <ul>
+                <li>
+                  Полотно из сэндвич-панелей 40мм и усилением под петли и
+                  регулируемые кронштейны
+                </li>
+                <li>Петли и регулируемые кронштейны из оцинкованной стали</li>
+                <li>Комплект подвесов с притолкой до 500мм в комплекте</li>
+                <li>Ручка двусторонняя, задвижка</li>
+                <li>Комплект амортизаторов (при установки вального привода)</li>
+              </ul>
+            </figcaption>
+          </figure>
+        </div>
       </div>
       <!-- Дополнительные опции -->
       <div class="tab-content additional-options">

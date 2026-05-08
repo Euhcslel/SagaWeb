@@ -1,7 +1,7 @@
 package industrial_gates_and_sales_drive
 
 import (
-	"project/internal/domain/industrial_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 )
 
 const TableNameIndustrialGatesAndSalesDrive = "industrial_gates_and_sales_drive"

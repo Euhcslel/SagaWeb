@@ -2,10 +2,10 @@ package http
 
 import (
 	"net/http"
-	"project/internal/domain/enums"
-	"project/internal/helpers"
-	"project/internal/service"
-	"project/internal/utils"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/helpers"
+	"github.com/Euhcslel/SagaWeb/internal/service"
+	"github.com/Euhcslel/SagaWeb/internal/utils"
 	"strconv"
 
 	"google.golang.org/protobuf/proto"

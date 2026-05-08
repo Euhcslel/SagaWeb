@@ -1,13 +1,12 @@
 package repository
 
 import (
-	"project/internal/database"
-	"project/internal/domain/companies"
-	"project/internal/domain/dealers"
-	"project/internal/domain/dealers_reg_requests"
-	"project/internal/domain/managers_and_dealers"
-	"project/internal/domain/users"
-	"project/internal/types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/companies"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealers_reg_requests"
+	"github.com/Euhcslel/SagaWeb/internal/domain/managers_and_dealers"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/types"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -65,13 +64,9 @@ func UpdateCompanyInfo(db *gorm.DB, companyId int64, userInfo types.UpdatedUserI
 		}).Error
 }
 
-func DeleteDealerRegRequest(requestId int64) error {
-	return database.DB.Where("id = ?", requestId).Delete(dealers_reg_requests.DealerRegRequest{}).Error
-}
-
 func GetRegRequestById(db *gorm.DB, requestId int64) (dealers_reg_requests.DealerRegRequest, error) {
 	var request dealers_reg_requests.DealerRegRequest
-	if err := database.DB.Where("id = ?", requestId).First(&request).Error; err != nil {
+	if err := db.Where("id = ?", requestId).First(&request).Error; err != nil {
 		return dealers_reg_requests.DealerRegRequest{}, err
 	}
 

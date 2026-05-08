@@ -87,6 +87,12 @@ window.onChangeGateButton = (e) => {
 
 // Функция, добавляющая новую вкладку и шаблон формы
 window.addGateElement = () => {
+  const gateItems = document.getElementsByClassName("gate-item");
+  if (gateItems.length === 15) {
+    Swal.fire("Нельзя добавить больше 15 ворот в заказ.");
+    return
+  }
+
   const gateTemplate = document.getElementById("gate-template");
   const gateList = document.getElementById("gate-list");
 

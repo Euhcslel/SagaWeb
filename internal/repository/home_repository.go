@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"project/internal/database"
-	"project/internal/domain/dealers"
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
 )
 
 func GetDealersList() ([]dealers.Dealer, error) {

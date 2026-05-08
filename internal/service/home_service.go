@@ -1,6 +1,6 @@
 package service
 
-import "project/internal/repository"
+import "github.com/Euhcslel/SagaWeb/internal/repository"
 
 func GetDealersList() ([]UserInfo, error) {
 	dealers, err := repository.GetDealersList()

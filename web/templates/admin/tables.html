@@ -1,6 +1,14 @@
 {{template "html-start" .}}
-{{range .tables}}
-<a href="/tables/{{.}}">{{.}}</a>
-<br>
-{{end}}
+<div class="tables">
+  <a class="btn secondary" href="/tables/colors">Цвета</a>
+  <a class="btn secondary" href="/tables/cycle_amounts">Количество циклов</a>
+  <a class="btn secondary" href="/tables/industrial_drives"
+    >Промышленный привод</a
+  >
+  <a class="btn secondary" href="/tables/residential_drives">Бытовой привод</a>
+  <a class="btn secondary" href="/tables/lift_types">Тип подъема</a>
+  <a class="btn secondary" href="/tables/options">Дополнительные опции</a>
+  <a class="btn secondary" href="/tables/products">Товары</a>
+</div>
+
 {{template "html-end"}}

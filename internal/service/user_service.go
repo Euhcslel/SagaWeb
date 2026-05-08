@@ -5,16 +5,16 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/managers_and_dealers"
 	"net/smtp"
 	"os"
-	"project/internal/database"
-	"project/internal/domain/dealers"
-	"project/internal/domain/enums"
-	"project/internal/domain/managers_and_dealers"
-	"project/internal/domain/users"
-	errs "project/internal/errors"
-	"project/internal/repository"
-	"project/internal/types"
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
+	"github.com/Euhcslel/SagaWeb/internal/repository"
+	"github.com/Euhcslel/SagaWeb/internal/types"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -80,27 +80,23 @@ func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
 	if tx.Error != nil {
 		return tx.Error
 	}
+	defer tx.Rollback()
 
 	if err := repository.UpdateUserInfo(tx, user.ID, userInfo); err != nil {
-		tx.Rollback()
 		return err
 	}
 
 	if user.Role == enums.DealerRole {
 		dealer, err := repository.GetDealerById(tx, user.ID)
 		if err != nil {
-			tx.Rollback()
-
 			return err
 		}
 
 		if err := repository.UpdateDealerInfo(tx, dealer.UserID, userInfo); err != nil {
-			tx.Rollback()
 			return err
 		}
 
 		if err := repository.UpdateCompanyInfo(tx, dealer.CompanyID, userInfo); err != nil {
-			tx.Rollback()
 			return err
 		}
 	}
@@ -127,7 +123,6 @@ func ConfirmDealerRegRequest(manager *users.User, requestId int64) error {
 
 	request, err := repository.GetRegRequestById(tx, requestId)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
@@ -139,13 +134,11 @@ func ConfirmDealerRegRequest(manager *users.User, requestId int64) error {
 		Role:         enums.DealerRole,
 	}
 	if err := repository.CreateUser(tx, &newUser); err != nil {
-		tx.Rollback()
 		return err
 	}
 
 	company, err := repository.GetOrCreateCompanyByName(tx, request.Company)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
@@ -154,24 +147,22 @@ func ConfirmDealerRegRequest(manager *users.User, requestId int64) error {
 		CompanyID: company.ID,
 	}
 	if err := repository.CreateDealer(tx, &newDealer); err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	if err := repository.AttachDealerToManager(tx, manager.ID, newUser.ID); err != nil {
-		tx.Rollback()
+	if err := repository.AttachDealerToManager(tx, newUser.ID, manager.ID); err != nil {
 		return err
 	}
 
 	if err := repository.DeleteRegRequest(tx, requestId); err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
-
-	// Подумать насчет goroutine
 	if err := sendPasswordEmail(newUser.Email, newUser.Fullname, password); err != nil {
+		return err
+	}
+
+	if err := tx.Commit().Error; err != nil {
 		return err
 	}
 
@@ -246,5 +237,5 @@ func buildEmailMessage(from, to, subject, body string) string {
 }
 
 func RejectDealerRegRequest(requestId int64) error {
-	return repository.DeleteDealerRegRequest(requestId)
+	return repository.DeleteRegRequest(database.DB, requestId)
 }
