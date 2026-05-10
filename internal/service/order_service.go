@@ -580,12 +580,7 @@ func DeleteGateFromOrder(user *users.User, orderID int64, rowNumber int64) error
 		return err
 	}
 
-	gate, err := repository.GetCurrentGate(database.DB, orderID, rowNumber)
-	if err != nil {
-		return err
-	}
-
-	if err := repository.DeleteGateFromOrder(database.DB, *gate); err != nil {
+	if err := repository.DeleteGateFromOrder(database.DB, orderID, rowNumber); err != nil {
 		return err
 	}
 

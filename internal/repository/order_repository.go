@@ -223,32 +223,26 @@ func CreateGateOptions(db *gorm.DB, options []order_gate_options.OrderGateOption
 	return db.Create(&options).Error
 }
 
-func DeleteGateFromOrder(db *gorm.DB, gate order_gates.OrderGate) error {
-	return db.Delete(&gate).Error
+func DeleteGateFromOrder(db *gorm.DB, orderID int64, rowNumber int64) error {
+	return db.Where("order_id = ? AND row_number = ?", orderID, rowNumber).
+		Delete(&order_gates.OrderGate{}).Error
 }
 
 func DeleteGateResidentialDrive(db *gorm.DB, orderID int64, gateID int64) error {
-	if err := db.Where("order_id = ? AND row_number = ?", orderID, gateID).
+	return db.Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Delete(&order_gate_residential_drives.OrderGateResidentialDrive{}).
-		Error; err != nil {
-		return err
-	}
-
-	return nil
+		Error
 }
 
 func DeleteGateIndustrialDrive(db *gorm.DB, orderID int64, gateID int64) error {
-	if err := db.Where("order_id = ? AND row_number = ?", orderID, gateID).
+	return db.Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Delete(order_gate_industrial_drives.OrderGateIndustrialDrive{}).
-		Error; err != nil {
-		return err
-	}
-
-	return nil
+		Error
 }
 
 func DeleteGateManualDrive(db *gorm.DB, orderID int64, gateID int64) error {
-	return db.Where("order_id = ? AND row_number = ?", orderID, gateID).Delete(&order_gate_manual_drives.OrderGateManualDrive{}).Error
+	return db.Where("order_id = ? AND row_number = ?", orderID, gateID).
+		Delete(&order_gate_manual_drives.OrderGateManualDrive{}).Error
 }
 
 func UpdateGateIndustrialDrive(db *gorm.DB, orderID int64, gateID int64, driveID int64) error {
