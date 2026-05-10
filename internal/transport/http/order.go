@@ -50,13 +50,13 @@ func GetAllUserOrdersAPI(w http.ResponseWriter, r *http.Request) {
 func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	pageData, err := service.GetOrderPageData(user, saleID)
+	pageData, err := service.GetOrderPageData(user, orderID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
@@ -70,7 +70,7 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 		"order":         pageData.Order,
 		"user":          user,
 		"orderStatuses": statuses,
-		"orderId":       saleID,
+		"orderId":       orderID,
 	}
 
 	if err := templates.ExecuteTemplate(w, "order.html", data); err != nil {
@@ -84,7 +84,7 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -96,7 +96,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageData, err := service.GetCurrentGatePageData(user, saleID, gateID)
+	pageData, err := service.GetCurrentGatePageData(user, orderID, gateID)
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
@@ -128,13 +128,13 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 func DeleteUserOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	err = service.DeleteUserOrder(user, saleID)
+	err = service.DeleteUserOrder(user, orderID)
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
@@ -149,7 +149,7 @@ func DeleteUserOrder(w http.ResponseWriter, r *http.Request) {
 func AddNewGateInOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -162,7 +162,7 @@ func AddNewGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	gateType := r.FormValue("gateType")
 
-	newGate, err := service.AddNewGateInOrder(user, saleID, gateType)
+	newGate, err := service.AddNewGateInOrder(user, orderID, gateType)
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
@@ -210,7 +210,7 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 func UpdateProductList(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -229,7 +229,7 @@ func UpdateProductList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := service.UpdateProductsInOrder(user, saleID, &updateProductsRequest); err != nil {
+	if err := service.UpdateProductsInOrder(user, orderID, &updateProductsRequest); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -240,7 +240,7 @@ func UpdateProductList(w http.ResponseWriter, r *http.Request) {
 func UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -259,7 +259,7 @@ func UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = service.UpdateOrderStatus(user, saleID, &updateStatusRequest)
+	err = service.UpdateOrderStatus(user, orderID, &updateStatusRequest)
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
@@ -277,7 +277,7 @@ func UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 func DeleteGateFromOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -289,7 +289,7 @@ func DeleteGateFromOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = service.DeleteGateFromOrder(user, saleID, gateID)
+	err = service.DeleteGateFromOrder(user, orderID, gateID)
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
@@ -304,7 +304,7 @@ func DeleteGateFromOrder(w http.ResponseWriter, r *http.Request) {
 func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -329,7 +329,7 @@ func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = service.UpdateGateInOrder(user, saleID, gateID, &gateData)
+	err = service.UpdateGateInOrder(user, orderID, gateID, &gateData)
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
@@ -344,13 +344,13 @@ func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {
 func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	resp, err := service.GetAllOrderDocuments(user, saleID)
+	resp, err := service.GetAllOrderDocuments(user, orderID)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
@@ -372,7 +372,7 @@ func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
 func UploadOfferToOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -391,13 +391,13 @@ func UploadOfferToOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	err = service.UploadOfferToOrder(user, saleID, file, handler)
+	err = service.UploadOfferToOrder(user, orderID, file, handler)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/orders/"+fmt.Sprint(saleID), http.StatusSeeOther)
+	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
 }
 
 // Route: /orders/{order_id}/contract
@@ -405,7 +405,7 @@ func UploadOfferToOrder(w http.ResponseWriter, r *http.Request) {
 func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -424,13 +424,13 @@ func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	err = service.UploadContractToOrder(user, saleID, file, handler)
+	err = service.UploadContractToOrder(user, orderID, file, handler)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/orders/"+fmt.Sprint(saleID), http.StatusSeeOther)
+	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
 }
 
 // Route: /orders/{order_id}/bill
@@ -438,7 +438,7 @@ func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
 func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -457,13 +457,13 @@ func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	err = service.UploadBillToOrder(user, saleID, file, handler)
+	err = service.UploadBillToOrder(user, orderID, file, handler)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/orders/"+fmt.Sprint(saleID), http.StatusSeeOther)
+	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
 }
 
 // Route: /orders/{order_id}/documents/{document_type}/{document_name}
@@ -471,7 +471,7 @@ func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
 func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -480,7 +480,7 @@ func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
 	documentType := r.PathValue("document_type")
 	documentName := r.PathValue("document_name")
 
-	fileInfo, err := service.GetFileInfo(user, saleID, documentType, documentName)
+	fileInfo, err := service.GetFileInfo(user, orderID, documentType, documentName)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
@@ -495,7 +495,7 @@ func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
 func DeleteOrderDocument(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	saleID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
 		return
@@ -504,7 +504,7 @@ func DeleteOrderDocument(w http.ResponseWriter, r *http.Request) {
 	documentType := r.PathValue("document_type")
 	documentName := r.PathValue("document_name")
 
-	if err := service.DeleteOrderDocument(user, saleID, documentType, documentName); err != nil {
+	if err := service.DeleteOrderDocument(user, orderID, documentType, documentName); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}

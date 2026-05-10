@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
-	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
@@ -12,19 +12,19 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/sizes"
+	"github.com/Euhcslel/SagaWeb/internal/domain/gate_sizes"
 	"github.com/Euhcslel/SagaWeb/internal/types"
 )
 
-func GetSizeForDimensions(width, height int64, gateType enums.GateType) (sizes.Size, error) {
-	var size sizes.Size
-	if err := database.DB.Model(&sizes.Size{}).
+func GetSizeForDimensions(width, height int64, gateType enums.GateType) (gate_sizes.GateSize, error) {
+	var size gate_sizes.GateSize
+	if err := database.DB.Model(&gate_sizes.GateSize{}).
 		Where("width >= ? AND height >= ?", width, height).
 		Where("gate_type = ?", gateType).
 		Limit(1).
 		Order("width asc, height asc").
 		First(&size).Error; err != nil {
-		return sizes.Size{}, err
+		return gate_sizes.GateSize{}, err
 	}
 	return size, nil
 }
@@ -69,8 +69,8 @@ func GetColors() ([]colors.Color, error) {
 	return colors, nil
 }
 
-func GetCycleAmounts() ([]cycle_amount.CycleAmount, error) {
-	var cycleAmounts []cycle_amount.CycleAmount
+func GetCycleAmounts() ([]cycle_amounts.CycleAmount, error) {
+	var cycleAmounts []cycle_amounts.CycleAmount
 	if err := database.DB.Find(&cycleAmounts).Error; err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func GetCycleAmounts() ([]cycle_amount.CycleAmount, error) {
 func GetMaxAndMinWidth(gateType enums.GateType) (types.SizeParams, error) {
 	var widthParams types.SizeParams
 	if err := database.DB.
-		Model(&sizes.Size{}).
+		Model(&gate_sizes.GateSize{}).
 		Select("MAX(width) as max_value, MIN(width) as min_value").
 		Where("gate_type = ?", gateType).
 		Scan(&widthParams).Error; err != nil {
@@ -92,7 +92,7 @@ func GetMaxAndMinWidth(gateType enums.GateType) (types.SizeParams, error) {
 func GetMaxAndMinHeight(gateType enums.GateType) (types.SizeParams, error) {
 	var heightParams types.SizeParams
 	if err := database.DB.
-		Model(&sizes.Size{}).
+		Model(&gate_sizes.GateSize{}).
 		Select("MAX(height) as max_value, MIN(height) as min_value").
 		Where("gate_type = ?", gateType).
 		Scan(&heightParams).Error; err != nil {

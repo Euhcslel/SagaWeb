@@ -5,22 +5,23 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
-	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
-	"github.com/Euhcslel/SagaWeb/internal/domain/managers_and_dealers"
 	"net/smtp"
 	"os"
+	"time"
+
 	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
 	"github.com/Euhcslel/SagaWeb/internal/types"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GetUserDealers(user *users.User) ([]managers_and_dealers.ManagerAndDealer, error) {
+func GetUserDealers(user *users.User) ([]dealer_manager_assignments.DealerManagerAssignment, error) {
 	role := user.Role
 
 	if role == enums.ManagerRole {
@@ -68,7 +69,7 @@ func GetUserInfo(user *users.User) (*UserInfo, error) {
 
 		userInfo.Dealer = &DealerInfo{
 			CompanyName: dealer.Company.Name,
-			Address:     dealer.Address,
+			Address:     *dealer.Address,
 		}
 	}
 
@@ -87,7 +88,7 @@ func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
 	}
 
 	if user.Role == enums.DealerRole {
-		dealer, err := repository.GetDealerById(tx, user.ID)
+		dealer, err := repository.GetDealerByID(tx, user.ID)
 		if err != nil {
 			return err
 		}
@@ -108,7 +109,7 @@ func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
 	return nil
 }
 
-func ConfirmDealerRegRequest(manager *users.User, requestId int64) error {
+func ConfirmDealerRegistrationRequest(manager *users.User, requestID int64) error {
 	password, err := generatePassword(18)
 	if err != nil {
 		return err
@@ -121,7 +122,7 @@ func ConfirmDealerRegRequest(manager *users.User, requestId int64) error {
 
 	tx := database.DB.Begin()
 
-	request, err := repository.GetRegRequestById(tx, requestId)
+	request, err := repository.GetRegistrationRequestByID(tx, requestID)
 	if err != nil {
 		return err
 	}
@@ -154,7 +155,7 @@ func ConfirmDealerRegRequest(manager *users.User, requestId int64) error {
 		return err
 	}
 
-	if err := repository.DeleteRegRequest(tx, requestId); err != nil {
+	if err := repository.DeleteRegistrationRequest(tx, requestID); err != nil {
 		return err
 	}
 
@@ -236,6 +237,6 @@ func buildEmailMessage(from, to, subject, body string) string {
 	)
 }
 
-func RejectDealerRegRequest(requestId int64) error {
-	return repository.DeleteRegRequest(database.DB, requestId)
+func RejectDealerRegistrationRequest(requestID int64) error {
+	return repository.DeleteRegistrationRequest(database.DB, requestID)
 }

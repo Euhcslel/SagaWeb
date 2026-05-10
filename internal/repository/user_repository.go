@@ -2,9 +2,9 @@ package repository
 
 import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/companies"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_registration_requests"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
-	"github.com/Euhcslel/SagaWeb/internal/domain/dealers_reg_requests"
-	"github.com/Euhcslel/SagaWeb/internal/domain/managers_and_dealers"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	"github.com/Euhcslel/SagaWeb/internal/types"
 
@@ -12,9 +12,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func GetUserDealers(db *gorm.DB, userID int64) ([]managers_and_dealers.ManagerAndDealer, error) {
-	var dealers []managers_and_dealers.ManagerAndDealer
-	if err := db.Model(managers_and_dealers.ManagerAndDealer{}).Preload("Dealer").Where("manager_id = ?", userID).Find(&dealers).Error; err != nil {
+func GetUserDealers(db *gorm.DB, userID int64) ([]dealer_manager_assignments.DealerManagerAssignment, error) {
+	var dealers []dealer_manager_assignments.DealerManagerAssignment
+	if err := db.Model(dealer_manager_assignments.DealerManagerAssignment{}).Preload("Dealer").Where("manager_id = ?", userID).Find(&dealers).Error; err != nil {
 		return nil, err
 	}
 
@@ -47,27 +47,27 @@ func UpdateDealerInfo(db *gorm.DB, userID int64, userInfo types.UpdatedUserInfo)
 		}).Error
 }
 
-func GetDealerById(db *gorm.DB, dealerId int64) (dealers.Dealer, error) {
+func GetDealerByID(db *gorm.DB, dealerID int64) (dealers.Dealer, error) {
 	var dealer dealers.Dealer
-	if err := db.Where("user_id = ?", dealerId).First(&dealer).Error; err != nil {
+	if err := db.Where("user_id = ?", dealerID).First(&dealer).Error; err != nil {
 		return dealers.Dealer{}, err
 	}
 
 	return dealer, nil
 }
 
-func UpdateCompanyInfo(db *gorm.DB, companyId int64, userInfo types.UpdatedUserInfo) error {
+func UpdateCompanyInfo(db *gorm.DB, companyID int64, userInfo types.UpdatedUserInfo) error {
 	return db.Model(&companies.Company{}).
-		Where("id = ?", companyId).
+		Where("id = ?", companyID).
 		Updates(map[string]any{
 			"name": userInfo.Company,
 		}).Error
 }
 
-func GetRegRequestById(db *gorm.DB, requestId int64) (dealers_reg_requests.DealerRegRequest, error) {
-	var request dealers_reg_requests.DealerRegRequest
-	if err := db.Where("id = ?", requestId).First(&request).Error; err != nil {
-		return dealers_reg_requests.DealerRegRequest{}, err
+func GetRegistrationRequestByID(db *gorm.DB, requestID int64) (dealer_registration_requests.DealerRegistrationRequest, error) {
+	var request dealer_registration_requests.DealerRegistrationRequest
+	if err := db.Where("id = ?", requestID).First(&request).Error; err != nil {
+		return dealer_registration_requests.DealerRegistrationRequest{}, err
 	}
 
 	return request, nil
@@ -103,10 +103,10 @@ func GetOrCreateCompanyByName(db *gorm.DB, name string) (*companies.Company, err
 	return &company, nil
 }
 
-func AttachDealerToManager(db *gorm.DB, dealerId int64, managerId int64) error {
-	return db.Create(&managers_and_dealers.ManagerAndDealer{DealerID: dealerId, ManagerID: managerId}).Error
+func AttachDealerToManager(db *gorm.DB, dealerID int64, managerID int64) error {
+	return db.Create(&dealer_manager_assignments.DealerManagerAssignment{DealerID: dealerID, ManagerID: managerID}).Error
 }
 
-func DeleteRegRequest(db *gorm.DB, requestId int64) error {
-	return db.Where("id = ?", requestId).Delete(dealers_reg_requests.DealerRegRequest{}).Error
+func DeleteRegistrationRequest(db *gorm.DB, requestID int64) error {
+	return db.Where("id = ?", requestID).Delete(dealer_registration_requests.DealerRegistrationRequest{}).Error
 }

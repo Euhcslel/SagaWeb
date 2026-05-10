@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
-	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
@@ -105,8 +105,8 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		tableData = cycle_amount.CycleAmount{
-			Name:            r.FormValue("amount"),
+		tableData = cycle_amounts.CycleAmount{
+			Amount:          r.FormValue("amount"),
 			WholesaleMarkup: wholesaleMakup,
 			RetailMarkup:    retailMakup,
 		}
@@ -118,11 +118,14 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		specificationsValue := r.FormValue("specifications")
+		specifications := &specificationsValue
+
 		tableData = industrial_gate_drives.IndustrialGateDrive{
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
-			Specifications: r.FormValue("specifications"),
+			Specifications: specifications,
 		}
 	case "lift_types":
 		maxHeadroom, err := strconv.ParseInt(r.FormValue("max-headroom"), 10, 32)
@@ -175,11 +178,14 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		specificationsValue := r.FormValue("specifications")
+		specifications := &specificationsValue
+
 		tableData = residential_gate_drives.ResidentialGateDrive{
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
-			Specifications: r.FormValue("specifications"),
+			Specifications: specifications,
 		}
 	default:
 		helpers.WriteError(w, errors.New("invalid table name"), http.StatusBadRequest)

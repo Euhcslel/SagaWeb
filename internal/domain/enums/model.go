@@ -65,31 +65,31 @@ func (s OrderStatus) Label() string {
 }
 
 // Тип Статус заявки на регистрацию
-type RegRequestStatus string
+type RegistrationRequestStatus string
 
 const (
-	RegRequestStatusPending  RegRequestStatus = "pending"
-	RegRequestStatusApproved RegRequestStatus = "approved"
-	RegRequestStatusRejected RegRequestStatus = "rejected"
+	RegistrationRequestStatusPending  RegistrationRequestStatus = "pending"
+	RegistrationRequestStatusApproved RegistrationRequestStatus = "approved"
+	RegistrationRequestStatusRejected RegistrationRequestStatus = "rejected"
 )
 
 // Функция для получения всех статусов заявки на регистрацию
-func GetAllRegRequestStatuses() []RegRequestStatus {
-	return []RegRequestStatus{
-		RegRequestStatusPending,
-		RegRequestStatusApproved,
-		RegRequestStatusRejected,
+func GetAllRegRequestStatuses() []RegistrationRequestStatus {
+	return []RegistrationRequestStatus{
+		RegistrationRequestStatusPending,
+		RegistrationRequestStatusApproved,
+		RegistrationRequestStatusRejected,
 	}
 }
 
 // Функция для получения наименования статуса заявки на регистрацию
-func (s RegRequestStatus) Label() string {
+func (s RegistrationRequestStatus) Label() string {
 	switch s {
-	case RegRequestStatusPending:
+	case RegistrationRequestStatusPending:
 		return "Ожидает подтверждения"
-	case RegRequestStatusApproved:
+	case RegistrationRequestStatusApproved:
 		return "Подтверждён"
-	case RegRequestStatusRejected:
+	case RegistrationRequestStatusRejected:
 		return "Отклонён"
 	default:
 		return "Неизвестно"
@@ -100,8 +100,8 @@ func (s RegRequestStatus) Label() string {
 type GateType string
 
 const (
-	GateTypeInd GateType = "ind"
-	GateTypeRes GateType = "res"
+	GateTypeInd GateType = "industrial"
+	GateTypeRes GateType = "residential"
 )
 
 // Функция для получения всех типов ворот
@@ -221,14 +221,14 @@ const (
 type DocumentType string
 
 const (
-	ContractDocumentType = "contract"
-	OfferDocumentType    = "offer"
-	BillDocumentType     = "bill"
-	OtherDocumentType    = "other"
+	ContractDocumentType DocumentType = "contract"
+	OfferDocumentType    DocumentType = "offer"
+	BillDocumentType     DocumentType = "bill"
+	OtherDocumentType    DocumentType = "other"
 )
 
 func GetDocumentTypeFromString(docType string) (DocumentType, error) {
-	switch docType {
+	switch DocumentType(docType) {
 	case ContractDocumentType:
 		return ContractDocumentType, nil
 	case OfferDocumentType:

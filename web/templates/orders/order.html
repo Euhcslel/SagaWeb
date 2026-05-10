@@ -75,7 +75,7 @@
                 <li>{{.Gate.GateType.Label}}</li>
                 <li>{{.Gate.LiftType.Name}}</li>
                 <li>{{.Gate.ColorOut.Code}}</li>
-                <li>{{.Gate.CycleAmount.Name}}</li>
+                <li>{{.Gate.CycleAmount.Amount}}</li>
                 <li>{{.Gate.GateRetailPrice}}</li>
                 <li>{{.Gate.GateWholesalePrice}}</li>
               </ul>
@@ -83,7 +83,7 @@
                 <!--Перейти в детали заказа-->
                 <a
                   class="btn secondary"
-                  href="/orders/{{.Gate.SaleID}}/{{.Gate.RowNumber}}"
+                  href="/orders/{{.Gate.OrderID}}/{{.Gate.RowNumber}}"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

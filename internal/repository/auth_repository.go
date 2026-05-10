@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/Euhcslel/SagaWeb/internal/database"
-	"github.com/Euhcslel/SagaWeb/internal/domain/dealers_reg_requests"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_registration_requests"
 	"github.com/Euhcslel/SagaWeb/internal/domain/sessions"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
@@ -18,7 +18,7 @@ func GetUserByEmail(email string) (users.User, error) {
 	return user, nil
 }
 
-func CreateDealerRegRequest(request dealers_reg_requests.DealerRegRequest) error {
+func CreateDealerRegistrationRequest(request dealer_registration_requests.DealerRegistrationRequest) error {
 	return database.DB.Create(&request).Error
 }
 
@@ -26,8 +26,8 @@ func DeleteSession(token string) error {
 	return database.DB.Where("token = ?", token).Delete(sessions.Session{}).Error
 }
 
-func GetAllDealerRegRequests() ([]dealers_reg_requests.DealerRegRequest, error) {
-	var requests []dealers_reg_requests.DealerRegRequest
+func GetAllDealerRegistrationRequests() ([]dealer_registration_requests.DealerRegistrationRequest, error) {
+	var requests []dealer_registration_requests.DealerRegistrationRequest
 	if err := database.DB.Find(&requests).Error; err != nil {
 		return nil, err
 	}

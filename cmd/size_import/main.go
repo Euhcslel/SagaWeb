@@ -6,7 +6,7 @@ import (
 	"os"
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
-	"github.com/Euhcslel/SagaWeb/internal/domain/sizes"
+	"github.com/Euhcslel/SagaWeb/internal/domain/gate_sizes"
 
 	"strconv"
 
@@ -73,7 +73,7 @@ func createSizes(dealerPath string, clientPath string, gateType enums.GateType) 
 		}
 	}()
 
-	sizeList := []sizes.Size{}
+	sizeList := []gate_sizes.GateSize{}
 
 	clientRows, err := clientPricesFile.GetRows("Лист1")
 	if err != nil {
@@ -100,7 +100,7 @@ func createSizes(dealerPath string, clientPath string, gateType enums.GateType) 
 	}
 
 	for i := 1; i < len(clientRows); i++ {
-		size := sizes.Size{}
+		size := gate_sizes.GateSize{}
 
 		height, err := clientPricesFile.GetCellValue("Лист1", "A"+strconv.Itoa(i))
 		if height == "" {

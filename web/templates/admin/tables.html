@@ -1,14 +1,34 @@
-{{template "html-start" .}}
-<div class="tables">
-  <a class="btn secondary" href="/tables/colors">Цвета</a>
-  <a class="btn secondary" href="/tables/cycle_amounts">Количество циклов</a>
-  <a class="btn secondary" href="/tables/industrial_drives"
-    >Промышленный привод</a
-  >
-  <a class="btn secondary" href="/tables/residential_drives">Бытовой привод</a>
-  <a class="btn secondary" href="/tables/lift_types">Тип подъема</a>
-  <a class="btn secondary" href="/tables/options">Дополнительные опции</a>
-  <a class="btn secondary" href="/tables/products">Товары</a>
-</div>
-
-{{template "html-end"}}
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    {{if .css}}
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
+    {{end}}
+    <title>Таблицы базы данных</title>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <div class="tables">
+        <a class="btn secondary" href="/tables/colors">Цвета</a>
+        <a class="btn secondary" href="/tables/cycle_amounts"
+          >Количество циклов</a
+        >
+        <a class="btn secondary" href="/tables/industrial_drives"
+          >Промышленный привод</a
+        >
+        <a class="btn secondary" href="/tables/residential_drives"
+          >Бытовой привод</a
+        >
+        <a class="btn secondary" href="/tables/lift_types">Тип подъема</a>
+        <a class="btn secondary" href="/tables/options">Дополнительные опции</a>
+        <a class="btn secondary" href="/tables/products">Товары</a>
+      </div>
+    </main>
+    {{template "footer" .}}
+  </body>
+</html>

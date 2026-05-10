@@ -1,147 +1,166 @@
-{{template "html-start" .}}
-<div class="card">
-  <div class="card-body">
-    <h2 class="card-title">Информация о пользователе</h2>
-    <form action="/user" method="post">
-      {{if .userInfo.IsDealer}}
-      <!--ФИО-->
-      <label class="input validator">
-        ФИО
-        <input
-          name="fullname"
-          type="text"
-          value="{{.userInfo.Fullname}}"
-          required
-          placeholder="ФИО"
-          pattern="^[А-Яа-яЁё\s]+$"
-          minlength="1"
-          maxlength="50"
-          title="Только буквы кириллицы"
-        />
-      </label>
-      <p class="validator-hint">Только буквы кириллицы</p>
-      <!--Email-->
-      <label class="input validator">
-        Email
-        <input
-          name="email"
-          type="email"
-          value="{{.userInfo.Email}}"
-          placeholder="mail@site.com"
-          required
-        />
-      </label>
-      <div class="validator-hint hidden">Введите корректный email</div>
-      <!--Phone-->
-      <label class="input validator">
-        Номер телефона
-        <input
-          name="phone"
-          type="tel"
-          class="tabular-nums"
-          value="{{.userInfo.Phone}}"
-          required
-          placeholder="Номер телефона"
-          pattern="8[0-9]*"
-          minlength="11"
-          maxlength="11"
-          title="Длина должна быть 11 символов и начинаться с цифры 8"
-        />
-      </label>
-      <p class="validator-hint">
-        Длина должна быть 11 символов и начинаться с цифры 8
-      </p>
-      <!--Название компании-->
-      <label class="input validator">
-        Название компании
-        <input
-          name="company"
-          type="text"
-          value="{{.userInfo.Dealer.CompanyName}}"
-          required
-          placeholder="Название компании"
-          pattern="^[A-Za-zА-Яа-яЁё\s\.]+$"
-          minlength="3"
-          maxlength="100"
-          title="Только буквы латиницы или кириллицы"
-        />
-      </label>
-      <p class="validator-hint">
-        Длина должна быть от 3 до 100 символов
-        <br />включать буквы латиницы или кириллицы
-      </p>
-      <!--Адрес-->
-      <label class="input validator">
-        Адрес
-        <input
-          name="address"
-          type="text"
-          value="{{.userInfo.Dealer.Address}}"
-          placeholder="Адрес"
-          pattern="^[A-Za-zА-Яа-яЁё\s,\.\d]+$"
-          maxlength="150"
-          title="Только буквы латиницы или кириллицы"
-        />
-      </label>
-      <p class="validator-hint">
-        Длина должна быть до 150 символов
-        <br />включать буквы латиницы или кириллицы
-      </p>
-      {{else}}
-      <!--ФИО-->
-      <label class="input validator">
-        ФИО
-        <input
-          name="fullname"
-          type="text"
-          value="{{.userInfo.Fullname}}"
-          required
-          placeholder="ФИО"
-          pattern="^[А-Яа-яЁё\s]+$"
-          minlength="1"
-          maxlength="50"
-          title="Только буквы кириллицы"
-        />
-      </label>
-      <p class="validator-hint">Только буквы кириллицы</p>
-      <!--Email-->
-      <label class="input validator">
-        Email
-        <input
-          name="email"
-          type="email"
-          value="{{.userInfo.Email}}"
-          placeholder="mail@site.com"
-          required
-        />
-      </label>
-      <!--Phone-->
-      <label class="input validator">
-        Номер телефона
-        <input
-          name="phone"
-          type="tel"
-          class="tabular-nums"
-          value="{{.userInfo.Phone}}"
-          required
-          placeholder="Номер телефона"
-          pattern="8[0-9]*"
-          minlength="11"
-          maxlength="11"
-          title="Длина должна быть 11 символов и начинаться с цифры 8"
-        />
-      </label>
-      <p class="validator-hint">
-        Длина должна быть 11 символов и начинаться с цифры 8
-      </p>
-      {{end}}
-      <button class="btn secondary" type="submit">Сохранить изменения</button>
-    </form>
-  </div>
-  <div class="card-actions">
-    <form action="/sign_out" method="post">
-      <button class="btn secondary" type="submit">Выйти</button>
-    </form>
-  </div>
-</div>
-{{template "html-end"}}
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    {{if .css}}
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
+    {{end}}
+    <title>Личный кабинет</title>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <div class="card">
+        <div class="card-body">
+          <h2 class="card-title">Информация о пользователе</h2>
+          <form action="/user" method="post">
+            {{if .userInfo.IsDealer}}
+            <!--ФИО-->
+            <label class="input validator">
+              ФИО
+              <input
+                name="fullname"
+                type="text"
+                value="{{.userInfo.Fullname}}"
+                required
+                placeholder="ФИО"
+                pattern="^[А-Яа-яЁё\s]+$"
+                minlength="1"
+                maxlength="50"
+                title="Только буквы кириллицы"
+              />
+            </label>
+            <p class="validator-hint">Только буквы кириллицы</p>
+            <!--Email-->
+            <label class="input validator">
+              Email
+              <input
+                name="email"
+                type="email"
+                value="{{.userInfo.Email}}"
+                placeholder="mail@site.com"
+                required
+              />
+            </label>
+            <div class="validator-hint hidden">Введите корректный email</div>
+            <!--Phone-->
+            <label class="input validator">
+              Номер телефона
+              <input
+                name="phone"
+                type="tel"
+                class="tabular-nums"
+                value="{{.userInfo.Phone}}"
+                required
+                placeholder="Номер телефона"
+                pattern="8[0-9]*"
+                minlength="11"
+                maxlength="11"
+                title="Длина должна быть 11 символов и начинаться с цифры 8"
+              />
+            </label>
+            <p class="validator-hint">
+              Длина должна быть 11 символов и начинаться с цифры 8
+            </p>
+            <!--Название компании-->
+            <label class="input validator">
+              Название компании
+              <input
+                name="company"
+                type="text"
+                value="{{.userInfo.Dealer.CompanyName}}"
+                required
+                placeholder="Название компании"
+                pattern="^[A-Za-zА-Яа-яЁё\s\.]+$"
+                minlength="3"
+                maxlength="100"
+                title="Только буквы латиницы или кириллицы"
+              />
+            </label>
+            <p class="validator-hint">
+              Длина должна быть от 3 до 100 символов
+              <br />включать буквы латиницы или кириллицы
+            </p>
+            <!--Адрес-->
+            <label class="input validator">
+              Адрес
+              <input
+                name="address"
+                type="text"
+                value="{{.userInfo.Dealer.Address}}"
+                placeholder="Адрес"
+                pattern="^[A-Za-zА-Яа-яЁё\s,\.\d]+$"
+                maxlength="150"
+                title="Только буквы латиницы или кириллицы"
+              />
+            </label>
+            <p class="validator-hint">
+              Длина должна быть до 150 символов
+              <br />включать буквы латиницы или кириллицы
+            </p>
+            {{else}}
+            <!--ФИО-->
+            <label class="input validator">
+              ФИО
+              <input
+                name="fullname"
+                type="text"
+                value="{{.userInfo.Fullname}}"
+                required
+                placeholder="ФИО"
+                pattern="^[А-Яа-яЁё\s]+$"
+                minlength="1"
+                maxlength="50"
+                title="Только буквы кириллицы"
+              />
+            </label>
+            <p class="validator-hint">Только буквы кириллицы</p>
+            <!--Email-->
+            <label class="input validator">
+              Email
+              <input
+                name="email"
+                type="email"
+                value="{{.userInfo.Email}}"
+                placeholder="mail@site.com"
+                required
+              />
+            </label>
+            <!--Phone-->
+            <label class="input validator">
+              Номер телефона
+              <input
+                name="phone"
+                type="tel"
+                class="tabular-nums"
+                value="{{.userInfo.Phone}}"
+                required
+                placeholder="Номер телефона"
+                pattern="8[0-9]*"
+                minlength="11"
+                maxlength="11"
+                title="Длина должна быть 11 символов и начинаться с цифры 8"
+              />
+            </label>
+            <p class="validator-hint">
+              Длина должна быть 11 символов и начинаться с цифры 8
+            </p>
+            {{end}}
+            <button class="btn secondary" type="submit">
+              Сохранить изменения
+            </button>
+          </form>
+        </div>
+        <div class="card-actions">
+          <form action="/sign_out" method="post">
+            <button class="btn secondary" type="submit">Выйти</button>
+          </form>
+        </div>
+      </div>
+    </main>
+    {{template "footer" .}}
+  </body>
+</html>

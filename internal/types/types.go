@@ -2,17 +2,17 @@ package types
 
 import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
-	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gates"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_gates"
-	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_products"
 )
 
 type SizeParams struct {
@@ -21,7 +21,7 @@ type SizeParams struct {
 }
 
 type Config struct {
-	CycleAmounts      []cycle_amount.CycleAmount
+	CycleAmounts      []cycle_amounts.CycleAmount
 	LiftTypes         []lift_types.LiftType
 	Colors            []colors.Color
 	IndustrialDrives  []industrial_gate_drives.IndustrialGateDrive
@@ -36,13 +36,13 @@ type Config struct {
 }
 
 type Gate struct {
-	Gate    sales_and_gates.SalesAndGate
+	Gate    order_gates.OrderGate
 	Options []options.Option
 }
 
 type Order struct {
 	Gates    []Gate
-	Products []sales_and_products.SalesAndProduct
+	Products []order_products.OrderProduct
 	Status   enums.OrderStatus
 }
 

@@ -217,7 +217,7 @@ window.updateGateSizePrice = async (input) => {
   const price = await fetchSizePrice(
     width.value,
     height.value,
-    gateType.value.slice(0, 3),
+    gateType.value,
   );
 
   sizes.dataset.retailPrice = price.retail;

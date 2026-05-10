@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
-	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
@@ -25,7 +25,7 @@ func AddNewDataBaseTableRow(tableName string, tableData any) error {
 			return err
 		}
 	case "cycle_amounts":
-		tableData, ok := tableData.(cycle_amount.CycleAmount)
+		tableData, ok := tableData.(cycle_amounts.CycleAmount)
 		if !ok {
 			return errors.New("invalid table type")
 		}

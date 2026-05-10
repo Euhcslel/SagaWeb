@@ -93,7 +93,7 @@ func UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 func GetDealersRegRequests(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
-	regRequests, err := service.GetDealersRegRequests()
+	regRequests, err := service.GetDealersRegistrationRequests()
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
@@ -121,7 +121,7 @@ func ConfirmDealerRegRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := service.ConfirmDealerRegRequest(user, requestId); err != nil {
+	if err := service.ConfirmDealerRegistrationRequest(user, requestId); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -136,7 +136,7 @@ func RejectDealerRegRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := service.RejectDealerRegRequest(requestId); err != nil {
+	if err := service.RejectDealerRegistrationRequest(requestId); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}

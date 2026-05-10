@@ -18,7 +18,7 @@ func GetDealersList() ([]UserInfo, error) {
 
 			Dealer: &DealerInfo{
 				CompanyName: dealer.Company.Name,
-				Address: dealer.Address,
+				Address:     *dealer.Address,
 			},
 		})
 

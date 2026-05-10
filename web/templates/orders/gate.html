@@ -32,7 +32,7 @@
     {{template "header-nav" .}}
     <main>
       <div class="back-button">
-        <a class="btn secondary" href="/orders/{{.gate.SaleID}}"
+        <a class="btn secondary" href="/orders/{{.gate.OrderID}}"
           >Вернуться назад</a
         >
       </div>
@@ -201,7 +201,7 @@
                   .ID
                   $.gate.CycleAmountID}}selected{{end}}
                 >
-                  {{.Name}}
+                  {{.Amount}}
                 </option>
                 {{end}}
               </select>

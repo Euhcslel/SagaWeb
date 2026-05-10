@@ -2,9 +2,9 @@ package service
 
 import (
 	"errors"
-	errs "github.com/Euhcslel/SagaWeb/internal/errors"
-	"github.com/Euhcslel/SagaWeb/internal/domain/dealers_reg_requests"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_registration_requests"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
 
 	"golang.org/x/crypto/bcrypt"
@@ -19,32 +19,32 @@ func SignIn(email, password string) (int64, error) {
 		return 0, err
 	}
 
-	userId := user.ID
+	userID := user.ID
 
 	dbPassword := user.PasswordHash
 	err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
 	if err != nil {
 		return 0, errs.ErrInvalidCredentials
 	}
-	return userId, nil
+	return userID, nil
 }
 
 func SignUp(fullname, company, phone, email string) error {
-	request := dealers_reg_requests.DealerRegRequest{
-		Company:      company,
-		Fullname:     fullname,
-		PhoneNumber:  phone,
-		Email:        email,
-		Status:       enums.RegRequestStatusPending,
+	request := dealer_registration_requests.DealerRegistrationRequest{
+		Company:     company,
+		Fullname:    fullname,
+		PhoneNumber: phone,
+		Email:       email,
+		Status:      enums.RegistrationRequestStatusPending,
 	}
 
-	return repository.CreateDealerRegRequest(request)
+	return repository.CreateDealerRegistrationRequest(request)
 }
 
 func SignOut(sessionToken string) error {
 	return repository.DeleteSession(sessionToken)
 }
 
-func GetDealersRegRequests() ([]dealers_reg_requests.DealerRegRequest, error) {
-	return repository.GetAllDealerRegRequests()
+func GetDealersRegistrationRequests() ([]dealer_registration_requests.DealerRegistrationRequest, error) {
+	return repository.GetAllDealerRegistrationRequests()
 }

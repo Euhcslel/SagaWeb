@@ -1,6 +1,10 @@
 package manual_drive_prices
 
-import "github.com/shopspring/decimal"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 const TableNameManualDrivePrices = "manual_drive_prices"
 
@@ -12,6 +16,8 @@ type ManualDrivePrice struct {
 
 	RcpRetailPrice    decimal.Decimal `gorm:"column:rcp_retail_price"`
 	RcpWholesalePrice decimal.Decimal `gorm:"column:rcp_wholesale_price"`
+
+	CreatedAt time.Time `gorm:"column:created_at;default:NOW();not null"`
 }
 
 func (*ManualDrivePrice) TableName() string {

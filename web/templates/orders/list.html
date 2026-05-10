@@ -1,51 +1,68 @@
-{{template "html-start" .}}
-<div class="table-container">
-  <h1>Все заказы пользователя</h1>
-  <hr class="gradient-line" />
-  <div class="table-scroll">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>№ Заказа</th>
-          <th>Заказчик</th>
-          <th>Менеджер</th>
-          <th>Дата заказа</th>
-          <th>Статус</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{range .orders}}
-        <tr
-          onclick="window.location='/orders/{{.ID}}'"
-          class="
-              {{if eq .Status `confirmed`}}status-confirmed{{end}}
-              {{if eq .Status `pending`}}status-pending{{end}}
-              {{if eq .Status `paid`}}status-paid{{end}}
-              {{if eq .Status `cancelled`}}status-cancelled{{end}}
-              {{if eq .Status `done`}}status-done{{end}}
-            "
-        >
-          <td><p>Заказ #{{.ID}}</p></td>
-          <td>
-            {{if .Client}}
-            <p>{{.Client.Fullname}}</p>
-            {{else}}
-            <p>Незарегистрирован</p>
-            {{end}}
-          </td>
-          <td>
-            {{if .Manager}}
-            <p>{{.Manager.Fullname}}</p>
-            {{else}}
-            <p>Нет</p>
-            {{end}}
-          </td>
-          <td>{{fmtTime .CreatedAt}}</td>
-          <td>{{.Status.Label}}</td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
-  </div>
-</div>
-{{template "html-end"}}
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    {{if .css}}
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
+    {{end}}
+    <title>Заказы</title>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <div class="table-container">
+        <h1>Все заказы пользователя</h1>
+        <hr class="gradient-line" />
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>№ Заказа</th>
+                <th>Заказчик</th>
+                <th>Менеджер</th>
+                <th>Дата заказа</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{range .orders}}
+              <tr
+                onclick="window.location='/orders/{{.ID}}'"
+                class="
+                    {{if eq .Status `confirmed`}}status-confirmed{{end}}
+                    {{if eq .Status `pending`}}status-pending{{end}}
+                    {{if eq .Status `paid`}}status-paid{{end}}
+                    {{if eq .Status `cancelled`}}status-cancelled{{end}}
+                    {{if eq .Status `done`}}status-done{{end}}
+                  "
+              >
+                <td><p>Заказ #{{.ID}}</p></td>
+                <td>
+                  {{if .Dealer}}
+                  <p>{{.Dealer.User.Fullname}}</p>
+                  {{else}}
+                  <p>Незарегистрирован</p>
+                  {{end}}
+                </td>
+                <td>
+                  {{if .Manager}}
+                  <p>{{.Manager.Fullname}}</p>
+                  {{else}}
+                  <p>Нет</p>
+                  {{end}}
+                </td>
+                <td>{{fmtTime .CreatedAt}}</td>
+                <td>{{.Status.Label}}</td>
+              </tr>
+              {{end}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+    {{template "footer" .}}
+  </body>
+</html>

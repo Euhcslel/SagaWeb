@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
-	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
@@ -15,7 +15,7 @@ func CreateNewColor(color colors.Color) error {
 	return database.DB.Create(&color).Error
 }
 
-func CreateNewCycleAmount(cycleAmount cycle_amount.CycleAmount) error {
+func CreateNewCycleAmount(cycleAmount cycle_amounts.CycleAmount) error {
 	return database.DB.Create(&cycleAmount).Error
 }
 

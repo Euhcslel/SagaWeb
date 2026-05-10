@@ -3,18 +3,18 @@ package service
 import (
 	"errors"
 	"github.com/Euhcslel/SagaWeb/internal/database"
-	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amount"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
-	"github.com/Euhcslel/SagaWeb/internal/domain/gates_and_sales_manual_drive"
-	"github.com/Euhcslel/SagaWeb/internal/domain/gates_and_sales_options"
-	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gates_and_sales_drive"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_manual_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_industrial_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
-	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gates_and_sales_drive_rail"
-	"github.com/Euhcslel/SagaWeb/internal/domain/sales"
-	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_gates"
-	"github.com/Euhcslel/SagaWeb/internal/domain/sales_and_products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_residential_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/orders"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gates"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/generated"
@@ -31,30 +31,30 @@ import (
 )
 
 // Функция для проверки доступа к заказу
-func getAccessibleSale(user *users.User, saleID int64) (*sales.Sale, error) {
-	var sale sales.Sale
-	query := database.DB.Where("id = ?", saleID)
+func checkOrderAccess(user *users.User, orderID int64) error {
+	var order orders.Order
+	query := database.DB.Where("id = ?", orderID)
 
 	switch user.Role {
 	case enums.DealerRole:
-		query = query.Where("client_id = ?", user.ID)
+		query = query.Where("dealer_id = ?", user.ID)
 	case enums.ManagerRole, enums.AdminRole, enums.LogisticianRole:
 		query = query.Where("manager_id = ?", user.ID)
 	default:
-		return nil, errs.ErrForbidden
+		return errs.ErrForbidden
 	}
 
-	err := query.First(&sale).Error
+	err := query.First(&order).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, errs.ErrForbidden
+		return errs.ErrForbidden
 	} else if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &sale, nil
+	return nil
 }
 
-func GetAllUserOrders(user *users.User) ([]sales.Sale, error) {
+func GetAllUserOrders(user *users.User) ([]orders.Order, error) {
 	// Вернуть limit потом
 	if user.Role == enums.DealerRole {
 		return repository.GetAllDealerOrders(database.DB, user)
@@ -68,14 +68,13 @@ type orderPageData struct {
 	Products []products.Product
 }
 
-func GetOrderPageData(user *users.User, saleID int64) (*orderPageData, error) {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func GetOrderPageData(user *users.User, orderID int64) (*orderPageData, error) {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return nil, err
 	}
 
 	// Получаем все ворота выбранного заказа
-	orderGates, err := repository.GetOrderGatesByOrderID(database.DB, saleID)
+	orderGates, err := repository.GetOrderGatesByOrderID(database.DB, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +86,7 @@ func GetOrderPageData(user *users.User, saleID int64) (*orderPageData, error) {
 	}
 
 	// Получаем все опции всех ворот
-	gateOptions, err := repository.GetAllOptionsForOrder(database.DB, saleID, gateIDs)
+	gateOptions, err := repository.GetAllOptionsForOrder(database.DB, orderID, gateIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +97,7 @@ func GetOrderPageData(user *users.User, saleID int64) (*orderPageData, error) {
 		optionsMap[opt.RowNumber] = append(optionsMap[opt.RowNumber], opt.Option)
 	}
 
-	status, err := repository.GetOrderStatus(user, saleID)
+	status, err := repository.GetOrderStatus(user, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +107,7 @@ func GetOrderPageData(user *users.User, saleID int64) (*orderPageData, error) {
 	// Группируем в gates
 	order := types.Order{
 		Gates:    []types.Gate{},
-		Products: []sales_and_products.SalesAndProduct{},
+		Products: []order_products.OrderProduct{},
 		Status:   orderStatus,
 	}
 
@@ -120,7 +119,7 @@ func GetOrderPageData(user *users.User, saleID int64) (*orderPageData, error) {
 	}
 
 	// Получаем все товары
-	order.Products, err = repository.GetAllOrderProducts(database.DB, saleID)
+	order.Products, err = repository.GetAllOrderProducts(database.DB, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -139,48 +138,48 @@ func GetOrderPageData(user *users.User, saleID int64) (*orderPageData, error) {
 }
 
 type CurrentGatePageData struct {
-	Gate    sales_and_gates.SalesAndGate
-	Options []gates_and_sales_options.GatesAndSalesOption
+	Gate    order_gates.OrderGate
+	Options []order_gate_options.OrderGateOption
 
-	IndustrialDrive  *industrial_gates_and_sales_drive.IndustrialGatesAndSalesDrive
-	ResidentialDrive *residential_gates_and_sales_drive_rail.ResidentialGatesAndSalesDriveRail
-	ManualDrive      *gates_and_sales_manual_drive.GatesAndSalesManualDrive
+	IndustrialDrive  *order_gate_industrial_drives.OrderGateIndustrialDrive
+	ResidentialDrive *order_gate_residential_drives.OrderGateResidentialDrive
+	ManualDrive      *order_gate_manual_drives.OrderGateManualDrive
 
 	Configuration types.Config
 	OrderStatus   enums.OrderStatus
 }
 
-func GetCurrentGatePageData(user *users.User, saleID int64, gateID int64) (CurrentGatePageData, error) {
-	_, err := getAccessibleSale(user, saleID)
+func GetCurrentGatePageData(user *users.User, orderID int64, gateID int64) (CurrentGatePageData, error) {
+	err := checkOrderAccess(user, orderID);
 	if err != nil {
 		return CurrentGatePageData{}, err
 	}
 
 	var pageData CurrentGatePageData
-	pageData.Gate, err = repository.GetCurrentGate(database.DB, saleID, gateID)
+	pageData.Gate, err = repository.GetCurrentGate(database.DB, orderID, gateID)
 	if err != nil {
 		return CurrentGatePageData{}, err
 	}
 
 	switch pageData.Gate.DriveType {
 	case enums.IndDriveType:
-		pageData.IndustrialDrive, err = repository.GetIndustrialDriveForGate(database.DB, saleID, gateID)
+		pageData.IndustrialDrive, err = repository.GetIndustrialDriveForGate(database.DB, orderID, gateID)
 		if err != nil {
 			return CurrentGatePageData{}, err
 		}
 	case enums.ResDriveType:
-		pageData.ResidentialDrive, err = repository.GetResidentialDriveForGate(database.DB, saleID, gateID)
+		pageData.ResidentialDrive, err = repository.GetResidentialDriveForGate(database.DB, orderID, gateID)
 		if err != nil {
 			return CurrentGatePageData{}, err
 		}
 	case enums.ManualDriveType:
-		pageData.ManualDrive, err = repository.GetManualDriveForGate(database.DB, saleID, gateID)
+		pageData.ManualDrive, err = repository.GetManualDriveForGate(database.DB, orderID, gateID)
 		if err != nil {
 			return CurrentGatePageData{}, err
 		}
 	}
 
-	pageData.Options, err = repository.GetCurrentGateOptions(database.DB, saleID, gateID)
+	pageData.Options, err = repository.GetCurrentGateOptions(database.DB, orderID, gateID)
 	if err != nil {
 		return CurrentGatePageData{}, err
 	}
@@ -190,7 +189,7 @@ func GetCurrentGatePageData(user *users.User, saleID int64, gateID int64) (Curre
 		return CurrentGatePageData{}, err
 	}
 
-	orderStatus, err := repository.GetOrderStatus(user, saleID)
+	orderStatus, err := repository.GetOrderStatus(user, orderID)
 	if err != nil {
 		return CurrentGatePageData{}, err
 	}
@@ -200,13 +199,12 @@ func GetCurrentGatePageData(user *users.User, saleID int64, gateID int64) (Curre
 	return pageData, nil
 }
 
-func DeleteUserOrder(user *users.User, saleID int64) error {
-	sale, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func DeleteUserOrder(user *users.User, orderID int64) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
-	if err := repository.DeleteOrder(database.DB, *sale); err != nil {
+	if err := repository.DeleteOrder(database.DB, orderID); err != nil {
 		return err
 	}
 
@@ -218,10 +216,9 @@ type PricePair struct {
 	WholesalePrice decimal.Decimal
 }
 
-func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sales_and_gates.SalesAndGate, error) {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
-		return sales_and_gates.SalesAndGate{}, err
+func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (order_gates.OrderGate, error) {
+	if err := checkOrderAccess(user, orderID); err != nil {
+		return order_gates.OrderGate{}, err
 	}
 
 	gateType := enums.GateType(formGateType)
@@ -229,7 +226,7 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 	case enums.GateTypeInd:
 		cfg, err := GetGateCfg(gateType, true)
 		if err != nil {
-			return sales_and_gates.SalesAndGate{}, err
+			return order_gates.OrderGate{}, err
 		}
 
 		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
@@ -237,11 +234,11 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 				RetailPrice: cfg.IndustrialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
 			PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
 		if err != nil {
-			return sales_and_gates.SalesAndGate{}, err
+			return order_gates.OrderGate{}, err
 		}
 
-		gate := sales_and_gates.SalesAndGate{
-			SaleID:             saleID,
+		gate := order_gates.OrderGate{
+			OrderID:             orderID,
 			GateType:           gateType,
 			Width:              int32(cfg.WidthParams.MinValue),
 			Height:             int32(cfg.HeightParams.MinValue),
@@ -257,12 +254,12 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 
 		gate, err = repository.CreateNewGate(database.DB, gate)
 		if err != nil {
-			return sales_and_gates.SalesAndGate{}, err
+			return order_gates.OrderGate{}, err
 		}
 
-		err = repository.CreateIndustrialDriveForGate(database.DB, saleID, gate.RowNumber, int64(cfg.IndustrialDrives[0].ID))
+		err = repository.CreateIndustrialDriveForGate(database.DB, orderID, gate.RowNumber, int64(cfg.IndustrialDrives[0].ID))
 		if err != nil {
-			return sales_and_gates.SalesAndGate{}, err
+			return order_gates.OrderGate{}, err
 		}
 
 		return gate, nil
@@ -270,7 +267,7 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 	case enums.GateTypeRes:
 		cfg, err := GetGateCfg(gateType, true)
 		if err != nil {
-			return sales_and_gates.SalesAndGate{}, err
+			return order_gates.OrderGate{}, err
 		}
 
 		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
@@ -278,11 +275,11 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 				RetailPrice: cfg.ResidentialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
 			PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
 		if err != nil {
-			return sales_and_gates.SalesAndGate{}, err
+			return order_gates.OrderGate{}, err
 		}
 
-		gate := sales_and_gates.SalesAndGate{
-			SaleID:             saleID,
+		gate := order_gates.OrderGate{
+			OrderID:             orderID,
 			GateType:           gateType,
 			Width:              int32(cfg.WidthParams.MinValue),
 			Height:             int32(cfg.HeightParams.MinValue),
@@ -298,24 +295,24 @@ func AddNewGateInOrder(user *users.User, saleID int64, formGateType string) (sal
 
 		gate, err = repository.CreateNewGate(database.DB, gate)
 		if err != nil {
-			return sales_and_gates.SalesAndGate{}, err
+			return order_gates.OrderGate{}, err
 		}
 
-		err = repository.CreateResidentialDriveForGate(database.DB, saleID, gate.RowNumber, cfg.ResidentialDrives[0].ID, cfg.Rails[0].ID)
+		err = repository.CreateResidentialDriveForGate(database.DB, orderID, gate.RowNumber, cfg.ResidentialDrives[0].ID, cfg.Rails[0].ID)
 		if err != nil {
-			return sales_and_gates.SalesAndGate{}, err
+			return order_gates.OrderGate{}, err
 		}
 
 		return gate, nil
 
 	default:
-		return sales_and_gates.SalesAndGate{}, errs.ErrInvalidGateType
+		return order_gates.OrderGate{}, errs.ErrInvalidGateType
 	}
 }
 
 func calculateGatePrice(width, height int64, gateType enums.GateType,
 	drivePrices PricePair, liftType lift_types.LiftType,
-	cycleAmount cycle_amount.CycleAmount, optionsPrices PricePair) (*PricePair, error) {
+	cycleAmount cycle_amounts.CycleAmount, optionsPrices PricePair) (*PricePair, error) {
 	var gateRetailPrice decimal.Decimal
 	var gateWholesalePrice decimal.Decimal
 
@@ -349,21 +346,21 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	defer tx.Rollback()
 
 	// Создаем заказ
-	var order sales.Sale
+	var order orders.Order
 	if role == enums.DealerRole {
-		managerId, err := repository.GetManagerIdByDealerId(tx, user.ID)
+		managerID, err := repository.GetManagerIDByDealerID(tx, user.ID)
 		if err != nil {
 			return err
 		}
 
-		order = sales.Sale{
-			ClientID:  &user.ID,
-			ManagerID: managerId,
+		order = orders.Order{
+			DealerID:  &user.ID,
+			ManagerID: managerID,
 			Status:    enums.OrderStatusPending,
 		}
 	} else {
-		order = sales.Sale{
-			ClientID:  nil,
+		order = orders.Order{
+			DealerID:  nil,
 			ManagerID: user.ID,
 			Status:    enums.OrderStatusPending,
 		}
@@ -375,16 +372,16 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 
 	// Содаем товары заказа
 	if len(orderData.Products) != 0 {
-		var salesAndProducts []sales_and_products.SalesAndProduct
+		var orderProducts []order_products.OrderProduct
 		for _, product := range orderData.Products {
-			salesAndProducts = append(salesAndProducts, sales_and_products.SalesAndProduct{
-				SaleID:    order.ID,
+			orderProducts = append(orderProducts, order_products.OrderProduct{
+				OrderID:    order.ID,
 				ProductID: product.ProductId,
 				Amount:    product.Amount,
 			})
 		}
 
-		if err := repository.CreateOrderProducts(tx, salesAndProducts); err != nil {
+		if err := repository.CreateOrderProducts(tx, orderProducts); err != nil {
 			return err
 		}
 	}
@@ -405,7 +402,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		switch d := gate.Drive.DriveType.(type) {
 		case *generated.Drive_Industrial:
 			driveID := d.Industrial.DriveId
-			drive, err := repository.GetIndustrialDriveById(tx, driveID)
+			drive, err := repository.GetIndustrialDriveByID(tx, driveID)
 			if err != nil {
 				return err
 			}
@@ -415,12 +412,12 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		case *generated.Drive_Residential:
 			driveID := d.Residential.DriveId
 			railID := d.Residential.RailId
-			drive, err := repository.GetResidentialDriveById(tx, driveID)
+			drive, err := repository.GetResidentialDriveByID(tx, driveID)
 			if err != nil {
 				return err
 			}
 
-			rail, err := repository.GetRailById(tx, railID)
+			rail, err := repository.GetRailByID(tx, railID)
 			if err != nil {
 				return err
 			}
@@ -440,12 +437,12 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 				RetailPrice:    manualPrices.ChainMeterRetailPrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpRetailPrice)}
 		}
 
-		liftType, err := repository.GetLiftTypeById(tx, gate.LiftTypeId)
+		liftType, err := repository.GetLiftTypeByID(tx, gate.LiftTypeId)
 		if err != nil {
 			return err
 		}
 
-		cycleAmount, err := repository.GetCycleAmountById(tx, gate.CycleAmountId)
+		cycleAmount, err := repository.GetCycleAmountByID(tx, gate.CycleAmountId)
 		if err != nil {
 			return err
 		}
@@ -504,8 +501,8 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 			return err
 		}
 
-		orderDetails := sales_and_gates.SalesAndGate{
-			SaleID:             order.ID,
+		orderDetails := order_gates.OrderGate{
+			OrderID:             order.ID,
 			RowNumber:          int64(i + 1),
 			GateType:           gateType,
 			Width:              gate.Width,
@@ -554,19 +551,19 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		}
 
 		// Создаем дополнительные опции у ворот
-		var gateAndSalesOptions []gates_and_sales_options.GatesAndSalesOption
+		var orderGateOptions []order_gate_options.OrderGateOption
 		for _, gateOption := range gate.Options {
-			gateAndSalesOption := gates_and_sales_options.GatesAndSalesOption{
-				SaleID:    order.ID,
+			orderGateOption := order_gate_options.OrderGateOption{
+				OrderID:    order.ID,
 				RowNumber: int64(i + 1),
 				OptionID:  gateOption.OptionId,
 				Amount:    gateOption.Amount,
 			}
 
-			gateAndSalesOptions = append(gateAndSalesOptions, gateAndSalesOption)
+			orderGateOptions = append(orderGateOptions, orderGateOption)
 		}
 
-		if err := repository.CreateGateOptions(tx, gateAndSalesOptions); err != nil {
+		if err := repository.CreateGateOptions(tx, orderGateOptions); err != nil {
 			return err
 		}
 	}
@@ -578,13 +575,12 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	return nil
 }
 
-func DeleteGateFromOrder(user *users.User, saleID int64, rowNumber int64) error {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func DeleteGateFromOrder(user *users.User, orderID int64, rowNumber int64) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
-	gate, err := repository.GetCurrentGate(database.DB, saleID, rowNumber)
+	gate, err := repository.GetCurrentGate(database.DB, orderID, rowNumber)
 	if err != nil {
 		return err
 	}
@@ -596,13 +592,12 @@ func DeleteGateFromOrder(user *users.User, saleID int64, rowNumber int64) error 
 	return nil
 }
 
-func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *generated.GateConfig) error {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *generated.GateConfig) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
-	gate, err := repository.GetCurrentGate(database.DB, saleID, gateID)
+	gate, err := repository.GetCurrentGate(database.DB, orderID, gateID)
 	if err != nil {
 		return err
 	}
@@ -621,12 +616,12 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 	gate.CycleAmountID = gateData.CycleAmountId
 	gate.Amount = gateData.Amount
 
-	liftType, err := repository.GetLiftTypeById(tx, gateData.LiftTypeId)
+	liftType, err := repository.GetLiftTypeByID(tx, gateData.LiftTypeId)
 	if err != nil {
 		return err
 	}
 
-	cycleAmount, err := repository.GetCycleAmountById(tx, gateData.CycleAmountId)
+	cycleAmount, err := repository.GetCycleAmountByID(tx, gateData.CycleAmountId)
 	if err != nil {
 		return err
 	}
@@ -636,30 +631,30 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 	case *generated.Drive_Industrial:
 		//Если это другой тип привода у ворот
 		if gate.DriveType != enums.IndDriveType {
-			if err := repository.CreateIndustrialDriveForGate(tx, saleID, gateID, gateData.Drive.GetIndustrial().DriveId); err != nil {
+			if err := repository.CreateIndustrialDriveForGate(tx, orderID, gateID, gateData.Drive.GetIndustrial().DriveId); err != nil {
 				return err
 			}
 
 			// Удаляем предыдущий привод
 			switch gate.DriveType {
 			case enums.ResDriveType:
-				if err := repository.DeleteGateResidentialDrive(tx, saleID, gateID); err != nil {
+				if err := repository.DeleteGateResidentialDrive(tx, orderID, gateID); err != nil {
 					return err
 				}
 			case enums.ManualDriveType:
-				if err := repository.DeleteGateManualDrive(tx, saleID, gateID); err != nil {
+				if err := repository.DeleteGateManualDrive(tx, orderID, gateID); err != nil {
 					return err
 				}
 			}
 			// Если у ворот тот же самый тип привода
 		} else {
-			if err := repository.UpdateGateIndustrialDrive(tx, saleID, gateID, gateData.Drive.GetIndustrial().DriveId); err != nil {
+			if err := repository.UpdateGateIndustrialDrive(tx, orderID, gateID, gateData.Drive.GetIndustrial().DriveId); err != nil {
 				return err
 			}
 		}
 
 		driveID := gateData.Drive.GetIndustrial().DriveId
-		drive, err := repository.GetIndustrialDriveById(tx, driveID)
+		drive, err := repository.GetIndustrialDriveByID(tx, driveID)
 		if err != nil {
 			return err
 		}
@@ -668,35 +663,35 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 
 	case *generated.Drive_Residential:
 		if gate.DriveType != enums.ResDriveType {
-			if err := repository.CreateResidentialDriveForGate(tx, saleID, gateID, gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
+			if err := repository.CreateResidentialDriveForGate(tx, orderID, gateID, gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
 				return err
 			}
 
 			switch gate.DriveType {
 			case enums.IndDriveType:
-				if err := repository.DeleteGateIndustrialDrive(tx, saleID, gateID); err != nil {
+				if err := repository.DeleteGateIndustrialDrive(tx, orderID, gateID); err != nil {
 					return err
 				}
 
 			case enums.ManualDriveType:
-				if err := repository.DeleteGateManualDrive(tx, saleID, gateID); err != nil {
+				if err := repository.DeleteGateManualDrive(tx, orderID, gateID); err != nil {
 					return err
 				}
 			}
 		} else {
-			if err := repository.UpdateGateResidentialDrive(tx, saleID, gateID, gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
+			if err := repository.UpdateGateResidentialDrive(tx, orderID, gateID, gateData.Drive.GetResidential().DriveId, gateData.Drive.GetResidential().RailId); err != nil {
 				return err
 			}
 		}
 
 		driveID := gateData.Drive.GetResidential().DriveId
 		railID := gateData.Drive.GetResidential().RailId
-		drive, err := repository.GetResidentialDriveById(tx, driveID)
+		drive, err := repository.GetResidentialDriveByID(tx, driveID)
 		if err != nil {
 			return err
 		}
 
-		rail, err := repository.GetRailById(tx, railID)
+		rail, err := repository.GetRailByID(tx, railID)
 		if err != nil {
 			return err
 		}
@@ -706,23 +701,23 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 
 	case *generated.Drive_Manual:
 		if gate.DriveType != enums.ManualDriveType {
-			if err := repository.CreateManualDriveForGate(tx, saleID, gateID, gateData.Drive.GetManual().ChainLength); err != nil {
+			if err := repository.CreateManualDriveForGate(tx, orderID, gateID, gateData.Drive.GetManual().ChainLength); err != nil {
 				return err
 			}
 
 			switch gate.DriveType {
 			case enums.ResDriveType:
-				if err := repository.DeleteGateResidentialDrive(tx, saleID, gateID); err != nil {
+				if err := repository.DeleteGateResidentialDrive(tx, orderID, gateID); err != nil {
 					return err
 				}
 
 			case enums.IndDriveType:
-				if err := repository.DeleteGateIndustrialDrive(tx, saleID, gateID); err != nil {
+				if err := repository.DeleteGateIndustrialDrive(tx, orderID, gateID); err != nil {
 					return err
 				}
 			}
 		} else {
-			if err := repository.UpdateGateManualDrive(tx, saleID, gateID, gateData.Drive.GetManual().ChainLength); err != nil {
+			if err := repository.UpdateGateManualDrive(tx, orderID, gateID, gateData.Drive.GetManual().ChainLength); err != nil {
 				return err
 			}
 		}
@@ -743,10 +738,10 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 		return err
 	}
 
-	var optionsList []gates_and_sales_options.GatesAndSalesOption
+	var optionsList []order_gate_options.OrderGateOption
 	for _, option := range gateData.Options {
-		optionsList = append(optionsList, gates_and_sales_options.GatesAndSalesOption{
-			SaleID:    saleID,
+		optionsList = append(optionsList, order_gate_options.OrderGateOption{
+			OrderID:    orderID,
 			RowNumber: gateID,
 			OptionID:  option.OptionId,
 			Amount:    option.Amount,
@@ -801,7 +796,7 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 		}
 	}
 
-	if err := repository.DeleteAllGateOptions(tx, saleID, gateID); err != nil {
+	if err := repository.DeleteAllGateOptions(tx, orderID, gateID); err != nil {
 		return err
 	}
 
@@ -831,9 +826,8 @@ func UpdateGateInOrder(user *users.User, saleID int64, gateID int64, gateData *g
 	return nil
 }
 
-func UpdateOrderStatus(user *users.User, saleID int64, updateStatusRequest *generated.UpdateOrderStatusRequest) error {
-	sale, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func UpdateOrderStatus(user *users.User, orderID int64, updateStatusRequest *generated.UpdateOrderStatusRequest) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
@@ -842,22 +836,21 @@ func UpdateOrderStatus(user *users.User, saleID int64, updateStatusRequest *gene
 		return err
 	}
 
-	if err = repository.UpdateOrderStatus(database.DB, sale, status); err != nil {
+	if err = repository.UpdateOrderStatus(database.DB, orderID, status); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func UploadOfferToOrder(user *users.User, saleID int64, file multipart.File, handler *multipart.FileHeader) error {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func UploadOfferToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
 	offerDirectoryPath := os.Getenv("OFFERS_DIRECTORY")
 	if offerDirectoryPath == "" {
-		return err
+		return errors.New("")
 	}
 
 	dst, err := os.Create(offerDirectoryPath + "/" + handler.Filename)
@@ -873,22 +866,21 @@ func UploadOfferToOrder(user *users.User, saleID int64, file multipart.File, han
 
 	ext := filepath.Ext(handler.Filename)
 	name := strings.TrimSuffix(handler.Filename, ext)
-	if err = repository.AttachOfferToOrder(database.DB, saleID, name, handler.Filename); err != nil {
+	if err = repository.AttachOfferToOrder(database.DB, orderID, name, handler.Filename); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func UploadContractToOrder(user *users.User, saleID int64, file multipart.File, handler *multipart.FileHeader) error {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func UploadContractToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
 	contractDirectoryPath := os.Getenv("CONTRACTS_DIRECTORY")
 	if contractDirectoryPath == "" {
-		return err
+		return errors.New("")
 	}
 
 	dst, err := os.Create(contractDirectoryPath + "/" + handler.Filename)
@@ -904,22 +896,21 @@ func UploadContractToOrder(user *users.User, saleID int64, file multipart.File, 
 
 	ext := filepath.Ext(handler.Filename)
 	name := strings.TrimSuffix(handler.Filename, ext)
-	if err = repository.AttachContractToOrder(database.DB, saleID, name, handler.Filename); err != nil {
+	if err = repository.AttachContractToOrder(database.DB, orderID, name, handler.Filename); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func UploadBillToOrder(user *users.User, saleID int64, file multipart.File, handler *multipart.FileHeader) error {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func UploadBillToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
 	billDirectoryPath := os.Getenv("BILLS_DIRECTORY")
 	if billDirectoryPath == "" {
-		return err
+		return errors.New("")
 	}
 
 	dst, err := os.Create(billDirectoryPath + "/" + handler.Filename)
@@ -935,22 +926,21 @@ func UploadBillToOrder(user *users.User, saleID int64, file multipart.File, hand
 
 	ext := filepath.Ext(handler.Filename)
 	name := strings.TrimSuffix(handler.Filename, ext)
-	if err = repository.AttachBillToOrder(database.DB, saleID, name, handler.Filename); err != nil {
+	if err = repository.AttachBillToOrder(database.DB, orderID, name, handler.Filename); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func GetAllOrderDocuments(user *users.User, saleID int64) (*generated.DocumentsList, error) {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func GetAllOrderDocuments(user *users.User, orderID int64) (*generated.DocumentsList, error) {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return nil, err
 	}
 
 	var resp *generated.DocumentsList
 
-	offersNumberList, err := repository.GetOffersNumberList(database.DB, saleID)
+	offersNumberList, err := repository.GetOffersNumberList(database.DB, orderID)
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
 		return nil, err
 	}
@@ -962,7 +952,7 @@ func GetAllOrderDocuments(user *users.User, saleID int64) (*generated.DocumentsL
 		})
 	}
 
-	contractsNumberList, err := repository.GetContractsNumberList(database.DB, saleID)
+	contractsNumberList, err := repository.GetContractsNumberList(database.DB, orderID)
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
 		return nil, err
 	}
@@ -974,7 +964,7 @@ func GetAllOrderDocuments(user *users.User, saleID int64) (*generated.DocumentsL
 		})
 	}
 
-	billsNumberList, err := repository.GetBillsNumberList(database.DB, saleID)
+	billsNumberList, err := repository.GetBillsNumberList(database.DB, orderID)
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
 		return nil, err
 	}
@@ -986,7 +976,7 @@ func GetAllOrderDocuments(user *users.User, saleID int64) (*generated.DocumentsL
 		})
 	}
 
-	documentsNameList, err := repository.GetDocumentsNameList(database.DB, saleID)
+	documentsNameList, err := repository.GetDocumentsNameList(database.DB, orderID)
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
 		return nil, err
 	}
@@ -1013,9 +1003,8 @@ type FileInfo struct {
 	FileName string
 }
 
-func GetFileInfo(user *users.User, saleID int64, docType string, docName string) (*FileInfo, error) {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func GetFileInfo(user *users.User, orderID int64, docType string, docName string) (*FileInfo, error) {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return nil, err
 	}
 
@@ -1087,9 +1076,8 @@ func GetFileInfo(user *users.User, saleID int64, docType string, docName string)
 	}
 }
 
-func DeleteOrderDocument(user *users.User, saleID int64, docType string, docName string) error {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func DeleteOrderDocument(user *users.User, orderID int64, docType string, docName string) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
@@ -1168,16 +1156,15 @@ func DeleteOrderDocument(user *users.User, saleID int64, docType string, docName
 	return nil
 }
 
-func UpdateProductsInOrder(user *users.User, saleID int64, updateProductsRequest *generated.UpdateProductsRequest) error {
-	_, err := getAccessibleSale(user, saleID)
-	if err != nil {
+func UpdateProductsInOrder(user *users.User, orderID int64, updateProductsRequest *generated.UpdateProductsRequest) error {
+	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
 
-	var productList []sales_and_products.SalesAndProduct
+	var productList []order_products.OrderProduct
 	for _, product := range updateProductsRequest.Products {
-		productList = append(productList, sales_and_products.SalesAndProduct{
-			SaleID:    saleID,
+		productList = append(productList, order_products.OrderProduct{
+			OrderID:    orderID,
 			ProductID: product.ProductId,
 			Amount:    product.Amount,
 		})
@@ -1189,7 +1176,7 @@ func UpdateProductsInOrder(user *users.User, saleID int64, updateProductsRequest
 	}
 	defer tx.Rollback()
 
-	if err := repository.DeleteAllOrderProducts(tx, saleID); err != nil {
+	if err := repository.DeleteAllOrderProducts(tx, orderID); err != nil {
 		return err
 	}
 

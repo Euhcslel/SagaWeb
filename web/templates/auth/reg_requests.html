@@ -1,14 +1,34 @@
-{{template "html-start" .}}
-<div>
-  {{range .regRequests}}
-  <div>{{.ID}}: {{.Company}} ({{.Email}})
-    <button class="btn secondary" onclick="confirmRegRequest({{.ID}})">Подтвердить</button>
-  </div>
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    {{if .css}}
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
+    {{end}}
+    <title>Заявки на регистрацию</title>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <div>
+        {{range .regRequests}}
+        <div>
+          {{.ID}}: {{.Company}} ({{.Email}})
+          <button class="btn secondary" onclick="confirmRegRequest({{.ID}})">
+            Подтвердить
+          </button>
+        </div>
 
-  {{else}}
-  <p>Нет новых заявок на регистрацию</p>
-  {{end}}
-</div>
-<script src="/web/assets/scripts/reg_requests.js"></script>
-<script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
-{{template "html-end" .}}
+        {{else}}
+        <p>Нет новых заявок на регистрацию</p>
+        {{end}}
+      </div>
+    </main>
+    {{template "footer" .}}
+    <script src="/web/assets/scripts/reg_requests.js"></script>
+    <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
+  </body>
+</html>

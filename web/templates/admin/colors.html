@@ -1,22 +1,39 @@
-{{template "html-start" .}}
-<div class="form-container">
-  <a href="/tables" class="btn secondary">Вернуться назад</a>
-  <form method="post">
-    <div>
-      <label for="code"
-        >Код цвета
-        <input class="input" type="text" id="code" name="code" required />
-      </label>
-    </div>
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    {{if .css}}
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
+    {{end}}
+    <title>Таблица colors</title>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <div class="form-container">
+        <a href="/tables" class="btn secondary">Вернуться назад</a>
+        <form method="post">
+          <div>
+            <label for="code"
+              >Код цвета
+              <input class="input" type="text" id="code" name="code" required />
+            </label>
+          </div>
 
-    <div>
-      <label for="hex"
-        >HEX-код
-        <input class="input" type="text" id="hex" name="hex" required />
-      </label>
-    </div>
+          <div>
+            <label for="hex"
+              >HEX-код
+              <input class="input" type="text" id="hex" name="hex" required />
+            </label>
+          </div>
 
-    <button class="btn primary" type="submit">Сохранить</button>
-  </form>
-</div>
-{{template "html-end" .}}
+          <button class="btn primary" type="submit">Сохранить</button>
+        </form>
+      </div>
+    </main>
+    {{template "footer" .}}
+  </body>
+</html>

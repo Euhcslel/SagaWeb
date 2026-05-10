@@ -158,10 +158,10 @@
               class="gate-type select"
               onchange="updateGateType(this)"
             >
-              <option value="residential" data-value="res" selected>
+              <option value="residential" selected>
                 Бытовые ворота
               </option>
-              <option value="industrial" data-value="ind">
+              <option value="industrial">
                 Промышленные ворота
               </option>
             </select>
@@ -267,7 +267,7 @@
                 data-wholesale-markup="0"
                 {{end}}
               >
-                {{.Name}}
+                {{.Amount}}
               </option>
               {{end}}
             </select>
