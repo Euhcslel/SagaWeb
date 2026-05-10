@@ -7,15 +7,15 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
 
-func GetUserByEmail(email string) (users.User, error) {
+func GetUserByEmail(email string) (*users.User, error) {
 	var user users.User
 	if err := database.DB.
 		Where("email = ?", email).
 		First(&user).
 		Error; err != nil {
-		return users.User{}, err
+		return nil, err
 	}
-	return user, nil
+	return &user, nil
 }
 
 func CreateDealerRegistrationRequest(request dealer_registration_requests.DealerRegistrationRequest) error {

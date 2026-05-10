@@ -3,25 +3,25 @@ package repository
 import (
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
-	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_manual_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_options"
-	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_industrial_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
-	"github.com/Euhcslel/SagaWeb/internal/domain/products"
-	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
-	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_residential_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/orders"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_bills"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_contracts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_documents"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_industrial_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_manual_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_residential_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_gates"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_offers"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/orders"
+	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
+	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	"log"
 
@@ -63,7 +63,7 @@ func GetOrderGatesByOrderID(db *gorm.DB, orderID int64) ([]order_gates.OrderGate
 		Preload("CycleAmount").
 		Where("order_id = ?", orderID).
 		Find(&orderGates).Error; err != nil {
-		return []order_gates.OrderGate{}, err
+		return nil, err
 	}
 
 	return orderGates, nil
@@ -75,7 +75,7 @@ func GetAllOptionsForOrder(db *gorm.DB, orderID int64, gateIDs []int64) ([]order
 		Where("order_id = ? AND row_number IN ?", orderID, gateIDs).
 		Preload("Option").
 		Find(&gateOptions).Error; err != nil {
-		return []order_gate_options.OrderGateOption{}, err
+		return nil, err
 	}
 
 	return gateOptions, nil
@@ -84,13 +84,13 @@ func GetAllOptionsForOrder(db *gorm.DB, orderID int64, gateIDs []int64) ([]order
 func GetAllOrderProducts(db *gorm.DB, orderID int64) ([]order_products.OrderProduct, error) {
 	var products []order_products.OrderProduct
 	if err := db.Preload("Product").Where("order_id = ?", orderID).Find(&products).Error; err != nil {
-		return []order_products.OrderProduct{}, err
+		return nil, err
 	}
 
 	return products, nil
 }
 
-func GetCurrentGate(db *gorm.DB, orderID int64, gateID int64) (order_gates.OrderGate, error) {
+func GetCurrentGate(db *gorm.DB, orderID int64, gateID int64) (*order_gates.OrderGate, error) {
 	var gate order_gates.OrderGate
 	if err := db.Model(order_gates.OrderGate{}).
 		Preload("LiftType").
@@ -98,10 +98,10 @@ func GetCurrentGate(db *gorm.DB, orderID int64, gateID int64) (order_gates.Order
 		Preload("CycleAmount").
 		Where("order_id = ? and row_number = ?", orderID, gateID).
 		First(&gate).Error; err != nil {
-		return order_gates.OrderGate{}, err
+		return nil, err
 	}
 
-	return gate, nil
+	return &gate, nil
 }
 
 func GetCurrentGateOptions(db *gorm.DB, orderID int64, gateID int64) ([]order_gate_options.OrderGateOption, error) {
@@ -110,43 +110,43 @@ func GetCurrentGateOptions(db *gorm.DB, orderID int64, gateID int64) ([]order_ga
 		Model(order_gate_options.OrderGateOption{}).
 		Preload("Option").Where("order_id = ? and row_number = ?", orderID, gateID).
 		Find(&options).Error; err != nil {
-		return []order_gate_options.OrderGateOption{}, err
+		return nil, err
 	}
 
 	return options, nil
 }
 
 func GetIndustrialDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*order_gate_industrial_drives.OrderGateIndustrialDrive, error) {
-	var drive *order_gate_industrial_drives.OrderGateIndustrialDrive
+	var drive order_gate_industrial_drives.OrderGateIndustrialDrive
 	if err := db.
 		Where("order_id = ? AND row_number = ?", orderID, gateID).
 		First(&drive).Error; err != nil {
-		return &order_gate_industrial_drives.OrderGateIndustrialDrive{}, err
+		return nil, err
 	}
 
-	return drive, nil
+	return &drive, nil
 }
 
 func GetResidentialDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*order_gate_residential_drives.OrderGateResidentialDrive, error) {
-	var drive *order_gate_residential_drives.OrderGateResidentialDrive
+	var drive order_gate_residential_drives.OrderGateResidentialDrive
 	if err := db.
 		Where("order_id = ? AND row_number = ?", orderID, gateID).
 		First(&drive).Error; err != nil {
-		return &order_gate_residential_drives.OrderGateResidentialDrive{}, err
+		return nil, err
 	}
 
-	return drive, nil
+	return &drive, nil
 }
 
 func GetManualDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*order_gate_manual_drives.OrderGateManualDrive, error) {
-	var drive *order_gate_manual_drives.OrderGateManualDrive
+	var drive order_gate_manual_drives.OrderGateManualDrive
 	if err := db.
 		Where("order_id = ? AND row_number = ?", orderID, gateID).
 		First(&drive).Error; err != nil {
-		return &order_gate_manual_drives.OrderGateManualDrive{}, err
+		return nil, err
 	}
 
-	return drive, nil
+	return &drive, nil
 }
 
 func DeleteOrder(db *gorm.DB, orderID int64) error {
@@ -163,7 +163,7 @@ func CreateNewGate(db *gorm.DB, gate order_gates.OrderGate) (order_gates.OrderGa
 
 func CreateIndustrialDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, driveID int64) error {
 	if err := db.Create(&order_gate_industrial_drives.OrderGateIndustrialDrive{
-		OrderID:    orderID,
+		OrderID:   orderID,
 		RowNumber: rowNumber,
 		DriveID:   driveID,
 	}).Error; err != nil {
@@ -175,7 +175,7 @@ func CreateIndustrialDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, d
 
 func CreateResidentialDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, driveID int64, railID int64) error {
 	if err := db.Create(&order_gate_residential_drives.OrderGateResidentialDrive{
-		OrderID:    orderID,
+		OrderID:   orderID,
 		RowNumber: rowNumber,
 		DriveID:   driveID,
 		RailID:    railID,
@@ -188,7 +188,7 @@ func CreateResidentialDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, 
 
 func CreateManualDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, chainLength int32) error {
 	if err := db.Create(&order_gate_manual_drives.OrderGateManualDrive{
-		OrderID:      orderID,
+		OrderID:     orderID,
 		RowNumber:   rowNumber,
 		ChainLength: chainLength,
 	}).Error; err != nil {
@@ -248,59 +248,25 @@ func DeleteGateIndustrialDrive(db *gorm.DB, orderID int64, gateID int64) error {
 }
 
 func DeleteGateManualDrive(db *gorm.DB, orderID int64, gateID int64) error {
-	var orderGateManualDrive order_gate_manual_drives.OrderGateManualDrive
-	if err := db.Where("order_id = ? AND row_number = ?", orderID, gateID).First(&orderGateManualDrive).Error; err != nil {
-		return err
-	}
-
-	if err := db.Delete(&orderGateManualDrive).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return db.Where("order_id = ? AND row_number = ?", orderID, gateID).Delete(&order_gate_manual_drives.OrderGateManualDrive{}).Error
 }
 
 func UpdateGateIndustrialDrive(db *gorm.DB, orderID int64, gateID int64, driveID int64) error {
-	var gateIndustrialDrive order_gate_industrial_drives.OrderGateIndustrialDrive
-	if err := db.Where("order_id = ? AND row_number = ?", orderID, gateID).First(&gateIndustrialDrive).Error; err != nil {
-		return err
-	}
-
-	gateIndustrialDrive.DriveID = driveID
-
-	if err := db.Save(&gateIndustrialDrive).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return db.Model(&order_gate_industrial_drives.OrderGateIndustrialDrive{}).
+		Where("order_id = ? AND row_number = ?", orderID, gateID).
+		Update("drive_id", driveID).Error
 }
 
 func UpdateGateResidentialDrive(db *gorm.DB, orderID int64, gateID int64, driveID int64, railID int64) error {
-	var gateResidentialDrive order_gate_residential_drives.OrderGateResidentialDrive
-	if err := db.Where("order_id = ? AND row_number = ?", orderID, gateID).First(&gateResidentialDrive).Error; err != nil {
-		return err
-	}
-	gateResidentialDrive.DriveID = driveID
-	gateResidentialDrive.RailID = railID
-
-	if err := db.Save(&gateResidentialDrive).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return db.Model(&order_gate_residential_drives.OrderGateResidentialDrive{}).
+		Where("order_id = ? AND row_number = ?", orderID, gateID).
+		Updates(map[string]any{"drive_id": driveID, "rail_id": railID}).Error
 }
 
 func UpdateGateManualDrive(db *gorm.DB, orderID int64, gateID int64, chainLength int32) error {
-	var gateManualDrive order_gate_manual_drives.OrderGateManualDrive
-	if err := db.Where("order_id = ? AND row_number = ?", orderID, gateID).First(&gateManualDrive).Error; err != nil {
-		return err
-	}
-	gateManualDrive.ChainLength = chainLength
-	if err := db.Save(&gateManualDrive).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return db.Model(&order_gate_manual_drives.OrderGateManualDrive{}).
+		Where("order_id = ? AND row_number = ?", orderID, gateID).
+		Update("chain_length", chainLength).Error
 }
 
 func UpdateGate(db *gorm.DB, gate order_gates.OrderGate) error {
@@ -355,110 +321,107 @@ func GetBillsNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	return billsNumberList, nil
 }
 
-func GetOrderStatus(user *users.User, orderID int64) (string, error) {
+func GetOrderStatus(orderID int64) (*string, error) {
 	var status string
 	if err := database.DB.Model(&orders.Order{}).
 		Where("id = ?", orderID).
 		Pluck("status", &status).Error; err != nil {
-		return "", err
+		return nil, err
 	}
-	return status, nil
+	return &status, nil
 }
 
 func AttachOfferToOrder(db *gorm.DB, orderID int64, offerNumber string, path string) error {
-	orderOffer := order_offers.OrderOffer{
-		OrderID:      orderID,
+	return db.Create(&order_offers.OrderOffer{
+		OrderID:     orderID,
 		OfferNumber: offerNumber,
 		Path:        path,
-	}
-	return db.Create(&orderOffer).Error
+	}).Error
 }
 
 func AttachContractToOrder(db *gorm.DB, orderID int64, contractNumber string, path string) error {
-	orderContract := order_contracts.OrderContract{
-		OrderID:         orderID,
+	return db.Create(&order_contracts.OrderContract{
+		OrderID:        orderID,
 		ContractNumber: contractNumber,
 		Path:           path,
-	}
-	return db.Create(&orderContract).Error
+	}).Error
 }
 
 func AttachBillToOrder(db *gorm.DB, orderID int64, billNumber string, path string) error {
-	orderBill := order_bills.OrderBill{
-		OrderID:     orderID,
+	return db.Create(&order_bills.OrderBill{
+		OrderID:    orderID,
 		BillNumber: billNumber,
 		Path:       path,
-	}
-	return db.Create(&orderBill).Error
+	}).Error
 }
 
-func GetBillFileName(billNumber string) (string, error) {
+func GetBillFileName(billNumber string) (*string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_bills.OrderBill{}).
 		Where("bill_number = ?", billNumber).
 		Pluck("path", &fileName).Error; err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return fileName, nil
+	return &fileName, nil
 }
 
-func GetOfferFileName(offerNumber string) (string, error) {
+func GetOfferFileName(offerNumber string) (*string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_offers.OrderOffer{}).
 		Where("offer_number = ?", offerNumber).
 		Pluck("path", &fileName).Error; err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return fileName, nil
+	return &fileName, nil
 }
 
-func GetContractFileName(contractNumber string) (string, error) {
+func GetContractFileName(contractNumber string) (*string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_contracts.OrderContract{}).
 		Where("contract_number = ?", contractNumber).
 		Pluck("path", &fileName).Error; err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return fileName, nil
+	return &fileName, nil
 }
 
-func GetDocumentFileName(documentName string) (string, error) {
+func GetDocumentFileName(documentName string) (*string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_documents.OrderDocument{}).
 		Where("name = ?", documentName).
 		Pluck("path", &fileName).Error; err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return fileName, nil
+	return &fileName, nil
 }
 
 func DeleteOrderBill(billNumber string) error {
-	return database.DB.Model(&order_bills.OrderBill{}).
+	return database.DB.
 		Where("bill_number = ?", billNumber).
 		Delete(&order_bills.OrderBill{}).
 		Error
 }
 
 func DeleteOrderOffer(offerNumber string) error {
-	return database.DB.Model(&order_offers.OrderOffer{}).
+	return database.DB.
 		Where("offer_number = ?", offerNumber).
 		Delete(&order_offers.OrderOffer{}).
 		Error
 }
 
 func DeleteOrderContract(contractNumber string) error {
-	return database.DB.Model(&order_contracts.OrderContract{}).
+	return database.DB.
 		Where("contract_number = ?", contractNumber).
 		Delete(&order_contracts.OrderContract{}).
 		Error
 }
 
 func DeleteOrderDocument(documentName string) error {
-	return database.DB.Model(&order_documents.OrderDocument{}).
+	return database.DB.
 		Where("name = ?", documentName).
 		Delete(&order_documents.OrderDocument{}).
 		Error
@@ -485,62 +448,59 @@ func DeleteAllGateOptions(db *gorm.DB, orderID int64, gateID int64) error {
 		Delete(&order_gate_options.OrderGateOption{}).Error
 }
 
-func GetIndustrialDriveByID(db *gorm.DB, driveID int64) (industrial_gate_drives.IndustrialGateDrive, error) {
+func GetIndustrialDriveByID(db *gorm.DB, driveID int64) (*industrial_gate_drives.IndustrialGateDrive, error) {
 	var industrialDrive industrial_gate_drives.IndustrialGateDrive
 	if err := db.Where("id = ?", driveID).First(&industrialDrive).Error; err != nil {
-		return industrial_gate_drives.IndustrialGateDrive{}, err
+		return nil, err
 	}
 
-	return industrialDrive, nil
+	return &industrialDrive, nil
 }
 
-func GetResidentialDriveByID(db *gorm.DB, driveID int64) (residential_gate_drives.ResidentialGateDrive, error) {
+func GetResidentialDriveByID(db *gorm.DB, driveID int64) (*residential_gate_drives.ResidentialGateDrive, error) {
 	var residentialDrive residential_gate_drives.ResidentialGateDrive
 	if err := db.Where("id = ?", driveID).First(&residentialDrive).Error; err != nil {
-		return residential_gate_drives.ResidentialGateDrive{}, err
+		return nil, err
 	}
 
-	return residentialDrive, nil
+	return &residentialDrive, nil
 }
 
-func GetRailByID(db *gorm.DB, railID int64) (rails.Rail, error) {
+func GetRailByID(db *gorm.DB, railID int64) (*rails.Rail, error) {
 	var rail rails.Rail
 	if err := db.Where("id = ?", railID).First(&rail).Error; err != nil {
-		return rails.Rail{}, err
+		return nil, err
 	}
 
-	return rail, nil
+	return &rail, nil
 }
 
-func GetOptionsByIDs(tx *gorm.DB, optionIDs []int64) ([]options.Option, error) {
+func GetOptionsByIDs(db *gorm.DB, optionIDs []int64) ([]options.Option, error) {
 	var optionsList []options.Option
-
-	err := tx.
+	if err := db.
 		Where("id IN ?", optionIDs).
 		Find(&optionsList).
-		Error
-
-	if err != nil {
+		Error; err != nil {
 		return nil, err
 	}
 
 	return optionsList, nil
 }
 
-func GetLiftTypeByID(db *gorm.DB, liftTypeID int64) (lift_types.LiftType, error) {
+func GetLiftTypeByID(db *gorm.DB, liftTypeID int64) (*lift_types.LiftType, error) {
 	var liftType lift_types.LiftType
 	if err := db.Where("id = ?", liftTypeID).First(&liftType).Error; err != nil {
-		return lift_types.LiftType{}, err
+		return nil, err
 	}
 
-	return liftType, nil
+	return &liftType, nil
 }
 
-func GetCycleAmountByID(db *gorm.DB, cycleAmountID int64) (cycle_amounts.CycleAmount, error) {
+func GetCycleAmountByID(db *gorm.DB, cycleAmountID int64) (*cycle_amounts.CycleAmount, error) {
 	var cycleAmount cycle_amounts.CycleAmount
 	if err := db.Where("id = ?", cycleAmountID).First(&cycleAmount).Error; err != nil {
-		return cycle_amounts.CycleAmount{}, err
+		return nil, err
 	}
 
-	return cycleAmount, nil
+	return &cycleAmount, nil
 }

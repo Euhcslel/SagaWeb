@@ -97,12 +97,12 @@ func GetOrderPageData(user *users.User, orderID int64) (*orderPageData, error) {
 		optionsMap[opt.RowNumber] = append(optionsMap[opt.RowNumber], opt.Option)
 	}
 
-	status, err := repository.GetOrderStatus(user, orderID)
+	status, err := repository.GetOrderStatus(orderID)
 	if err != nil {
 		return nil, err
 	}
 
-	orderStatus := enums.OrderStatus(status)
+	orderStatus := enums.OrderStatus(*status)
 
 	// Группируем в gates
 	order := types.Order{
@@ -138,14 +138,14 @@ func GetOrderPageData(user *users.User, orderID int64) (*orderPageData, error) {
 }
 
 type CurrentGatePageData struct {
-	Gate    order_gates.OrderGate
+	Gate    *order_gates.OrderGate
 	Options []order_gate_options.OrderGateOption
 
 	IndustrialDrive  *order_gate_industrial_drives.OrderGateIndustrialDrive
 	ResidentialDrive *order_gate_residential_drives.OrderGateResidentialDrive
 	ManualDrive      *order_gate_manual_drives.OrderGateManualDrive
 
-	Configuration types.Config
+	Configuration *types.Config
 	OrderStatus   enums.OrderStatus
 }
 
@@ -189,12 +189,12 @@ func GetCurrentGatePageData(user *users.User, orderID int64, gateID int64) (Curr
 		return CurrentGatePageData{}, err
 	}
 
-	orderStatus, err := repository.GetOrderStatus(user, orderID)
+	orderStatus, err := repository.GetOrderStatus(orderID)
 	if err != nil {
 		return CurrentGatePageData{}, err
 	}
 
-	pageData.OrderStatus = enums.OrderStatus(orderStatus)
+	pageData.OrderStatus = enums.OrderStatus(*orderStatus)
 
 	return pageData, nil
 }
@@ -496,7 +496,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		}
 
 		gatePrices, err := calculateGatePrice(int64(gate.Width), int64(gate.Height), gateType,
-			drivePrices, liftType, cycleAmount, optionsPrices)
+			drivePrices, *liftType, *cycleAmount, optionsPrices)
 		if err != nil {
 			return err
 		}
@@ -585,7 +585,7 @@ func DeleteGateFromOrder(user *users.User, orderID int64, rowNumber int64) error
 		return err
 	}
 
-	if err := repository.DeleteGateFromOrder(database.DB, gate); err != nil {
+	if err := repository.DeleteGateFromOrder(database.DB, *gate); err != nil {
 		return err
 	}
 
@@ -807,7 +807,7 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 	}
 
 	gatePrices, err := calculateGatePrice(int64(gateData.Width), int64(gateData.Height),
-		gate.GateType, drivePrices, liftType, cycleAmount, optionsPrices)
+		gate.GateType, drivePrices, *liftType, *cycleAmount, optionsPrices)
 	if err != nil {
 		return err
 	}
@@ -815,7 +815,7 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 	gate.GateRetailPrice = gatePrices.RetailPrice
 	gate.GateWholesalePrice = gatePrices.WholesalePrice
 
-	if err := repository.UpdateGate(tx, gate); err != nil {
+	if err := repository.UpdateGate(tx, *gate); err != nil {
 		return err
 	}
 
@@ -999,8 +999,8 @@ func GetAllOrderDocuments(user *users.User, orderID int64) (*generated.Documents
 }
 
 type FileInfo struct {
-	FilePath string
-	FileName string
+	FilePath *string
+	FileName *string
 }
 
 func GetFileInfo(user *users.User, orderID int64, docType string, docName string) (*FileInfo, error) {
@@ -1027,7 +1027,8 @@ func GetFileInfo(user *users.User, orderID int64, docType string, docName string
 			return nil, err
 		}
 
-		fileInfo.FilePath = billDirectoryPath + "/" + fileInfo.FileName
+		path := billDirectoryPath + "/" + *fileInfo.FileName
+		fileInfo.FilePath = &path
 
 		return &fileInfo, nil
 	case enums.OfferDocumentType:
@@ -1040,7 +1041,9 @@ func GetFileInfo(user *users.User, orderID int64, docType string, docName string
 		if offerDirectoryPath == "" {
 			return nil, err
 		}
-		fileInfo.FilePath = offerDirectoryPath + "/" + fileInfo.FileName
+
+		path := offerDirectoryPath + "/" + *fileInfo.FileName
+		fileInfo.FilePath = &path
 
 		return &fileInfo, nil
 	case enums.ContractDocumentType:
@@ -1053,7 +1056,9 @@ func GetFileInfo(user *users.User, orderID int64, docType string, docName string
 		if contractDirectoryPath == "" {
 			return nil, err
 		}
-		fileInfo.FilePath = contractDirectoryPath + "/" + fileInfo.FileName
+
+		path := contractDirectoryPath + "/" + *fileInfo.FileName
+		fileInfo.FilePath = &path
 
 		return &fileInfo, nil
 	case enums.OtherDocumentType:
@@ -1067,7 +1072,8 @@ func GetFileInfo(user *users.User, orderID int64, docType string, docName string
 			return nil, err
 		}
 
-		fileInfo.FilePath = documentsDirectoryPath + "/" + fileInfo.FileName
+		path := documentsDirectoryPath + "/" + *fileInfo.FileName
+		fileInfo.FilePath = &path
 
 		return &fileInfo, nil
 
@@ -1098,7 +1104,7 @@ func DeleteOrderDocument(user *users.User, orderID int64, docType string, docNam
 			return err
 		}
 
-		os.Remove(billDirectoryPath + "/" + fileName)
+		os.Remove(billDirectoryPath + "/" + *fileName)
 
 		if err := repository.DeleteOrderBill(docName); err != nil {
 			return err
@@ -1114,7 +1120,7 @@ func DeleteOrderDocument(user *users.User, orderID int64, docType string, docNam
 			return err
 		}
 
-		os.Remove(offerDirectoryPath + "/" + fileName)
+		os.Remove(offerDirectoryPath + "/" + *fileName)
 
 		if err := repository.DeleteOrderOffer(docName); err != nil {
 			return err
@@ -1130,7 +1136,7 @@ func DeleteOrderDocument(user *users.User, orderID int64, docType string, docNam
 			return err
 		}
 
-		os.Remove(contractDirectoryPath + "/" + fileName)
+		os.Remove(contractDirectoryPath + "/" + *fileName)
 
 		if err := repository.DeleteOrderContract(docName); err != nil {
 			return err
@@ -1146,7 +1152,7 @@ func DeleteOrderDocument(user *users.User, orderID int64, docType string, docNam
 			return err
 		}
 
-		os.Remove(documentsDirectoryPath + "/" + fileName)
+		os.Remove(documentsDirectoryPath + "/" + *fileName)
 
 		if err := repository.DeleteOrderDocument(docName); err != nil {
 			return err

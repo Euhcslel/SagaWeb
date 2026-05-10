@@ -16,7 +16,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/types"
 )
 
-func GetSizeForDimensions(width, height int64, gateType enums.GateType) (gate_sizes.GateSize, error) {
+func GetSizeForDimensions(width, height int64, gateType enums.GateType) (*gate_sizes.GateSize, error) {
 	var size gate_sizes.GateSize
 	if err := database.DB.Model(&gate_sizes.GateSize{}).
 		Where("width >= ? AND height >= ?", width, height).
@@ -24,9 +24,9 @@ func GetSizeForDimensions(width, height int64, gateType enums.GateType) (gate_si
 		Limit(1).
 		Order("width asc, height asc").
 		First(&size).Error; err != nil {
-		return gate_sizes.GateSize{}, err
+		return nil, err
 	}
-	return size, nil
+	return &size, nil
 }
 
 func GetIndustrialDrives() ([]industrial_gate_drives.IndustrialGateDrive, error) {
@@ -77,28 +77,28 @@ func GetCycleAmounts() ([]cycle_amounts.CycleAmount, error) {
 	return cycleAmounts, nil
 }
 
-func GetMaxAndMinWidth(gateType enums.GateType) (types.SizeParams, error) {
+func GetMaxAndMinWidth(gateType enums.GateType) (*types.SizeParams, error) {
 	var widthParams types.SizeParams
 	if err := database.DB.
 		Model(&gate_sizes.GateSize{}).
 		Select("MAX(width) as max_value, MIN(width) as min_value").
 		Where("gate_type = ?", gateType).
 		Scan(&widthParams).Error; err != nil {
-		return types.SizeParams{}, err
+		return nil, err
 	}
-	return widthParams, nil
+	return &widthParams, nil
 }
 
-func GetMaxAndMinHeight(gateType enums.GateType) (types.SizeParams, error) {
+func GetMaxAndMinHeight(gateType enums.GateType) (*types.SizeParams, error) {
 	var heightParams types.SizeParams
 	if err := database.DB.
 		Model(&gate_sizes.GateSize{}).
 		Select("MAX(height) as max_value, MIN(height) as min_value").
 		Where("gate_type = ?", gateType).
 		Scan(&heightParams).Error; err != nil {
-		return types.SizeParams{}, err
+		return nil, err
 	}
-	return heightParams, nil
+	return &heightParams, nil
 }
 
 func GetProducts() ([]products.Product, error) {
@@ -117,10 +117,10 @@ func GetOptions() ([]options.Option, error) {
 	return options, nil
 }
 
-func GetManualDrivePrices() (manual_drive_prices.ManualDrivePrice, error) {
+func GetManualDrivePrices() (*manual_drive_prices.ManualDrivePrice, error) {
 	var manualDrivePrice manual_drive_prices.ManualDrivePrice
 	if err := database.DB.First(&manualDrivePrice).Error; err != nil {
-		return manual_drive_prices.ManualDrivePrice{}, err
+		return nil, err
 	}
-	return manualDrivePrice, nil
+	return &manualDrivePrice, nil
 }

@@ -26,9 +26,9 @@ type Config struct {
 	Colors            []colors.Color
 	IndustrialDrives  []industrial_gate_drives.IndustrialGateDrive
 	ResidentialDrives []residential_gate_drives.ResidentialGateDrive
-	ManualDrive       manual_drive_prices.ManualDrivePrice
-	WidthParams       SizeParams
-	HeightParams      SizeParams
+	ManualDrive       *manual_drive_prices.ManualDrivePrice
+	WidthParams       *SizeParams
+	HeightParams      *SizeParams
 	Options           []options.Option
 	Products          []products.Product
 	DriveTypes        []enums.DriveType

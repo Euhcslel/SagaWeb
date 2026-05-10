@@ -7,6 +7,9 @@ import (
 
 func GetDealersList() ([]dealers.Dealer, error) {
 	var dealersList []dealers.Dealer
-	err := database.DB.Preload("User").Preload("Company").Find(&dealersList).Error
-	return dealersList, err
+	if err := database.DB.Preload("User").Preload("Company").Find(&dealersList).Error; err != nil {
+		return nil, err
+	}
+	
+	return dealersList, nil
 }

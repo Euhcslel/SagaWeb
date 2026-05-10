@@ -21,7 +21,7 @@ type CalculatorPageData struct {
 	IsDealer                 bool
 }
 
-func GetCalculatorPageData(user *users.User) (CalculatorPageData, error) {
+func GetCalculatorPageData(user *users.User) (*CalculatorPageData, error) {
 	role := enums.ClientRole
 	if user != nil {
 		role = user.Role
@@ -31,15 +31,15 @@ func GetCalculatorPageData(user *users.User) (CalculatorPageData, error) {
 
 	indCfg, err := GetGateCfg(enums.GateTypeInd, isDealer)
 	if err != nil {
-		return CalculatorPageData{}, err
+		return nil, err
 	}
 
 	resCfg, err := GetGateCfg(enums.GateTypeRes, isDealer)
 	if err != nil {
-		return CalculatorPageData{}, err
+		return nil, err
 	}
 
-	return CalculatorPageData{
+	return &CalculatorPageData{
 		IndustrialConfiguration:  indCfg,
 		ResidentialConfiguration: resCfg,
 		IsDealer:                 isDealer,
@@ -81,12 +81,12 @@ func GetPriceBasedOnSize(width, height int64, gateType enums.GateType, user *use
 	return resp, nil
 }
 
-func GetGateCfg(gateType enums.GateType, isDealer bool) (types.Config, error) {
-	cfg := types.Config{
+func GetGateCfg(gateType enums.GateType, isDealer bool) (*types.Config, error) {
+	cfg := &types.Config{
 		LiftTypes:    []lift_types.LiftType{},
 		Colors:       []colors.Color{},
-		WidthParams:  types.SizeParams{},
-		HeightParams: types.SizeParams{},
+		WidthParams:  &types.SizeParams{},
+		HeightParams: &types.SizeParams{},
 		Options:      []options.Option{},
 		Products:     []products.Product{},
 		DriveTypes:   []enums.DriveType{},
@@ -100,7 +100,7 @@ func GetGateCfg(gateType enums.GateType, isDealer bool) (types.Config, error) {
 
 		cfg.IndustrialDrives, err = repository.GetIndustrialDrives()
 		if err != nil {
-			return types.Config{}, err
+			return nil, err
 		}
 
 		if !isDealer {
@@ -113,7 +113,7 @@ func GetGateCfg(gateType enums.GateType, isDealer bool) (types.Config, error) {
 
 		cfg.Rails, err = repository.GetRails()
 		if err != nil {
-			return types.Config{}, err
+			return nil, err
 		}
 
 		if !isDealer {
@@ -124,7 +124,7 @@ func GetGateCfg(gateType enums.GateType, isDealer bool) (types.Config, error) {
 
 		cfg.ResidentialDrives, err = repository.GetResidentialDrives()
 		if err != nil {
-			return types.Config{}, err
+			return nil, err
 		}
 
 		if !isDealer {
@@ -136,42 +136,42 @@ func GetGateCfg(gateType enums.GateType, isDealer bool) (types.Config, error) {
 
 	cfg.ManualDrive, err = repository.GetManualDrivePrices()
 	if err != nil {
-		return types.Config{}, err
+		return nil, err
 	}
 
 	cfg.LiftTypes, err = repository.GetLiftTypes()
 	if err != nil {
-		return types.Config{}, err
+		return nil, err
 	}
 
 	cfg.Colors, err = repository.GetColors()
 	if err != nil {
-		return types.Config{}, err
+		return nil, err
 	}
 
 	cfg.CycleAmounts, err = repository.GetCycleAmounts()
 	if err != nil {
-		return types.Config{}, err
+		return nil, err
 	}
 
 	cfg.WidthParams, err = repository.GetMaxAndMinWidth(gateType)
 	if err != nil {
-		return types.Config{}, err
+		return nil, err
 	}
 
 	cfg.HeightParams, err = repository.GetMaxAndMinHeight(gateType)
 	if err != nil {
-		return types.Config{}, err
+		return nil, err
 	}
 
 	cfg.Products, err = repository.GetProducts()
 	if err != nil {
-		return types.Config{}, err
+		return nil, err
 	}
 
 	cfg.Options, err = repository.GetOptions()
 	if err != nil {
-		return types.Config{}, err
+		return nil, err
 	}
 
 	if !isDealer {

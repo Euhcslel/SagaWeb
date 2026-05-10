@@ -47,13 +47,13 @@ func UpdateDealerInfo(db *gorm.DB, userID int64, userInfo types.UpdatedUserInfo)
 		}).Error
 }
 
-func GetDealerByID(db *gorm.DB, dealerID int64) (dealers.Dealer, error) {
+func GetDealerByID(db *gorm.DB, dealerID int64) (*dealers.Dealer, error) {
 	var dealer dealers.Dealer
 	if err := db.Where("user_id = ?", dealerID).First(&dealer).Error; err != nil {
-		return dealers.Dealer{}, err
+		return nil, err
 	}
 
-	return dealer, nil
+	return &dealer, nil
 }
 
 func UpdateCompanyInfo(db *gorm.DB, companyID int64, userInfo types.UpdatedUserInfo) error {
@@ -64,13 +64,13 @@ func UpdateCompanyInfo(db *gorm.DB, companyID int64, userInfo types.UpdatedUserI
 		}).Error
 }
 
-func GetRegistrationRequestByID(db *gorm.DB, requestID int64) (dealer_registration_requests.DealerRegistrationRequest, error) {
+func GetRegistrationRequestByID(db *gorm.DB, requestID int64) (*dealer_registration_requests.DealerRegistrationRequest, error) {
 	var request dealer_registration_requests.DealerRegistrationRequest
 	if err := db.Where("id = ?", requestID).First(&request).Error; err != nil {
-		return dealer_registration_requests.DealerRegistrationRequest{}, err
+		return nil, err
 	}
 
-	return request, nil
+	return &request, nil
 }
 
 func CreateUser(db *gorm.DB, user *users.User) error {
@@ -89,14 +89,12 @@ func CreateDealer(db *gorm.DB, dealer *dealers.Dealer) error {
 
 func GetOrCreateCompanyByName(db *gorm.DB, name string) (*companies.Company, error) {
 	var company companies.Company
-	err := db.
+	if err := db.
 		Where("name = ?", name).
 		FirstOrCreate(&company, companies.Company{
 			Name: name,
 		}).
-		Error
-
-	if err != nil {
+		Error; err != nil {
 		return nil, err
 	}
 

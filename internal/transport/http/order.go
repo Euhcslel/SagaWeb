@@ -486,8 +486,8 @@ func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Disposition", "attachment; filename="+fileInfo.FileName)
-	http.ServeFile(w, r, fileInfo.FilePath)
+	w.Header().Set("Content-Disposition", "attachment; filename="+*fileInfo.FileName)
+	http.ServeFile(w, r, *fileInfo.FilePath)
 }
 
 // Route: /orders/{order_id}/documents/{document_type}/{document_name}
