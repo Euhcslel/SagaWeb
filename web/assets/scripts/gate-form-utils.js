@@ -169,9 +169,9 @@ export function updateGatePrice(gate) {
     }
   }
 
-  var optionList = gate.querySelector(".option-list");
-  var optionListRetailPrice = Number(optionList.dataset.retailPrice || 0);
-  var optionListWholesalePrice = Number(optionList.dataset.wholesalePrice || 0);
+  let optionList = gate.querySelector(".option-list");
+  let optionListRetailPrice = Number(optionList.dataset.retailPrice || 0);
+  let optionListWholesalePrice = Number(optionList.dataset.wholesalePrice || 0);
 
   retailGatePrice =
     sizeRetailPrice +

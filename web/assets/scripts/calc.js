@@ -249,8 +249,8 @@ async function fetchSizePrice(w, h, t) {
 
 // Функция, которая пересчитывает стоимость всего заказа
 window.updateOrderPrice = () => {
-  var totalRetailPrice = 0;
-  var totalWholesalePrice = 0;
+  let totalRetailPrice = 0;
+  let totalWholesalePrice = 0;
 
   const gates = document.getElementsByClassName("gate-item");
   [...gates].forEach((gate) => {

@@ -5,16 +5,16 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_manual_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_options"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_industrial_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
-	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_industrial_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_manual_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_options"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_residential_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/orders"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_gates"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/orders"
+	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/generated"
@@ -150,7 +150,7 @@ type CurrentGatePageData struct {
 }
 
 func GetCurrentGatePageData(user *users.User, orderID int64, gateID int64) (CurrentGatePageData, error) {
-	err := checkOrderAccess(user, orderID);
+	err := checkOrderAccess(user, orderID)
 	if err != nil {
 		return CurrentGatePageData{}, err
 	}
@@ -238,7 +238,7 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (or
 		}
 
 		gate := order_gates.OrderGate{
-			OrderID:             orderID,
+			OrderID:            orderID,
 			GateType:           gateType,
 			Width:              int32(cfg.WidthParams.MinValue),
 			Height:             int32(cfg.HeightParams.MinValue),
@@ -279,7 +279,7 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (or
 		}
 
 		gate := order_gates.OrderGate{
-			OrderID:             orderID,
+			OrderID:            orderID,
 			GateType:           gateType,
 			Width:              int32(cfg.WidthParams.MinValue),
 			Height:             int32(cfg.HeightParams.MinValue),
@@ -336,6 +336,61 @@ func calculateGatePrice(width, height int64, gateType enums.GateType,
 	return &PricePair{RetailPrice: gateRetailPrice, WholesalePrice: gateWholesalePrice}, nil
 }
 
+func calculateOptionsPrices(tx *gorm.DB, gateOptions []*generated.Option) (*PricePair, error) {
+	if len(gateOptions) == 0 {
+		return nil, nil
+	}
+
+	var optionsPrices PricePair
+	if len(gateOptions) > 0 {
+		optionIDs := make([]int64, 0, len(gateOptions))
+
+		for _, gateOption := range gateOptions {
+			if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
+				continue
+			}
+
+			optionIDs = append(optionIDs, gateOption.OptionId)
+		}
+
+		if len(optionIDs) > 0 {
+			optionsList, err := repository.GetOptionsByIDs(tx, optionIDs)
+			if err != nil {
+				return nil, err
+			}
+
+			optionsByID := make(map[int64]options.Option, len(optionsList))
+
+			for _, option := range optionsList {
+				optionsByID[option.ID] = option
+			}
+
+			for _, gateOption := range gateOptions {
+				if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
+					continue
+				}
+
+				option, ok := optionsByID[gateOption.OptionId]
+				if !ok {
+					return nil, errors.New("option not found")
+				}
+
+				amount := decimal.NewFromInt32(gateOption.Amount)
+
+				optionsPrices.RetailPrice = optionsPrices.RetailPrice.Add(
+					option.RetailPrice.Mul(amount),
+				)
+
+				optionsPrices.WholesalePrice = optionsPrices.WholesalePrice.Add(
+					option.WholesalePrice.Mul(amount),
+				)
+			}
+		}
+	}
+
+	return &optionsPrices, nil
+}
+
 func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	role := user.Role
 
@@ -375,7 +430,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		var orderProducts []order_products.OrderProduct
 		for _, product := range orderData.Products {
 			orderProducts = append(orderProducts, order_products.OrderProduct{
-				OrderID:    order.ID,
+				OrderID:   order.ID,
 				ProductID: product.ProductId,
 				Amount:    product.Amount,
 			})
@@ -447,62 +502,19 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 			return err
 		}
 
-		var optionsPrices PricePair
-
-		if len(gate.Options) > 0 {
-			optionIDs := make([]int64, 0, len(gate.Options))
-
-			for _, gateOption := range gate.Options {
-				if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
-					continue
-				}
-
-				optionIDs = append(optionIDs, gateOption.OptionId)
-			}
-
-			if len(optionIDs) > 0 {
-				optionsList, err := repository.GetOptionsByIDs(tx, optionIDs)
-				if err != nil {
-					return err
-				}
-
-				optionsByID := make(map[int64]options.Option, len(optionsList))
-
-				for _, option := range optionsList {
-					optionsByID[option.ID] = option
-				}
-
-				for _, gateOption := range gate.Options {
-					if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
-						continue
-					}
-
-					option, ok := optionsByID[gateOption.OptionId]
-					if !ok {
-						return errors.New("option not found")
-					}
-
-					amount := decimal.NewFromInt32(gateOption.Amount)
-
-					optionsPrices.RetailPrice = optionsPrices.RetailPrice.Add(
-						option.RetailPrice.Mul(amount),
-					)
-
-					optionsPrices.WholesalePrice = optionsPrices.WholesalePrice.Add(
-						option.WholesalePrice.Mul(amount),
-					)
-				}
-			}
+		optionsPrices, err := calculateOptionsPrices(tx, gate.Options)
+		if err != nil {
+			return err
 		}
 
 		gatePrices, err := calculateGatePrice(int64(gate.Width), int64(gate.Height), gateType,
-			drivePrices, *liftType, *cycleAmount, optionsPrices)
+			drivePrices, *liftType, *cycleAmount, *optionsPrices)
 		if err != nil {
 			return err
 		}
 
 		orderDetails := order_gates.OrderGate{
-			OrderID:             order.ID,
+			OrderID:            order.ID,
 			RowNumber:          int64(i + 1),
 			GateType:           gateType,
 			Width:              gate.Width,
@@ -554,7 +566,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		var orderGateOptions []order_gate_options.OrderGateOption
 		for _, gateOption := range gate.Options {
 			orderGateOption := order_gate_options.OrderGateOption{
-				OrderID:    order.ID,
+				OrderID:   order.ID,
 				RowNumber: int64(i + 1),
 				OptionID:  gateOption.OptionId,
 				Amount:    gateOption.Amount,
@@ -736,59 +748,11 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 	var optionsList []order_gate_options.OrderGateOption
 	for _, option := range gateData.Options {
 		optionsList = append(optionsList, order_gate_options.OrderGateOption{
-			OrderID:    orderID,
+			OrderID:   orderID,
 			RowNumber: gateID,
 			OptionID:  option.OptionId,
 			Amount:    option.Amount,
 		})
-	}
-
-	var optionsPrices PricePair
-
-	if len(gateData.Options) > 0 {
-		optionIDs := make([]int64, 0, len(gateData.Options))
-
-		for _, gateOption := range gateData.Options {
-			if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
-				continue
-			}
-
-			optionIDs = append(optionIDs, gateOption.OptionId)
-		}
-
-		if len(optionIDs) > 0 {
-			optionsList, err := repository.GetOptionsByIDs(tx, optionIDs)
-			if err != nil {
-				return err
-			}
-
-			optionsByID := make(map[int64]options.Option, len(optionsList))
-
-			for _, option := range optionsList {
-				optionsByID[option.ID] = option
-			}
-
-			for _, gateOption := range gateData.Options {
-				if gateOption.OptionId == 0 || gateOption.Amount <= 0 {
-					continue
-				}
-
-				option, ok := optionsByID[gateOption.OptionId]
-				if !ok {
-					return errors.New("option not found")
-				}
-
-				amount := decimal.NewFromInt32(gateOption.Amount)
-
-				optionsPrices.RetailPrice = optionsPrices.RetailPrice.Add(
-					option.RetailPrice.Mul(amount),
-				)
-
-				optionsPrices.WholesalePrice = optionsPrices.WholesalePrice.Add(
-					option.WholesalePrice.Mul(amount),
-				)
-			}
-		}
 	}
 
 	if err := repository.DeleteAllGateOptions(tx, orderID, gateID); err != nil {
@@ -801,8 +765,13 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 		}
 	}
 
+	optionsPrices, err := calculateOptionsPrices(tx, gateData.Options)
+	if err != nil {
+		return err
+	}
+
 	gatePrices, err := calculateGatePrice(int64(gateData.Width), int64(gateData.Height),
-		gate.GateType, drivePrices, *liftType, *cycleAmount, optionsPrices)
+		gate.GateType, drivePrices, *liftType, *cycleAmount, *optionsPrices)
 	if err != nil {
 		return err
 	}
@@ -1165,7 +1134,7 @@ func UpdateProductsInOrder(user *users.User, orderID int64, updateProductsReques
 	var productList []order_products.OrderProduct
 	for _, product := range updateProductsRequest.Products {
 		productList = append(productList, order_products.OrderProduct{
-			OrderID:    orderID,
+			OrderID:   orderID,
 			ProductID: product.ProductId,
 			Amount:    product.Amount,
 		})

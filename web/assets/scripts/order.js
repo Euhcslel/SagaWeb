@@ -360,11 +360,9 @@ window.updateOrderPrice = () => {
     gatesWholesalePrice += gateWholesalePrice * amount;
   });
 
-  console.log(gatesWholesalePrice, gatesRetailPrice);
   const productList = document.getElementById("product-list");
   const productsRetailPrice = Number(productList.dataset.retailPrice);
   const productsWholesalePrice = Number(productList.dataset.wholesalePrice);
-  console.log(productsRetailPrice, productsWholesalePrice);
 
   const orderWholesalePriceElement = document.getElementById(
     "order-wholesale-price",
@@ -380,4 +378,5 @@ window.updateOrderPrice = () => {
 };
 
 await initProtobuf();
+updateProductsPrice();
 updateOrderPrice();

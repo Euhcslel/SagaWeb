@@ -5,6 +5,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/gate_sizes"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
@@ -12,12 +13,14 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
-	"github.com/Euhcslel/SagaWeb/internal/domain/gate_sizes"
 	"github.com/Euhcslel/SagaWeb/internal/types"
 )
 
 func GetSizeForDimensions(width, height int64, gateType enums.GateType) (*gate_sizes.GateSize, error) {
 	var size gate_sizes.GateSize
+
+	// Ищем наименьший стандартный размер, в который вписываются запрошенные габариты.
+	// Если точного совпадения нет — берём ближайший больший.
 	if err := database.DB.Model(&gate_sizes.GateSize{}).
 		Where("width >= ? AND height >= ?", width, height).
 		Where("gate_type = ?", gateType).
