@@ -2,10 +2,10 @@ package http
 
 import (
 	"context"
-	"net/http"
 	"github.com/Euhcslel/SagaWeb/internal/helpers"
 	"github.com/Euhcslel/SagaWeb/internal/types"
 	"github.com/Euhcslel/SagaWeb/internal/utils"
+	"net/http"
 )
 
 // Middleware для проверки аутентификации
@@ -32,6 +32,16 @@ func WithOptionalAuth(next http.Handler) http.Handler {
 			r = r.WithContext(ctx)
 		}
 
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Middleware, который добавляет базовые security-заголовки ко всем HTTP-ответам
+func SecurityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		next.ServeHTTP(w, r)
 	})
 }

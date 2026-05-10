@@ -580,11 +580,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 		}
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit().Error
 }
 
 func DeleteGateFromOrder(user *users.User, orderID int64, rowNumber int64) error {
@@ -783,11 +779,7 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 		return err
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit().Error
 }
 
 func UpdateOrderStatus(user *users.User, orderID int64, updateStatusRequest *generated.UpdateOrderStatusRequest) error {
@@ -1156,9 +1148,5 @@ func UpdateProductsInOrder(user *users.User, orderID int64, updateProductsReques
 		}
 	}
 
-	if err := tx.Commit().Error; err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit().Error
 }
