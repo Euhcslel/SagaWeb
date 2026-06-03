@@ -27,7 +27,7 @@ services:
     env_file: .env.docker
     volumes:
       - ./.env.docker:/app/.env:ro
-      - app_data:/app/data
+      - ./data:/app/data
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -38,7 +38,7 @@ services:
       - "8080:80"
     volumes:
       - ./.env.docker:/app/.env:ro
-      - app_data:/app/data
+      - ./data:/app/data
       - app_logs:/app/logs
     depends_on:
       size_import:
@@ -47,5 +47,4 @@ services:
 
 volumes:
   postgres_data:
-  app_data:
   app_logs:
