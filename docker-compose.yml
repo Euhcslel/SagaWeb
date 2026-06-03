@@ -21,6 +21,14 @@ services:
       postgres:
         condition: service_healthy
 
+  size_import:
+    build: .
+    command: ./size_import
+    env_file: .env.docker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   app:
     build: .
     ports:
@@ -30,7 +38,7 @@ services:
       - app_data:/app/data
       - app_logs:/app/logs
     depends_on:
-      migrate:
+      size_import:
         condition: service_completed_successfully
     restart: unless-stopped
 

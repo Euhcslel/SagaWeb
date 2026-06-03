@@ -8,6 +8,7 @@ RUN go mod download
 
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server ./cmd/app
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o size_import ./cmd/size_import
 
 # Install goose for migrations
 RUN go install github.com/pressly/goose/v3/cmd/goose@latest
@@ -20,6 +21,7 @@ RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 
 COPY --from=builder /build/server .
+COPY --from=builder /build/size_import .
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
 
 COPY web/ web/
