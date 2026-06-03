@@ -1,6 +1,19 @@
-label {
+label:not(.btn) {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-s);
+}
+
+h2 {
+  text-align: center;
+  font-size: var(--font-size-l);
+  margin-bottom: 1rem;
+}
+
+.button-container {
+  padding-top: 1rem;
+  display: flex;
+  gap: var(--spacing-s);
 }
 
 .price-row {
@@ -20,24 +33,203 @@ main {
   bottom: 0;
 }
 
+.content {
+  padding: 1rem;
+}
+
 form .gate-item {
   display: flex;
   flex-direction: row;
+  justify-content: space-around;
+  gap: var(--spacing-xl);
+  margin-top: 1rem;
 
-  .options-list {
-    margin: 0 auto;
+  > div {
+    flex: 1;
+    min-width: 0;
   }
 }
 
-.option-item {
-  display: flex;
-  gap: var(--spacing-m);
-  align-items: center;
-  margin-bottom: var(--spacing-m);
+.option-list {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 50svh;
 
-  .controls {
+  li {
+    .controls {
+      display: flex;
+      flex-direction: row;
+      gap: var(--spacing-l);
+      position: relative;
+      min-width: 2rem;
+
+      label {
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        gap: var(--spacing-l);
+      }
+
+      .amount {
+        width: 5rem;
+      }
+    }
+
+    .controls button {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.95);
+      transition: all 0.2s ease-in-out;
+    }
+
+    &:hover .controls button {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+  }
+}
+
+.configuration {
+  overflow-y: auto;
+  max-height: 60svh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+}
+
+@media (max-width: 767px) {
+  main {
+    padding-bottom: 8rem;
+  }
+
+  .content {
+    padding: var(--spacing-s);
+  }
+
+  .back-button {
+    margin-bottom: var(--spacing-s);
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  h2 {
+    font-size: var(--font-size-m);
+    margin-bottom: var(--spacing-s);
+  }
+
+  form .gate-item {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--spacing-l);
+    margin-top: var(--spacing-s);
+
+    > div {
+      width: 100%;
+    }
+  }
+
+  .configuration {
+    max-height: unset;
+    overflow-y: visible;
+    gap: var(--spacing-m);
+
+    .input,
+    .select {
+      width: 100%;
+    }
+  }
+
+  .drive-block {
     display: flex;
+    flex-direction: column;
+    gap: var(--spacing-m);
+
+    .drive-auto {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-m);
+    }
+  }
+
+  .option-list {
+    max-height: 35svh;
+
+    li {
+      .controls button {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+      }
+    }
+  }
+
+  .option-item {
+    flex-direction: column;
+    align-items: flex-start;
     gap: var(--spacing-s);
-    align-items: center;
+
+    .select {
+      width: 100%;
+    }
+
+    .controls {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--spacing-s);
+
+      .amount {
+        width: 5rem;
+      }
+    }
+  }
+
+  .button-container {
+    padding-top: var(--spacing-s);
+    flex-wrap: wrap;
+
+    .btn {
+      flex: 1;
+    }
+  }
+
+  .calc-footer {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-s);
+
+    > div {
+      width: 100%;
+
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+
+  .price-row {
+    font-size: var(--font-size-xs);
+    gap: var(--spacing-s);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  form .gate-item {
+    flex-direction: column;
+    gap: var(--spacing-l);
+
+    > div {
+      width: 100%;
+    }
+  }
+
+  .configuration {
+    max-height: unset;
+    overflow-y: visible;
   }
 }

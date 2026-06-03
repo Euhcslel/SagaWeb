@@ -3,6 +3,7 @@ import {
   removeItem,
   addProduct,
   updateProductsPrice,
+  fmtPrice,
 } from "./gate-form-utils.js";
 
 window.removeItem = removeItem;
@@ -367,14 +368,14 @@ window.updateOrderPrice = () => {
   const orderWholesalePriceElement = document.getElementById(
     "order-wholesale-price",
   );
-  orderWholesalePriceElement.textContent = (
+  orderWholesalePriceElement.textContent = fmtPrice(
     productsWholesalePrice + gatesWholesalePrice
-  ).toFixed(2);
+  );
 
   const orderRetailPriceElement = document.getElementById("order-retail-price");
-  orderRetailPriceElement.textContent = (
+  orderRetailPriceElement.textContent = fmtPrice(
     productsRetailPrice + gatesRetailPrice
-  ).toFixed(2);
+  );
 };
 
 await initProtobuf();

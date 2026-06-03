@@ -1,0 +1,8 @@
+.env
+.git
+.gitignore
+.vscode/
+.claude/
+docs/
+logs/
+*.md

@@ -4,6 +4,7 @@ import {
   addGateOption,
   updateOptionsPrice,
   updateGatePrice,
+  fmtPrice,
 } from "./gate-form-utils.js";
 
 window.removeItem = removeItem;

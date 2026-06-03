@@ -86,51 +86,29 @@ SELECT setval(pg_get_serial_sequence('residential_gate_drives', 'id'), COALESCE(
 SELECT setval(pg_get_serial_sequence('manual_drive_prices', 'id'), COALESCE((SELECT MAX(id) FROM manual_drive_prices), 1), true);
 
 -- +goose Down
-
--- ============================================================
--- Удаление пользовательских данных
--- ============================================================
-
-DELETE FROM dealer_manager_assignments
-WHERE manager_id = 38
-  AND dealer_id IN (41, 57);
-
-DELETE FROM dealers
-WHERE user_id IN (41, 57);
-
-DELETE FROM users
-WHERE id IN (38, 39, 41, 57);
-
-DELETE FROM companies
-WHERE id IN (9, 10, 12, 13);
-
--- ============================================================
--- Удаление справочников
--- ============================================================
-
-DELETE FROM manual_drive_prices
-WHERE id = 1;
-
-DELETE FROM residential_gate_drives
-WHERE id IN (3, 4);
-
-DELETE FROM industrial_gate_drives
-WHERE id = 3;
-
-DELETE FROM rails
-WHERE id = 4;
-
-DELETE FROM options
-WHERE id IN (7, 8);
-
-DELETE FROM products
-WHERE id IN (5, 6);
-
-DELETE FROM lift_types
-WHERE id IN (17, 18, 19, 20);
-
-DELETE FROM cycle_amounts
-WHERE id IN (13, 14, 15);
-
-DELETE FROM colors
-WHERE id IN (16, 17, 18, 19, 20, 21);
+TRUNCATE TABLE
+    order_gate_options,
+    order_gate_industrial_drives,
+    order_gate_residential_drives,
+    order_gate_manual_drives,
+    order_gates,
+    order_products,
+    order_offers,
+    order_contracts,
+    order_bills,
+    order_documents,
+    orders,
+    dealer_manager_assignments,
+    dealers,
+    users,
+    companies,
+    colors,
+    cycle_amounts,
+    lift_types,
+    products,
+    options,
+    rails,
+    industrial_gate_drives,
+    residential_gate_drives,
+    manual_drive_prices
+RESTART IDENTITY CASCADE;

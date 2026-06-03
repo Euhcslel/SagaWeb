@@ -1,5 +1,6 @@
 footer {
   background-color: var(--color-dark-grey);
+  color: var(--color-base-100);
   padding: var(--spacing-l);
 }
 
@@ -64,5 +65,16 @@ footer {
 
   &.footer-center {
     grid-auto-flow: column dense;
+  }
+}
+
+@media (max-width: 767px) {
+  .footer-horizontal {
+    grid-auto-flow: row;
+    grid-auto-columns: unset;
+  }
+
+  .divider-horizontal.divider {
+    display: none;
   }
 }

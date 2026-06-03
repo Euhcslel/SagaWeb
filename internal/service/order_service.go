@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
@@ -20,11 +21,6 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/generated"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
 	"github.com/Euhcslel/SagaWeb/internal/types"
-	"io"
-	"mime/multipart"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -63,6 +59,7 @@ func GetAllUserOrders(user *users.User) ([]orders.Order, error) {
 	}
 }
 
+// Структура, описывающая данные необходимые для страницы заказа
 type orderPageData struct {
 	Order    types.Order
 	Products []products.Product
@@ -137,6 +134,7 @@ func GetOrderPageData(user *users.User, orderID int64) (*orderPageData, error) {
 	return pageData, nil
 }
 
+// Структура, описывающая данные необходимые для страницы ворот в заказе
 type CurrentGatePageData struct {
 	Gate    *order_gates.OrderGate
 	Options []order_gate_options.OrderGateOption
@@ -211,22 +209,29 @@ func DeleteUserOrder(user *users.User, orderID int64) error {
 	return nil
 }
 
+// Структура, описывающая пару из цены для клиента и дилера
 type PricePair struct {
 	RetailPrice    decimal.Decimal
 	WholesalePrice decimal.Decimal
 }
 
-func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (order_gates.OrderGate, error) {
+func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*order_gates.OrderGate, error) {
 	if err := checkOrderAccess(user, orderID); err != nil {
-		return order_gates.OrderGate{}, err
+		return nil, err
 	}
+
+	tx := database.DB.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	defer tx.Rollback()
 
 	gateType := enums.GateType(formGateType)
 	switch gateType {
 	case enums.GateTypeInd:
 		cfg, err := GetGateCfg(gateType, true)
 		if err != nil {
-			return order_gates.OrderGate{}, err
+			return nil, err
 		}
 
 		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
@@ -234,7 +239,7 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (or
 				RetailPrice: cfg.IndustrialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
 			PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
 		if err != nil {
-			return order_gates.OrderGate{}, err
+			return nil, err
 		}
 
 		gate := order_gates.OrderGate{
@@ -254,20 +259,20 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (or
 
 		gate, err = repository.CreateNewGate(database.DB, gate)
 		if err != nil {
-			return order_gates.OrderGate{}, err
+			return nil, err
 		}
 
 		err = repository.CreateIndustrialDriveForGate(database.DB, orderID, gate.RowNumber, int64(cfg.IndustrialDrives[0].ID))
 		if err != nil {
-			return order_gates.OrderGate{}, err
+			return nil, err
 		}
 
-		return gate, nil
+		return &gate, tx.Commit().Error
 
 	case enums.GateTypeRes:
 		cfg, err := GetGateCfg(gateType, true)
 		if err != nil {
-			return order_gates.OrderGate{}, err
+			return nil, err
 		}
 
 		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
@@ -275,7 +280,7 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (or
 				RetailPrice: cfg.ResidentialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
 			PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
 		if err != nil {
-			return order_gates.OrderGate{}, err
+			return nil, err
 		}
 
 		gate := order_gates.OrderGate{
@@ -295,18 +300,18 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (or
 
 		gate, err = repository.CreateNewGate(database.DB, gate)
 		if err != nil {
-			return order_gates.OrderGate{}, err
+			return nil, err
 		}
 
 		err = repository.CreateResidentialDriveForGate(database.DB, orderID, gate.RowNumber, cfg.ResidentialDrives[0].ID, cfg.Rails[0].ID)
 		if err != nil {
-			return order_gates.OrderGate{}, err
+			return nil, err
 		}
 
-		return gate, nil
+		return &gate, tx.Commit().Error
 
 	default:
-		return order_gates.OrderGate{}, errs.ErrInvalidGateType
+		return nil, errs.ErrInvalidGateType
 	}
 }
 
@@ -338,7 +343,7 @@ func calculateGatePrice(width, height int64, gateType enums.GateType,
 
 func calculateOptionsPrices(tx *gorm.DB, gateOptions []*generated.Option) (*PricePair, error) {
 	if len(gateOptions) == 0 {
-		return nil, nil
+		return &PricePair{}, nil
 	}
 
 	var optionsPrices PricePair
@@ -794,325 +799,6 @@ func UpdateOrderStatus(user *users.User, orderID int64, updateStatusRequest *gen
 
 	if err = repository.UpdateOrderStatus(database.DB, orderID, status); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func UploadOfferToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
-	if err := checkOrderAccess(user, orderID); err != nil {
-		return err
-	}
-
-	offerDirectoryPath := os.Getenv("OFFERS_DIRECTORY")
-	if offerDirectoryPath == "" {
-		return errors.New("")
-	}
-
-	dst, err := os.Create(offerDirectoryPath + "/" + handler.Filename)
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		return err
-	}
-
-	ext := filepath.Ext(handler.Filename)
-	name := strings.TrimSuffix(handler.Filename, ext)
-	if err = repository.AttachOfferToOrder(database.DB, orderID, name, handler.Filename); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func UploadContractToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
-	if err := checkOrderAccess(user, orderID); err != nil {
-		return err
-	}
-
-	contractDirectoryPath := os.Getenv("CONTRACTS_DIRECTORY")
-	if contractDirectoryPath == "" {
-		return errors.New("")
-	}
-
-	dst, err := os.Create(contractDirectoryPath + "/" + handler.Filename)
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		return err
-	}
-
-	ext := filepath.Ext(handler.Filename)
-	name := strings.TrimSuffix(handler.Filename, ext)
-	if err = repository.AttachContractToOrder(database.DB, orderID, name, handler.Filename); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func UploadBillToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
-	if err := checkOrderAccess(user, orderID); err != nil {
-		return err
-	}
-
-	billDirectoryPath := os.Getenv("BILLS_DIRECTORY")
-	if billDirectoryPath == "" {
-		return errors.New("")
-	}
-
-	dst, err := os.Create(billDirectoryPath + "/" + handler.Filename)
-	if err != nil {
-		return err
-	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		return err
-	}
-
-	ext := filepath.Ext(handler.Filename)
-	name := strings.TrimSuffix(handler.Filename, ext)
-	if err = repository.AttachBillToOrder(database.DB, orderID, name, handler.Filename); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func GetAllOrderDocuments(user *users.User, orderID int64) (*generated.DocumentsList, error) {
-	if err := checkOrderAccess(user, orderID); err != nil {
-		return nil, err
-	}
-
-	var resp *generated.DocumentsList
-
-	offersNumberList, err := repository.GetOffersNumberList(database.DB, orderID)
-	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		return nil, err
-	}
-
-	offers := make([]*generated.Offer, 0, len(offersNumberList))
-	for _, number := range offersNumberList {
-		offers = append(offers, &generated.Offer{
-			OfferNumber: number,
-		})
-	}
-
-	contractsNumberList, err := repository.GetContractsNumberList(database.DB, orderID)
-	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		return nil, err
-	}
-
-	contracts := make([]*generated.Contract, 0, len(contractsNumberList))
-	for _, number := range contractsNumberList {
-		contracts = append(contracts, &generated.Contract{
-			ContractNumber: number,
-		})
-	}
-
-	billsNumberList, err := repository.GetBillsNumberList(database.DB, orderID)
-	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		return nil, err
-	}
-
-	bills := make([]*generated.Bill, 0, len(billsNumberList))
-	for _, number := range billsNumberList {
-		bills = append(bills, &generated.Bill{
-			BillNumber: number,
-		})
-	}
-
-	documentsNameList, err := repository.GetDocumentsNameList(database.DB, orderID)
-	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		return nil, err
-	}
-
-	documents := make([]*generated.Document, 0, len(documentsNameList))
-	for _, name := range documentsNameList {
-		documents = append(documents, &generated.Document{
-			Name: name,
-		})
-	}
-
-	resp = &generated.DocumentsList{
-		Documents: documents,
-		Offers:    offers,
-		Bills:     bills,
-		Contracts: contracts,
-	}
-
-	return resp, nil
-}
-
-type FileInfo struct {
-	FilePath *string
-	FileName *string
-}
-
-func GetFileInfo(user *users.User, orderID int64, docType string, docName string) (*FileInfo, error) {
-	if err := checkOrderAccess(user, orderID); err != nil {
-		return nil, err
-	}
-
-	documentType, err := enums.GetDocumentTypeFromString(docType)
-	if err != nil {
-		return nil, err
-	}
-
-	fileInfo := FileInfo{}
-
-	switch documentType {
-	case enums.BillDocumentType:
-		fileInfo.FileName, err = repository.GetBillFileName(docName)
-		if err != nil {
-			return nil, err
-		}
-
-		billDirectoryPath := os.Getenv("BILLS_DIRECTORY")
-		if billDirectoryPath == "" {
-			return nil, err
-		}
-
-		path := billDirectoryPath + "/" + *fileInfo.FileName
-		fileInfo.FilePath = &path
-
-		return &fileInfo, nil
-	case enums.OfferDocumentType:
-		fileInfo.FileName, err = repository.GetOfferFileName(docName)
-		if err != nil {
-			return nil, err
-		}
-
-		offerDirectoryPath := os.Getenv("OFFERS_DIRECTORY")
-		if offerDirectoryPath == "" {
-			return nil, err
-		}
-
-		path := offerDirectoryPath + "/" + *fileInfo.FileName
-		fileInfo.FilePath = &path
-
-		return &fileInfo, nil
-	case enums.ContractDocumentType:
-		fileInfo.FileName, err = repository.GetContractFileName(docName)
-		if err != nil {
-			return nil, err
-		}
-
-		contractDirectoryPath := os.Getenv("CONTRACTS_DIRECTORY")
-		if contractDirectoryPath == "" {
-			return nil, err
-		}
-
-		path := contractDirectoryPath + "/" + *fileInfo.FileName
-		fileInfo.FilePath = &path
-
-		return &fileInfo, nil
-	case enums.OtherDocumentType:
-		fileInfo.FileName, err = repository.GetDocumentFileName(docName)
-		if err != nil {
-			return nil, err
-		}
-
-		documentsDirectoryPath := os.Getenv("DOCUMENTS_DIRECTORY")
-		if documentsDirectoryPath == "" {
-			return nil, err
-		}
-
-		path := documentsDirectoryPath + "/" + *fileInfo.FileName
-		fileInfo.FilePath = &path
-
-		return &fileInfo, nil
-
-	default:
-		return nil, errs.ErrInvalidDocumentType
-	}
-}
-
-func DeleteOrderDocument(user *users.User, orderID int64, docType string, docName string) error {
-	if err := checkOrderAccess(user, orderID); err != nil {
-		return err
-	}
-
-	documentType, err := enums.GetDocumentTypeFromString(docType)
-	if err != nil {
-		return err
-	}
-
-	switch documentType {
-	case enums.BillDocumentType:
-		fileName, err := repository.GetBillFileName(docName)
-		if err != nil {
-			return err
-		}
-
-		billDirectoryPath := os.Getenv("BILLS_DIRECTORY")
-		if billDirectoryPath == "" {
-			return err
-		}
-
-		os.Remove(billDirectoryPath + "/" + *fileName)
-
-		if err := repository.DeleteOrderBill(docName); err != nil {
-			return err
-		}
-	case enums.OfferDocumentType:
-		fileName, err := repository.GetOfferFileName(docName)
-		if err != nil {
-			return err
-		}
-
-		offerDirectoryPath := os.Getenv("OFFERS_DIRECTORY")
-		if offerDirectoryPath == "" {
-			return err
-		}
-
-		os.Remove(offerDirectoryPath + "/" + *fileName)
-
-		if err := repository.DeleteOrderOffer(docName); err != nil {
-			return err
-		}
-	case enums.ContractDocumentType:
-		fileName, err := repository.GetContractFileName(docName)
-		if err != nil {
-			return err
-		}
-
-		contractDirectoryPath := os.Getenv("CONTRACTS_DIRECTORY")
-		if contractDirectoryPath == "" {
-			return err
-		}
-
-		os.Remove(contractDirectoryPath + "/" + *fileName)
-
-		if err := repository.DeleteOrderContract(docName); err != nil {
-			return err
-		}
-	case enums.OtherDocumentType:
-		fileName, err := repository.GetDocumentFileName(docName)
-		if err != nil {
-			return err
-		}
-
-		documentsDirectoryPath := os.Getenv("DOCUMENTS_DIRECTORY")
-		if documentsDirectoryPath == "" {
-			return err
-		}
-
-		os.Remove(documentsDirectoryPath + "/" + *fileName)
-
-		if err := repository.DeleteOrderDocument(docName); err != nil {
-			return err
-		}
 	}
 
 	return nil

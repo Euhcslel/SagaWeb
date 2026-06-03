@@ -33,3 +33,76 @@
   width: 50%;
   justify-content: flex-end;
 }
+
+/* Кнопка-гамбургер — скрыта на десктопе */
+.hamburger-btn {
+  display: none;
+}
+
+/* Мобильный сайдбар */
+.nav-drawer-side {
+  z-index: 10000;
+}
+
+.nav-sidebar {
+  background-color: var(--color-dark-grey);
+  color: var(--color-neutral-content);
+  min-height: 100dvh;
+  width: 17rem;
+  padding: var(--spacing-l);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
+}
+
+.nav-sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--spacing-l);
+  border-bottom: 1px solid oklch(100% 0 0 / 0.12);
+}
+
+.nav-sidebar-close {
+  color: var(--color-neutral-content);
+}
+
+.nav-sidebar-menu {
+  flex: 1;
+  width: 100%;
+
+  li a {
+    color: var(--color-neutral-content);
+    font-size: var(--font-size-s);
+    padding: var(--spacing-m) var(--spacing-l);
+    border-radius: var(--radius-field);
+    width: 100%;
+
+    &:hover {
+      background-color: oklch(100% 0 0 / 0.08);
+    }
+  }
+}
+
+.nav-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  padding-top: var(--spacing-l);
+  border-top: 1px solid oklch(100% 0 0 / 0.12);
+}
+
+@media (max-width: 1360px) {
+  .hamburger-btn {
+    display: inline-flex;
+  }
+
+  /* ul.nav-desktop-menu — специфичность (0,1,1) бьёт .menu-horizontal (0,1,0) из menu.css */
+  ul.nav-desktop-menu {
+    display: none;
+  }
+
+  .navbar-end {
+    display: none;
+  }
+}

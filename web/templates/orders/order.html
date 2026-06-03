@@ -53,82 +53,86 @@
           {{end}}
         </select>
         {{else}}
-          <p>Статус: {{.order.Status.Label}}</p>
+        <p>Статус: {{.order.Status.Label}}</p>
         {{end}}
       </div>
       <!--Содержимое заказа-->
       <div class="order-content">
-        <!--Сетка с воротами в заказе-->
-        <div class="order-gates">
-          {{range .order.Gates}}
-          <div
-            class="card gate"
-            data-retail-price="{{.Gate.GateRetailPrice}}"
-            data-wholesale-price="{{.Gate.GateWholesalePrice}}"
-            data-amount="{{.Gate.Amount}}"
-          >
-            <div class="card-body">
-              <h2 class="card-title">Ворота №{{.Gate.RowNumber}}</h2>
-              <ul>
-                <li>{{.Gate.Width}}</li>
-                <li>{{.Gate.Height}}</li>
-                <li>{{.Gate.GateType.Label}}</li>
-                <li>{{.Gate.LiftType.Name}}</li>
-                <li>{{.Gate.ColorOut.Code}}</li>
-                <li>{{.Gate.CycleAmount.Amount}}</li>
-                <li>{{.Gate.GateRetailPrice}}</li>
-                <li>{{.Gate.GateWholesalePrice}}</li>
-              </ul>
-              <div class="card-actions">
-                <!--Перейти в детали заказа-->
-                <a
-                  class="btn secondary"
-                  href="/orders/{{.Gate.OrderID}}/{{.Gate.RowNumber}}"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+        <div>
+          <!--Сетка с воротами в заказе-->
+          <h2>Ворота</h2>
+          <div class="order-gates">
+            {{range .order.Gates}}
+            <div
+              class="card gate"
+              data-retail-price="{{.Gate.GateRetailPrice}}"
+              data-wholesale-price="{{.Gate.GateWholesalePrice}}"
+              data-amount="{{.Gate.Amount}}"
+            >
+              <div class="card-body">
+                <h3 class="card-title">Ворота №{{.Gate.RowNumber}}</h3>
+                <ul>
+                  <li>Ширина: {{.Gate.Width}} мм</li>
+                  <li>Высота: {{.Gate.Height}} мм</li>
+                  <li>Тип ворот: {{.Gate.GateType.Label}}</li>
+                  <li>Тип подъема: {{.Gate.LiftType.Name}}</li>
+                  <li>Цвет: {{.Gate.ColorOut.Code}}</li>
+                  <li>Количество циклов: {{.Gate.CycleAmount.Amount}}</li>
+                  <li>Цена (клиент): {{fmtPrice .Gate.GateRetailPrice}}</li>
+                  <li>Цена (дилер): {{fmtPrice .Gate.GateWholesalePrice}}</li>
+                </ul>
+                <div class="card-actions">
+                  <!--Перейти в детали заказа-->
+                  <a
+                    class="btn secondary"
+                    href="/orders/{{.Gate.OrderID}}/{{.Gate.RowNumber}}"
                   >
-                    <path d="m21 21-4.34-4.34" />
-                    <circle cx="11" cy="11" r="8" />
-                  </svg>
-                </a>
-                <!--Удалить ворота из заказа-->
-                {{if eq $.order.Status "pending"}}
-                <button
-                  class="btn secondary"
-                  onclick="window.deleteGate({{.Gate.RowNumber}})"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    <p>Подробнее</p>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m21 21-4.34-4.34" />
+                      <circle cx="11" cy="11" r="8" />
+                    </svg>
+                  </a>
+                  <!--Удалить ворота из заказа-->
+                  {{if eq $.order.Status "pending"}}
+                  <button
+                    class="btn secondary button-delete"
+                    onclick="window.deleteGate({{.Gate.RowNumber}})"
                   >
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                    <path d="M3 6h18" />
-                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                </button>
-                {{end}}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  </button>
+                  {{end}}
+                </div>
               </div>
             </div>
+            {{else}}
+            <p>Нет никаких ворот</p>
+            {{end}}
           </div>
-          {{else}}
-          <p>Нет никаких ворот</p>
-          {{end}}
           {{if eq .order.Status "pending"}}
           <div class="add-button-container">
             <button
@@ -142,15 +146,19 @@
         </div>
         <!-- Товары -->
         <div class="order-products" id="products">
-          <div id="product-list" data-retail-price="0" data-wholesale-price="0">
+          <h2>Товары</h2>
+          <ul id="product-list" data-retail-price="0" data-wholesale-price="0">
             {{range .order.Products}} {{$orderProduct := .}}
 
-            <div class="product-item">
+            <li class="product-item">
               <select
                 class="product select"
                 name="product"
                 onchange="window.updateProductsPrice()"
-                {{if ne $.order.Status `pending`}}disabled{{end}}
+                {{if
+                ne
+                $.order.Status
+                `pending`}}disabled{{end}}
               >
                 {{range $.products}}
                 <option
@@ -168,15 +176,21 @@
               </select>
 
               <div class="controls">
-                <input
-                  type="number"
-                  name="amount"
-                  class="amount input"
-                  min="1"
-                  value="{{$orderProduct.Amount}}"
-                  oninput="window.updateProductsPrice()"
-                  {{if ne $.order.Status `pending`}}disabled{{end}}
-                />
+                <label for="">
+                  Количество:
+                  <input
+                    type="number"
+                    name="amount"
+                    class="amount input"
+                    min="1"
+                    value="{{$orderProduct.Amount}}"
+                    oninput="window.updateProductsPrice()"
+                    {{if
+                    ne
+                    $.order.Status
+                    `pending`}}disabled{{end}}
+                  />
+                </label>
 
                 {{if eq $.order.Status `pending`}}
                 <button
@@ -202,13 +216,13 @@
                 </button>
                 {{end}}
               </div>
-            </div>
+            </li>
             {{else}}
             <p>Нет товаров в заказе</p>
             {{end}}
-          </div>
+          </ul>
           {{if eq $.order.Status `pending`}}
-          <div>
+          <div class="button-container">
             <button
               id="add-product"
               type="button"
@@ -235,10 +249,16 @@
           <h3>Добавление ворот</h3>
           <p>Выберите тип ворот:</p>
           <div class="modal-action">
-            <button class="btn secondary" onclick="window.addGate('res')">
+            <button
+              class="btn secondary"
+              onclick="window.addGate('residential')"
+            >
               Бытовые
             </button>
-            <button class="btn secondary" onclick="window.addGate('ind')">
+            <button
+              class="btn secondary"
+              onclick="window.addGate('industrial')"
+            >
               Промышленные
             </button>
           </div>
@@ -355,7 +375,7 @@
     </template>
     <!--Блок для выбора товаров-->
     <template id="product-template">
-      <div class="product-item">
+      <li class="product-item">
         <select
           class="product select"
           name="product"
@@ -372,14 +392,17 @@
           {{end}}
         </select>
         <div class="controls">
-          <input
-            type="number"
-            name="amount"
-            class="amount input"
-            min="1"
-            value="1"
-            oninput="window.updateProductsPrice()"
-          />
+          <label for="">
+            Количество:
+            <input
+              type="number"
+              name="amount"
+              class="amount input"
+              min="1"
+              value="1"
+              oninput="window.updateProductsPrice()"
+            />
+          </label>
           <button
             type="button"
             class="btn secondary"
@@ -402,7 +425,7 @@
             </svg>
           </button>
         </div>
-      </div>
+      </li>
     </template>
     <script src="/web/assets/scripts/protobuf.min.js"></script>
     <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>

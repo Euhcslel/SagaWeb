@@ -6,6 +6,7 @@ import {
   updateOptionsPrice,
   updateProductsPrice,
   updateGatePrice as sharedUpdateGatePrice,
+  fmtPrice,
 } from "./gate-form-utils.js";
 
 window.removeItem = removeItem;
@@ -76,13 +77,13 @@ window.onChangeGateButton = (e) => {
 
   const gate = document.getElementsByClassName("gate-item")[index];
 
-  document.getElementById("gate-retail-price").textContent = (
-    gate?.dataset.retailPrice || 0
-  ).toFixed(2);
+  document.getElementById("gate-retail-price").textContent = fmtPrice(
+    Number(gate?.dataset.retailPrice || 0),
+  );
 
-  document.getElementById("gate-wholesale-price").textContent = (
-    gate?.dataset.wholesalePrice || 0
-  ).toFixed(2);
+  document.getElementById("gate-wholesale-price").textContent = fmtPrice(
+    Number(gate?.dataset.wholesalePrice || 0),
+  );
 };
 
 // Функция, добавляющая новую вкладку и шаблон формы
@@ -90,7 +91,7 @@ window.addGateElement = () => {
   const gateItems = document.getElementsByClassName("gate-item");
   if (gateItems.length === 15) {
     Swal.fire("Нельзя добавить больше 15 ворот в заказ.");
-    return
+    return;
   }
 
   const gateTemplate = document.getElementById("gate-template");
@@ -122,6 +123,8 @@ window.updateGateType = async (select) => {
   width.max = cfg.widthParams.MaxValue;
   width.value = cfg.widthParams.MinValue;
 
+  updateGatePreview(gate);
+
   const height = gate.querySelector(".height");
   height.min = cfg.heightParams.MinValue;
   height.max = cfg.heightParams.MaxValue;
@@ -131,7 +134,7 @@ window.updateGateType = async (select) => {
   fillSelect(liftType, cfg.liftTypes, "markup");
 
   const cycleAmount = gate.querySelector(".cycle-amount");
-  fillSelect(cycleAmount, cfg.cycleAmounts, "markup");
+  fillSelect(cycleAmount, cfg.cycleAmounts, "markup", "Amount");
 
   const driveType = gate.querySelector(".drive-type");
   fillSelect(driveType, cfg.driveTypes, "object");
@@ -152,7 +155,7 @@ window.updateGateType = async (select) => {
 
 // Функция, которая используется для заполнения элементов select
 // в зависимости от переданного типа, создает option с нужными параметрами
-function fillSelect(select, items, type) {
+function fillSelect(select, items, type, labelField = "Name") {
   select.innerHTML = "";
   if (type === "markup") {
     items.forEach((item) => {
@@ -160,7 +163,7 @@ function fillSelect(select, items, type) {
       option.dataset.retailMarkup = item.RetailMarkup;
       option.dataset.wholesaleMarkup = item.WholesaleMarkup;
       option.value = item.ID;
-      option.textContent = item.Name;
+      option.textContent = item[labelField];
 
       select.append(option);
     });
@@ -214,11 +217,18 @@ window.updateGateSizePrice = async (input) => {
 
   const sizes = input.closest(".sizes");
 
-  const price = await fetchSizePrice(
-    width.value,
-    height.value,
-    gateType.value,
-  );
+  if (
+    Number(width.value) < Number(width.min) ||
+    Number(width.value) > Number(width.max) ||
+    Number(height.value) < Number(height.min) ||
+    Number(height.value) > Number(height.max)
+  ) {
+    return;
+  }
+
+  updateGatePreview(gate);
+
+  const price = await fetchSizePrice(width.value, height.value, gateType.value);
 
   sizes.dataset.retailPrice = price.retail;
   sizes.dataset.wholesalePrice = price.wholesale;
@@ -226,7 +236,118 @@ window.updateGateSizePrice = async (input) => {
   updateGatePrice(gate);
 };
 
-// Функция, запрашивающая цену за размер ворот
+function getSelectedGateColor(gate) {
+  const colorSelect = gate.querySelector(".color-out");
+  const selectedColor = colorSelect?.options[colorSelect.selectedIndex];
+
+  const hex = selectedColor?.dataset.hex;
+
+  if (!hex) {
+    return "#f0efea";
+  }
+
+  return hex.startsWith("#") ? hex : `#${hex}`;
+}
+
+function drawGateLines(linesGroup, x, y, width, height) {
+  linesGroup.replaceChildren();
+
+  // Чем выше ворота, тем больше секций, но без перебора.
+  const sections = Math.max(3, Math.min(7, Math.round(height / 32)));
+
+  for (let i = 1; i < sections; i++) {
+    const lineY = y + (height / sections) * i;
+
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+    line.setAttribute("x1", x + 4);
+    line.setAttribute("y1", lineY);
+    line.setAttribute("x2", x + width - 4);
+    line.setAttribute("y2", lineY);
+
+    linesGroup.append(line);
+  }
+}
+
+function updateGatePreview(gate) {
+  const width = Number(gate.querySelector(".width").value || 2000);
+  const height = Number(gate.querySelector(".height").value || 1800);
+
+  const preview = gate.querySelector(".gate-preview");
+  const rect = gate.querySelector(".gate-rect");
+  const linesGroup = gate.querySelector(".gate-lines");
+  const widthLabel = gate.querySelector(".width-label");
+  const heightLabel = gate.querySelector(".height-label");
+
+  preview.style.setProperty("--gate-color", getSelectedGateColor(gate));
+
+  // Рабочая зона ворот. Справа оставляем место под H, снизу под B.
+  const areaX = 35;
+  const areaY = 45;
+  const areaW = 330;
+  const areaH = 190;
+
+  const ratio = width / height;
+
+  let previewW;
+  let previewH;
+
+  if (ratio > areaW / areaH) {
+    previewW = areaW;
+    previewH = areaW / ratio;
+  } else {
+    previewH = areaH;
+    previewW = areaH * ratio;
+  }
+
+  const x = areaX + (areaW - previewW) / 2;
+  const y = areaY + (areaH - previewH) / 2;
+
+  rect.setAttribute("x", x);
+  rect.setAttribute("y", y);
+  rect.setAttribute("width", previewW);
+  rect.setAttribute("height", previewH);
+
+  drawGateLines(linesGroup, x, y, previewW, previewH);
+
+  widthLabel.setAttribute("x", x + previewW / 2);
+  widthLabel.setAttribute("y", y + previewH + 34);
+  widthLabel.setAttribute("text-anchor", "middle");
+  widthLabel.textContent = `B = ${width}`;
+
+  heightLabel.setAttribute("x", 435);
+  heightLabel.setAttribute("y", y + previewH / 2);
+  heightLabel.setAttribute("text-anchor", "middle");
+  heightLabel.setAttribute("dominant-baseline", "middle");
+  heightLabel.textContent = `H = ${height}`;
+}
+
+window.updateGatePreview = updateGatePreview;
+
+
+
+// Функция для скачивания коммерческого предложения
+// Собирает все данные с формы, кодирует для protobuf и отправляет на сервер
+// Получает word-файл и скачивает его
+window.downloadOffer = async () => {
+  const payload = {
+    orderGates: buildGatePayload(),
+    products: buildProductsList(),
+  };
+
+  const err = Proto.OrderRequest.verify(payload);
+  if (err) throw new Error(err);
+
+  const msg = Proto.OrderRequest.create(payload);
+  const buf = Proto.OrderRequest.encode(msg).finish();
+
+  const res = await fetch("/offer", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-protobuf" },
+    body: buf,
+  });
+
+  if (!res.ok)// Функция, запрашивающая цену за размер ворот
 // принимает параметры: w - ширина, h - высота, t - тип ворот
 async function fetchSizePrice(w, h, t) {
   const res = await fetch(`/sizes?width=${w}&height=${h}&gateType=${t}`);
@@ -268,12 +389,12 @@ window.updateOrderPrice = () => {
   totalWholesalePrice += Number(products.dataset.wholesalePrice || 0);
 
   const orderRetailPriceElement = document.getElementById("order-retail-price");
-  orderRetailPriceElement.textContent = totalRetailPrice.toFixed(2);
+  orderRetailPriceElement.textContent = fmtPrice(totalRetailPrice);
 
   const orderWholesalePriceElement = document.getElementById(
     "order-wholesale-price",
   );
-  orderWholesalePriceElement.textContent = totalWholesalePrice.toFixed(2);
+  orderWholesalePriceElement.textContent = fmtPrice(totalWholesalePrice);
 };
 
 // Функция, формирующая список товаров для отправки заказа
@@ -450,6 +571,20 @@ window.placeOrder = async () => {
 
     window.location.href = "/orders";
   }
+}; {
+    throw new Error("Не удалось сформировать КП");
+  }
+
+  const blob = await res.blob();
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "commercial-offer.pdf";
+  a.click();
+
+  URL.revokeObjectURL(url);
 };
 
 // Инициализация proto-схем после загрузки

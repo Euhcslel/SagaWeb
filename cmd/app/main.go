@@ -59,9 +59,9 @@ func main() {
 
 	// Аутентификация
 	mux.Handle("GET /sign_in", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignInForm)))
-	mux.Handle("POST /sign_in", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignIn)))
+	mux.Handle("POST /sign_in", handlers.WithOptionalAuth(handlers.RateLimit(http.HandlerFunc(handlers.SignIn))))
 	mux.Handle("GET /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUpForm)))
-	mux.Handle("POST /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUp)))
+	mux.Handle("POST /sign_up", handlers.WithOptionalAuth(handlers.RateLimit(http.HandlerFunc(handlers.SignUp))))
 	mux.Handle("POST /sign_out", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignOut)))
 
 	// Аккаунт
@@ -98,6 +98,7 @@ func main() {
 	mux.Handle("POST /orders/{order_id}/contract", handlers.RequireAuth(http.HandlerFunc(handlers.UploadContractToOrder)))
 	mux.Handle("GET /orders/{order_id}/documents/{document_type}/{document_name}", handlers.RequireAuth(http.HandlerFunc(handlers.DownloadOrderDocument)))
 	mux.Handle("DELETE /orders/{order_id}/documents/{document_type}/{document_name}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteOrderDocument)))
+	mux.Handle("POST /offer", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetOfferForOrder)))
 
 	mux.Handle("GET /calculator", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCalculatorForUser)))
 
@@ -106,9 +107,12 @@ func main() {
 	// Администратор
 	mux.Handle("GET /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseRedactor)))
 	mux.Handle("POST /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.AddNewDataBaseTableRow)))
+	mux.Handle("PUT /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateRow)))
+	mux.Handle("DELETE /tables/{table_name}/{row_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteRow)))
 
 	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 
-	err = http.ListenAndServe(":8080", handlers.SecurityHeaders(http.NewCrossOriginProtection().Handler(mux)))
+	//Настроить SecurityHeaders
+	err = http.ListenAndServe(":80", http.NewCrossOriginProtection().Handler(mux))
 	log.Fatal(err)
 }

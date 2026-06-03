@@ -31,13 +31,11 @@
               {{range .orders}}
               <tr
                 onclick="window.location='/orders/{{.ID}}'"
-                class="
-                    {{if eq .Status `confirmed`}}status-confirmed{{end}}
-                    {{if eq .Status `pending`}}status-pending{{end}}
-                    {{if eq .Status `paid`}}status-paid{{end}}
-                    {{if eq .Status `cancelled`}}status-cancelled{{end}}
-                    {{if eq .Status `done`}}status-done{{end}}
-                  "
+                    {{if eq .Status `confirmed`}}class="status-confirmed"{{end}}
+                    {{if eq .Status `pending`}}class="status-pending"{{end}}
+                    {{if eq .Status `paid`}}class="status-paid"{{end}}
+                    {{if eq .Status `cancelled`}}class="status-cancelled"{{end}}
+                    {{if eq .Status `done`}}class="status-done"{{end}}
               >
                 <td><p>Заказ #{{.ID}}</p></td>
                 <td>

@@ -1,7 +1,12 @@
 section {
-  height: 92vh;
+  height: 92svh;
   display: flex;
   background-color: light-dark(var(--color-base-100), var(--color-base-800));
+
+  h2 {
+    text-align: center;
+    font-size: var(--font-size-l);
+  }
 
   &#main {
     .description {
@@ -12,13 +17,58 @@ section {
           var(--color-base-100),
           var(--color-base-700)
         );
-        padding: 24px;
+        padding: var(--spacing-xl);
+        padding-left: 4rem;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
         text-align: center;
+
+        border-radius: 0 var(--radius-box) var(--radius-box) 0;
 
         p {
           margin-bottom: var(--spacing-s);
         }
+      }
+    }
+
+    .logo {
+      position: relative;
+      display: flex;
+      width: 60%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+
+      img {
+        z-index: 1;
+        width: 40%;
+        height: 50%;
+        box-shadow: 10px 10px 5px #00000061;
+      }
+    }
+
+    .decoration {
+      position: absolute;
+      width: 24rem;
+      height: 24rem;
+
+      &.top-left {
+        transform: translate(-16%, -16%);
+        background-color: #ccd49c;
+      }
+
+      &.top-right {
+        transform: translate(16%, 16%);
+        background-color: #bfc3ab;
+      }
+
+      &.bottom-left {
+        transform: translate(-32%, 32%);
+        background-color: #dde1c9;
+      }
+
+      &.bottom-right {
+        transform: translate(32%, -32%);
+        background-color: #b4ba83;
       }
     }
   }
@@ -49,6 +99,7 @@ section {
       position: absolute;
       right: 0;
       z-index: 1;
+      border-radius: var(--radius-box) 0 0 var(--radius-box);
     }
 
     .history {
@@ -58,18 +109,18 @@ section {
       transform: translateY(-50%);
       z-index: 2;
       width: 40%;
-      background-color: light-dark(var(--color-base-200), var(--color-base-700));
+      background-color: light-dark(
+        var(--color-base-200),
+        var(--color-base-700)
+      );
       padding: var(--spacing-xl);
       box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+      border-radius: 0 var(--radius-box) var(--radius-box) 0;
 
       p {
         margin-bottom: var(--spacing-s);
         text-indent: var(--spacing-s);
         text-align: justify;
-      }
-
-      h1 {
-        text-align: center;
       }
     }
   }
@@ -78,15 +129,36 @@ section {
     padding: var(--spacing-xl);
     align-items: flex-start;
     justify-content: space-between;
+    gap: var(--spacing-xl);
+
+    .dealers-map {
+      align-self: center;
+      width: 50%;
+      min-height: 70vh;
+      border: none;
+      border-radius: var(--radius-box);
+    }
+
+    .table-container {
+      margin-top: 2rem;
+    }
   }
 }
 
-.form {
+.form-container {
   width: 50%;
   height: 100%;
-  background-color:  light-dark(var(--color-base-100), var(--color-base-800));
+  background-color: light-dark(var(--color-base-100), var(--color-base-800));
   border-radius: 50% 0 0 50%;
   padding-left: 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  h2 {
+    margin-bottom: 2rem;
+  }
 }
 
 form {
@@ -95,50 +167,6 @@ form {
   justify-content: center;
   gap: var(--spacing-l);
   width: 50%;
-  height: 100%;
-  margin: auto;
-}
-
-.logo {
-  position: relative;
-  display: flex;
-  width: 60%;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-
-  img {
-    z-index: 1;
-    width: 40%;
-    height: 50%;
-    box-shadow: 10px 10px 5px #00000061;
-  }
-}
-
-.decoration {
-  position: absolute;
-  width: 24rem;
-  height: 24rem;
-
-  &.top-left {
-    transform: translate(-16%, -16%);
-    background-color: #ccd49c;
-  }
-
-  &.top-right {
-    transform: translate(16%, 16%);
-    background-color: #bfc3ab;
-  }
-
-  &.bottom-left {
-    transform: translate(-32%, 32%);
-    background-color: #dde1c9;
-  }
-
-  &.bottom-right {
-    transform: translate(32%, -32%);
-    background-color: #b4ba83;
-  }
 }
 
 .description {
@@ -146,7 +174,6 @@ form {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
 }
 
 .horizontal-container {
@@ -156,17 +183,264 @@ form {
   justify-content: center;
 }
 
-.benefits li {
-  list-style-type: none;
-  margin-bottom: 1rem;
+.benefits {
+  margin-top: 1rem;
 
-  &::before {
-    vertical-align: middle;
-    content: url("/web/assets/images/white_checkbox.png");
+  li {
+    list-style-type: none;
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+
+    &::before {
+      vertical-align: middle;
+      content: url("/web/assets/images/white_checkbox.png");
+      padding-right: var(--spacing-s);
+    }
   }
 }
 
 .table-scroll {
   max-height: 75vh;
   overflow-y: scroll;
+  overflow-x: auto;
+}
+
+@media (max-width: 767px) {
+  section          { height: auto; }
+  section#about    { height: auto; overflow: visible; }
+
+  section#main {
+    flex-direction: column-reverse;
+  }
+
+  section#main .logo {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: clamp(250px, 64vw, 320px);
+    overflow: hidden;
+  }
+
+  section#main .logo img {
+    z-index: 1;
+    width: 46%;
+    height: auto;
+    max-height: 74%;
+    object-fit: contain;
+    box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.35);
+  }
+
+  section#main .decoration {
+    width: 62vw;
+    height: 62vw;
+  }
+
+  section#main .decoration.top-left {
+    top: auto;
+    left: auto;
+    transform: translate(-16%, -16%);
+  }
+  section#main .decoration.top-right {
+    top: auto;
+    right: auto;
+    transform: translate(16%, 16%);
+  }
+  section#main .decoration.bottom-left {
+    bottom: auto;
+    left: auto;
+    transform: translate(-32%, 32%);
+  }
+  section#main .decoration.bottom-right {
+    bottom: auto;
+    right: auto;
+    transform: translate(32%, -32%);
+  }
+
+  section#main .description {
+    width: 100%;
+    padding: var(--spacing-l);
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  section#main .cta-block {
+    width: 100%;
+    padding: var(--spacing-xl) var(--spacing-l);
+    border-radius: var(--radius-box);
+  }
+
+  section#main .cta-block h2 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-l);
+  }
+
+  section#main .cta-block p {
+    margin-bottom: var(--spacing-m);
+  }
+
+  section#main .horizontal-container {
+    flex-direction: column;
+    gap: var(--spacing-s);
+  }
+
+  section#main .horizontal-container a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  section#about {
+    flex-direction: column-reverse;
+  }
+
+  section#about img {
+    position: static;
+    width: 100%;
+    height: clamp(200px, 55vw, 280px);
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 0;
+    z-index: auto;
+  }
+
+  section#about .history {
+    position: static;
+    width: 100%;
+    transform: none;
+    border-radius: 0;
+    z-index: auto;
+    padding: var(--spacing-xl) var(--spacing-l);
+    box-shadow: none;
+  }
+
+  section#about .history h2 {
+    font-size: var(--font-size-l);
+    margin-bottom: var(--spacing-m);
+  }
+
+  section#about .history p {
+    font-size: var(--font-size-s);
+    text-indent: 0;
+  }
+
+  section#dealers-list {
+    flex-direction: column;
+    padding: var(--spacing-l);
+    gap: var(--spacing-l);
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  section#dealers-list .table-container {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  section#dealers-list .table-container h2 {
+    font-size: var(--font-size-l);
+    margin-bottom: var(--spacing-s);
+  }
+
+  section#dealers-list .table-scroll {
+    max-height: 45vh;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  section#dealers-list .table {
+    min-width: 480px;
+    font-size: var(--font-size-xs);
+  }
+
+  section#dealers-list .dealers-map {
+    width: 100%;
+    min-height: clamp(200px, 55vw, 280px);
+    max-height: none;
+    align-self: stretch;
+  }
+
+  section#for-dealer {
+    flex-direction: column;
+  }
+
+  section#for-dealer .description {
+    width: 100%;
+    padding: var(--spacing-xl) var(--spacing-l);
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  section#for-dealer .description > div {
+    width: 100%;
+  }
+
+  section#for-dealer .description h2 {
+    font-size: var(--font-size-l);
+    margin-bottom: var(--spacing-l);
+  }
+
+  section#for-dealer .benefits li {
+    font-size: var(--font-size-s);
+  }
+
+  .form-container {
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+    padding: var(--spacing-xl) var(--spacing-l);
+    align-items: stretch;
+  }
+
+  .form-container h2 {
+    font-size: var(--font-size-l);
+    margin-bottom: var(--spacing-l);
+  }
+
+  form {
+    width: 100%;
+  }
+
+  form .input {
+    width: 100%;
+  }
+
+  form .validator-hint {
+    font-size: var(--font-size-xs);
+  }
+
+  form button[type="submit"] {
+    width: 100%;
+  }
+
+  .description {
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  section#main .logo      { width: 55%; }
+  section#main .description { width: 45%; }
+  section#main .cta-block {
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-box);
+  }
+
+  section#about .history  { width: 50%; }
+
+  section#dealers-list {
+    flex-direction: column;
+    height: auto;
+    padding: var(--spacing-xl);
+  }
+  section#dealers-list .table-container { width: 100%; margin-top: 0; }
+  section#dealers-list .table-scroll    { overflow-x: auto; }
+  section#dealers-list .dealers-map     { width: 100%; min-height: 40vh; }
+
+  section#for-dealer .description { width: 45%; }
+  .form-container {
+    width: 55%;
+    border-radius: var(--radius-box) 0 0 var(--radius-box);
+    padding-left: var(--spacing-2xl);
+  }
+  form { width: 75%; }
 }

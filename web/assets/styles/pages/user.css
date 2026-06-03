@@ -1,13 +1,91 @@
 .card {
   width: 100%;
-  max-width: 400px;
+  max-width: 480px;
   margin: var(--spacing-xl) auto;
   padding: var(--spacing-l);
-  border: 2px solid #ccc;
+  border: 2px solid light-dark(var(--color-base-300), var(--color-base-600));
+  border-radius: var(--radius-box);
   background-color: light-dark(var(--color-base-100), var(--color-base-800));
 }
 
 .card-title {
   display: block;
   text-align: center;
+  font-size: var(--font-size-l);
+  margin-bottom: var(--spacing-l);
+}
+
+.card-body form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
+
+  label:not(.btn) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    height: auto;
+    align-items: stretch;
+    width: 100%;
+
+    :where(input) {
+      height: var(--size);
+    }
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.card-actions {
+  margin-top: var(--spacing-l);
+
+  form {
+    gap: 0;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+h1 {
+  font-size: var(--font-size-l);
+  padding: var(--spacing-l);
+  margin-bottom: var(--spacing-s);
+}
+
+main > .table {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .card {
+    max-width: 100%;
+    margin: var(--spacing-l) var(--spacing-s);
+    width: calc(100% - var(--spacing-s) * 2);
+  }
+
+  .card-title {
+    font-size: var(--font-size-m);
+  }
+
+  h1 {
+    font-size: var(--font-size-m);
+    padding: var(--spacing-s);
+  }
+
+  main > .table {
+    font-size: var(--font-size-xs);
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .card {
+    max-width: 560px;
+  }
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
+	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
@@ -15,13 +16,14 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type CalculatorPageData struct {
+// Структура, описывающая данные необходимые для страницы калькулятора
+type calculatorPageData struct {
 	IndustrialConfiguration  any
 	ResidentialConfiguration any
 	IsDealer                 bool
 }
 
-func GetCalculatorPageData(user *users.User) (*CalculatorPageData, error) {
+func GetCalculatorPageData(user *users.User) (*calculatorPageData, error) {
 	role := enums.ClientRole
 	if user != nil {
 		role = user.Role
@@ -39,7 +41,7 @@ func GetCalculatorPageData(user *users.User) (*CalculatorPageData, error) {
 		return nil, err
 	}
 
-	return &CalculatorPageData{
+	return &calculatorPageData{
 		IndustrialConfiguration:  indCfg,
 		ResidentialConfiguration: resCfg,
 		IsDealer:                 isDealer,
@@ -90,6 +92,7 @@ func GetGateCfg(gateType enums.GateType, isDealer bool) (*types.Config, error) {
 		Options:      []options.Option{},
 		Products:     []products.Product{},
 		DriveTypes:   []enums.DriveType{},
+		CycleAmounts: []cycle_amounts.CycleAmount{},
 	}
 
 	var err error

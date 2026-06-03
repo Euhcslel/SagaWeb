@@ -10,4 +10,6 @@ var (
 	ErrInvalidOrderStatus  = errors.New("invalid order status")
 	ErrInvalidGateType     = errors.New("invalid gate type")
 	ErrInvalidDocumentType = errors.New("invalid document type")
+	ErrInvalidTableType    = errors.New("invalid table type")
+	ErrBadRequest          = errors.New("bad user request")
 )

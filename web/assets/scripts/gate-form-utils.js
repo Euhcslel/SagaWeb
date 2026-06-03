@@ -189,7 +189,16 @@ export function updateGatePrice(gate) {
 
   gate.dataset.retailPrice = retailGatePrice;
   gate.dataset.wholesalePrice = wholesaleGatePrice;
-  document.getElementById("gate-retail-price").textContent = retailGatePrice.toFixed(2);
+  document.getElementById("gate-retail-price").textContent =
+    fmtPrice(retailGatePrice);
   document.getElementById("gate-wholesale-price").textContent =
-    wholesaleGatePrice.toFixed(2);
-};
+    fmtPrice(wholesaleGatePrice);
+}
+
+export function fmtPrice(price) {
+  const roundedPrice = Math.round(price * 100) / 100;
+  const [intPart, fracPart] = roundedPrice.toFixed(2).split(".");
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+  return `${formattedInt},${fracPart} ₽`;
+}

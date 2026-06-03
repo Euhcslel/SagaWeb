@@ -32,7 +32,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   box-shadow:
-    0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000) inset,
+    0 1px
+      color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000)
+      inset,
     0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
   border-color: var(--input-color);
   --input-color: color-mix(in oklab, var(--color-base-content) 20%, #0000);
@@ -79,7 +81,8 @@
   &:focus,
   &:focus-within {
     --input-color: var(--color-base-content);
-    box-shadow: 0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000);
+    box-shadow: 0 1px
+      color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000);
     outline: 2px solid var(--input-color);
     outline-offset: 2px;
     isolation: isolate;
@@ -88,17 +91,17 @@
   &:has(> select[disabled]),
   &:is(:disabled, [disabled]),
   fieldset:disabled & {
+    cursor: not-allowed;
+    opacity: 0.7;
+
     border-color: var(--color-base-200);
     background-color: var(--color-base-200);
-    cursor: not-allowed;
-    color: oklch(from var(--color-base-content) l c h / 0.4);
+    box-shadow: none;
 
-    &::placeholder {
-      color: oklch(from var(--color-base-content) l c h / 0.2);
-    }
+    color: color-mix(in oklch, var(--color-base-content) 40%, #0000);
   }
 
-  &:has(> select[disabled])>select[disabled] {
+  &:has(> select[disabled]) > select[disabled] {
     cursor: not-allowed;
   }
 
@@ -153,7 +156,6 @@
       white-space: normal;
 
       &:not(:disabled) {
-
         &:hover,
         &:focus-visible {
           background-color: oklch(from var(--color-base-content) l c h / 0.1);
@@ -171,7 +173,6 @@
   }
 
   [dir="rtl"] & {
-
     &::picker(select),
     select::picker(select) {
       translate: 0.5rem 0;
@@ -179,23 +180,7 @@
   }
 }
 
-.select-ghost {
-  background: transparent;
-  transition: background-color 0.2s;
-  box-shadow: none;
-  border-color: #0000;
-
-  &:focus,
-  &:focus-within {
-    color: var(--color-base-content);
-    background-color: var(--color-base-100);
-    border-color: #0000;
-    box-shadow: none;
-  }
-}
-
 .select-neutral {
-
   &,
   &:focus,
   &:focus-within {
@@ -204,7 +189,6 @@
 }
 
 .select-primary {
-
   &,
   &:focus,
   &:focus-within {
@@ -213,7 +197,6 @@
 }
 
 .select-secondary {
-
   &,
   &:focus,
   &:focus-within {
@@ -222,7 +205,6 @@
 }
 
 .select-accent {
-
   &,
   &:focus,
   &:focus-within {
@@ -231,7 +213,6 @@
 }
 
 .select-info {
-
   &,
   &:focus,
   &:focus-within {
@@ -240,7 +221,6 @@
 }
 
 .select-success {
-
   &,
   &:focus,
   &:focus-within {
@@ -249,7 +229,6 @@
 }
 
 .select-warning {
-
   &,
   &:focus,
   &:focus-within {
@@ -258,7 +237,6 @@
 }
 
 .select-error {
-
   &,
   &:focus,
   &:focus-within {

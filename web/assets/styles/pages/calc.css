@@ -9,6 +9,10 @@
     min-width: max-content;
     padding: 10px;
 
+    .add-gate-tabs {
+      width: 100%;
+    }
+
     label {
       width: 100%;
 
@@ -37,9 +41,19 @@
   margin: 0;
   padding: 0 0 var(--spacing-xs) 0;
 
+  max-height: 25svh;
+  overflow-y: scroll;
+  margin-bottom: 1rem;
+
   li {
     display: flex;
     justify-content: space-between;
+
+    div {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
 
     input[type="radio"] {
       display: none;
@@ -72,6 +86,10 @@
   }
 
   .gate-item {
+    .header-gate-number {
+      font-size: var(--font-size-xl);
+    }
+
     position: relative;
     height: 0;
     width: 0;
@@ -136,12 +154,46 @@
 
 .tabs:has(#tab-configuration:checked) .tab-content.configuration {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 30% minmax(18rem, 1fr);
+  gap: var(--spacing-xl);
 
-  figure > img {
-    width: 100%;
-    height: fit-content;
+  .configuration {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-s);
+    overflow-y: scroll;
+    max-height: 70svh;
+
+    .sizes {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-s);
+    }
   }
+
+  .gate-preview-container {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      align-self: flex-start;
+    }
+
+    .gate-preview {
+      align-self: center;
+      margin-block: auto;
+    }
+  }
+}
+
+.tabs:has(#tab-additional-options:checked)
+  .tab-content.additional-options
+  .option-item,
+.tabs:has(#tab-products:checked) .tab-content#products .product-item {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-l);
+  align-items: center;
 }
 
 .tabs:has(#tab-additional-options:checked) .tab-content.additional-options,
@@ -152,11 +204,55 @@
     content: "Пока ничего нет";
     height: 1em;
   }
+
+  li {
+    .controls {
+      display: flex;
+      flex-direction: row;
+      gap: var(--spacing-l);
+      position: relative;
+      min-width: 2rem;
+
+      label {
+        align-items: center;
+        display: flex;
+        flex-direction: row;
+        gap: var(--spacing-l);
+      }
+
+      .amount {
+        width: 5rem;
+      }
+    }
+
+    .controls button {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.95);
+      transition: all 0.2s ease-in-out;
+    }
+
+    &:hover .controls button {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+  }
 }
 
-label {
+.option-list,
+#product-list {
+  overflow-y: scroll;
+  max-height: 50svh;
+  margin-bottom: 1rem;
+}
+
+label:not(.btn) {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-s);
 }
 
 [hidden] {
@@ -178,4 +274,181 @@ main {
 .calc-footer {
   position: fixed;
   bottom: 0;
+}
+
+.gate-preview {
+  --gate-color: #45322f;
+
+  width: 100%;
+  max-width: 38rem;
+  border: var(--border) solid var(--color-base-400);
+  border-radius: var(--radius-box);
+  background-color: light-dark(var(--color-base-100), var(--color-base-600));
+}
+
+.gate-preview-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gate-rect {
+  fill: var(--gate-color);
+  stroke: var(--color-base-content);
+  stroke-width: 5;
+}
+
+.gate-lines line {
+  stroke: color-mix(in oklab, var(--gate-color), black 35%);
+  stroke-width: 2;
+}
+
+.gate-preview text {
+  fill: var(--color-base-content);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+@media (max-width: 767px) {
+  main {
+    padding-bottom: 11rem;
+  }
+
+  .tabs {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .tabs .menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: unset;
+    width: 100%;
+    padding: var(--spacing-s);
+    gap: var(--spacing-xs);
+    border-bottom: 1px solid
+      light-dark(var(--color-base-300), var(--color-base-600));
+
+    > label.btn {
+      flex: 1;
+      min-width: fit-content;
+      font-size: var(--font-size-xs);
+    }
+
+    .add-gate-tabs {
+      width: 100%;
+      margin-top: var(--spacing-s);
+
+      h3 {
+        font-size: var(--font-size-xs);
+      }
+
+      #gate-tabs {
+        max-height: 12svh;
+        font-size: var(--font-size-xs);
+      }
+
+      #add-gate-tabs {
+        width: 100%;
+      }
+    }
+  }
+
+  .tabs .content {
+    padding: var(--spacing-s);
+  }
+
+  .tabs:has(#tab-configuration:checked) .tab-content.configuration {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-l);
+
+    .configuration {
+      max-height: unset;
+      overflow-y: visible;
+    }
+
+    .sizes {
+      flex-direction: row;
+      gap: var(--spacing-s);
+
+      label {
+        flex: 1;
+      }
+    }
+
+    .gate-preview-container {
+      order: -1;
+
+      .gate-preview {
+        max-width: 100%;
+      }
+    }
+  }
+
+  .tabs:has(#tab-additional-options:checked)
+    .tab-content.additional-options
+    .option-item,
+  .tabs:has(#tab-products:checked) .tab-content#products .product-item {
+    flex-wrap: wrap;
+
+    .select {
+      width: 100%;
+    }
+
+    .controls {
+      flex-wrap: wrap;
+
+      .amount {
+        width: 4rem;
+      }
+    }
+  }
+
+  .option-list,
+  #product-list {
+    max-height: 35svh;
+  }
+
+  .gate-item .header-gate-number {
+    font-size: var(--font-size-l);
+  }
+
+  .calc-footer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-xs) var(--spacing-s);
+    padding: var(--spacing-xs) var(--spacing-s);
+  }
+
+  .calc-footer > div:nth-child(1),
+  .calc-footer > div:nth-child(2) {
+    flex: 0 0 100%;
+  }
+
+  .calc-footer > div:nth-child(3),
+  .calc-footer > div:nth-child(4) {
+    flex: 1 1 auto;
+  }
+
+  .calc-footer > div:nth-child(3) .btn,
+  .calc-footer > div:nth-child(4) .btn {
+    width: 100%;
+  }
+
+  .price-row {
+    font-size: var(--font-size-xs);
+    gap: var(--spacing-xs);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tabs .menu {
+    min-width: 11rem;
+  }
+
+  .tabs:has(#tab-configuration:checked) .tab-content.configuration {
+    grid-template-columns: 38% 1fr;
+  }
 }

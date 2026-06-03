@@ -14,26 +14,144 @@
     {{template "header-nav" .}}
     <main>
       <div class="form-container">
-        <a href="/tables" class="btn secondary">Вернуться назад</a>
+        <h1>Colors</h1>
+        <div>
+          <a href="/tables" class="btn secondary">Вернуться назад</a>
+          <button
+            class="btn secondary"
+            onclick="document.getElementById('add-modal').showModal()"
+          >
+            Добавить
+          </button>
+        </div>
+        <!--Таблица-->
+        <table class="table">
+          <tr>
+            <th>ID</th>
+            <th>Код RAL</th>
+            <th>Hex код</th>
+            <th></th>
+            <th></th>
+          </tr>
+          {{range .tableData}}
+          <tr
+            class="table-row"
+            data-id="{{.ID}}"
+            data-code="{{.Code}}"
+            data-hex="{{.Hex}}"
+          >
+            <td>{{.ID}}</td>
+            <td>{{.Code}}</td>
+            <td>{{.Hex}}</td>
+            <td>
+              <button
+                class="btn secondary"
+                onclick="openUpdateModal(`colors`, this)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="lucide lucide-pencil-icon lucide-pencil"
+                >
+                  <path
+                    d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                  />
+                  <path d="m15 5 4 4" />
+                </svg>
+              </button>
+            </td>
+            <td>
+              <button class="btn secondary" onclick="deleteRow({{.ID}}, `colors`)">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          {{else}}
+          <tr>
+            <td>Нет ни одной записи</td>
+          </tr>
+          {{end}}
+        </table>
+      </div>
+    </main>
+    <!--Модальное окно добавления-->
+    <dialog id="add-modal" class="modal">
+      <div class="modal-box">
         <form method="post">
           <div>
             <label for="code"
               >Код цвета
-              <input class="input" type="text" id="code" name="code" required />
+              <input class="input code" type="text" name="code" required />
             </label>
           </div>
 
           <div>
             <label for="hex"
               >HEX-код
-              <input class="input" type="text" id="hex" name="hex" required />
+              <input class="input hex" type="text" name="hex" required />
             </label>
           </div>
 
           <button class="btn primary" type="submit">Сохранить</button>
         </form>
       </div>
-    </main>
+    </dialog>
+    <!--Модальное окно редактирования-->
+    <dialog id="edit-modal" class="modal">
+      <div class="modal-box">
+        <form
+          method=""
+          id="edit-form"
+          data-url="/tables/colors"
+          onsubmit="updateRow(event)"
+        >
+          <div>
+            <label for="id"
+              >ID
+              <input class="input id" type="text" name="id" readonly required />
+            </label>
+          </div>
+
+          <div>
+            <label for="code"
+              >Код цвета
+              <input class="input code" type="text" name="code" required />
+            </label>
+          </div>
+
+          <div>
+            <label for="hex"
+              >HEX-код
+              <input class="input hex" type="text" name="hex" required />
+            </label>
+          </div>
+
+          <button class="btn primary" type="submit">Сохранить</button>
+        </form>
+      </div>
+    </dialog>
     {{template "footer" .}}
+    <script src="/web/assets/scripts/admin.js"></script>
   </body>
 </html>

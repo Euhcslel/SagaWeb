@@ -1,29 +1,27 @@
 package repository
 
 import (
+	"log"
+
 	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_bills"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_contracts"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_documents"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_industrial_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_manual_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_options"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_gate_residential_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_gates"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_offers"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/orders"
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
-	"log"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -271,50 +269,6 @@ func UpdateOrderStatus(db *gorm.DB, orderID int64, status enums.OrderStatus) err
 	return db.Model(&orders.Order{}).Where("id = ?", orderID).Update("status", status).Error
 }
 
-func GetDocumentsNameList(db *gorm.DB, orderID int64) ([]string, error) {
-	var documentsNameList []string
-	if err := db.Model(&order_documents.OrderDocument{}).
-		Where("order_id = ?", orderID).
-		Pluck("name", &documentsNameList).Error; err != nil {
-		return nil, err
-	}
-
-	return documentsNameList, nil
-}
-
-func GetOffersNumberList(db *gorm.DB, orderID int64) ([]string, error) {
-	var offersNumberList []string
-	if err := db.Model(&order_offers.OrderOffer{}).
-		Where("order_id = ?", orderID).
-		Pluck("offer_number", &offersNumberList).Error; err != nil {
-		return nil, err
-	}
-
-	return offersNumberList, nil
-}
-
-func GetContractsNumberList(db *gorm.DB, orderID int64) ([]string, error) {
-	var contractsNumberList []string
-	if err := db.Model(&order_contracts.OrderContract{}).
-		Where("order_id = ?", orderID).
-		Pluck("contract_number", &contractsNumberList).Error; err != nil {
-		return nil, err
-	}
-
-	return contractsNumberList, nil
-}
-
-func GetBillsNumberList(db *gorm.DB, orderID int64) ([]string, error) {
-	var billsNumberList []string
-	if err := db.Model(&order_bills.OrderBill{}).
-		Where("order_id = ?", orderID).
-		Pluck("bill_number", &billsNumberList).Error; err != nil {
-		return nil, err
-	}
-
-	return billsNumberList, nil
-}
-
 func GetOrderStatus(orderID int64) (*string, error) {
 	var status string
 	if err := database.DB.Model(&orders.Order{}).
@@ -323,102 +277,6 @@ func GetOrderStatus(orderID int64) (*string, error) {
 		return nil, err
 	}
 	return &status, nil
-}
-
-func AttachOfferToOrder(db *gorm.DB, orderID int64, offerNumber string, path string) error {
-	return db.Create(&order_offers.OrderOffer{
-		OrderID:     orderID,
-		OfferNumber: offerNumber,
-		Path:        path,
-	}).Error
-}
-
-func AttachContractToOrder(db *gorm.DB, orderID int64, contractNumber string, path string) error {
-	return db.Create(&order_contracts.OrderContract{
-		OrderID:        orderID,
-		ContractNumber: contractNumber,
-		Path:           path,
-	}).Error
-}
-
-func AttachBillToOrder(db *gorm.DB, orderID int64, billNumber string, path string) error {
-	return db.Create(&order_bills.OrderBill{
-		OrderID:    orderID,
-		BillNumber: billNumber,
-		Path:       path,
-	}).Error
-}
-
-func GetBillFileName(billNumber string) (*string, error) {
-	var fileName string
-	if err := database.DB.Model(&order_bills.OrderBill{}).
-		Where("bill_number = ?", billNumber).
-		Pluck("path", &fileName).Error; err != nil {
-		return nil, err
-	}
-
-	return &fileName, nil
-}
-
-func GetOfferFileName(offerNumber string) (*string, error) {
-	var fileName string
-	if err := database.DB.Model(&order_offers.OrderOffer{}).
-		Where("offer_number = ?", offerNumber).
-		Pluck("path", &fileName).Error; err != nil {
-		return nil, err
-	}
-
-	return &fileName, nil
-}
-
-func GetContractFileName(contractNumber string) (*string, error) {
-	var fileName string
-	if err := database.DB.Model(&order_contracts.OrderContract{}).
-		Where("contract_number = ?", contractNumber).
-		Pluck("path", &fileName).Error; err != nil {
-		return nil, err
-	}
-
-	return &fileName, nil
-}
-
-func GetDocumentFileName(documentName string) (*string, error) {
-	var fileName string
-	if err := database.DB.Model(&order_documents.OrderDocument{}).
-		Where("name = ?", documentName).
-		Pluck("path", &fileName).Error; err != nil {
-		return nil, err
-	}
-
-	return &fileName, nil
-}
-
-func DeleteOrderBill(billNumber string) error {
-	return database.DB.
-		Where("bill_number = ?", billNumber).
-		Delete(&order_bills.OrderBill{}).
-		Error
-}
-
-func DeleteOrderOffer(offerNumber string) error {
-	return database.DB.
-		Where("offer_number = ?", offerNumber).
-		Delete(&order_offers.OrderOffer{}).
-		Error
-}
-
-func DeleteOrderContract(contractNumber string) error {
-	return database.DB.
-		Where("contract_number = ?", contractNumber).
-		Delete(&order_contracts.OrderContract{}).
-		Error
-}
-
-func DeleteOrderDocument(documentName string) error {
-	return database.DB.
-		Where("name = ?", documentName).
-		Delete(&order_documents.OrderDocument{}).
-		Error
 }
 
 func DeleteAllOrderProducts(db *gorm.DB, orderID int64) error {
@@ -497,4 +355,20 @@ func GetCycleAmountByID(db *gorm.DB, cycleAmountID int64) (*cycle_amounts.CycleA
 	}
 
 	return &cycleAmount, nil
+}
+
+func GetColorByID(db *gorm.DB, colorID int64) (*colors.Color, error) {
+	var color colors.Color
+	if err := db.Where("id = ?", colorID).First(&color).Error; err != nil {
+		return nil, err
+	}
+	return &color, nil
+}
+
+func GetProductByID(db *gorm.DB, productID int64) (*products.Product, error) {
+	var product products.Product
+	if err := db.Where("id = ?", productID).First(&product).Error; err != nil {
+		return nil, err
+	}
+	return &product, nil
 }

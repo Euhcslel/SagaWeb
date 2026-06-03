@@ -38,8 +38,20 @@
   --color-neutral: oklch(24.731% 0.02 264.094);
   --color-neutral-content: oklch(82.901% 0.031 222.959);
 
-  --color-pending: oklch(96.813% 0.10456 104.701 / 0.723);
-  --color-pending-content: oklch(25.539% 0.00365 106.785);
+  --color-confirmed: oklch(92% 0.08 145);
+  --color-confirmed-content: oklch(32% 0.09 145);
+
+  --color-pending: oklch(94% 0.09 85);
+  --color-pending-content: oklch(35% 0.1 85);
+
+  --color-paid: oklch(92% 0.08 250);
+  --color-paid-content: oklch(32% 0.09 250);
+
+  --color-cancelled: oklch(91% 0.08 25);
+  --color-cancelled-content: oklch(36% 0.1 25);
+
+  --color-done: oklch(90% 0.04 260);
+  --color-done-content: oklch(34% 0.04 260);
 
   --radius-selector: 0.5rem;
   --radius-field: 0.25rem;

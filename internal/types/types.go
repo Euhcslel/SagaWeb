@@ -37,6 +37,7 @@ type Config struct {
 
 type Gate struct {
 	Gate    order_gates.OrderGate
+	Drive   any
 	Options []options.Option
 }
 
@@ -59,4 +60,14 @@ type UpdatedUserInfo struct {
 
 	Company string
 	Address string
+}
+
+type ResidentialDriveRail struct {
+	Drive residential_gate_drives.ResidentialGateDrive
+	Rail  rails.Rail
+}
+
+type ManualDrive struct {
+	ChainLength int32
+	PriceInfo   manual_drive_prices.ManualDrivePrice
 }

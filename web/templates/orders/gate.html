@@ -31,444 +31,459 @@
   <body>
     {{template "header-nav" .}}
     <main>
-      <div class="back-button">
-        <a class="btn secondary" href="/orders/{{.gate.OrderID}}"
-          >Вернуться назад</a
-        >
-      </div>
-      <form action="" method="post">
-        <div class="gate-item">
-          <div class="configuration">
-            <!--Тип ворот-->
-            <label for=""
-              >Тип ворот
-              <input
-                class="input gate-type"
-                id="gate-type"
-                name="gate-type"
-                type="text"
-                value="{{.gate.GateType.Label}}"
-                data-value="{{.gate.GateType}}"
-                readonly
-                {{if
-                ne
-                .orderStatus
-                `pending`}}disabled{{end}}
-              />
-            </label>
-            <!--Количество-->
-            <label for="amount"
-              >Количество
-              <input
-                class="input validator"
-                name="amount"
-                id="amount"
-                type="number"
-                min="1"
-                placeholder="Значение должно быть не меньше 1"
-                title="Значение должно быть не меньше 1"
-                value="{{.gate.Amount}}"
-                oninput="window.updateGateSizePrice()"
-                {{if
-                ne
-                .orderStatus
-                `pending`}}disabled{{end}}
-              />
-              <p class="validator-hint">Количество должно быть не меньше 1</p>
-            </label>
-            <div class="sizes">
-              <!--Ширина-->
-              <label for="width">
-                Ширина
-                <input
-                  name="width"
-                  id="width"
-                  type="number"
-                  class="input validator"
-                  value="{{.gate.Width}}"
-                  placeholder="Значение должно быть от {{.cfg.WidthParams.MinValue}} до {{.cfg.WidthParams.MaxValue}}"
-                  title="Значение должно быть от {{.cfg.WidthParams.MinValue}} до {{.cfg.WidthParams.MaxValue}}"
-                  min="{{.cfg.WidthParams.MinValue}}"
-                  max="{{.cfg.WidthParams.MaxValue}}"
-                  oninput="window.updateGateSizePrice()"
-                  {{if
-                  ne
-                  .orderStatus
-                  `pending`}}disabled{{end}}
-                />
-                <p class="validator-hint">
-                  Ширина должна быть от {{.cfg.WidthParams.MinValue}} до
-                  {{.cfg.WidthParams.MaxValue}}
-                </p>
-              </label>
-              <!--Высота-->
-              <label for="height"
-                >Высота
-                <input
-                  class="input validator"
-                  name="height"
-                  id="height"
-                  type="number"
-                  placeholder="Значение должно быть от {{.cfg.HeightParams.MinValue}} до {{.cfg.HeightParams.MaxValue}}"
-                  title="Значение должно быть от {{.cfg.HeightParams.MinValue}} до {{.cfg.HeightParams.MaxValue}}"
-                  min="{{.cfg.HeightParams.MinValue}}"
-                  max="{{.cfg.HeightParams.MaxValue}}"
-                  value="{{.gate.Height}}"
-                  oninput="window.updateGateSizePrice()"
-                  {{if
-                  ne
-                  .orderStatus
-                  `pending`}}disabled{{end}}
-                />
-                <p class="validator-hint">
-                  Высота должна быть от {{.cfg.HeightParams.MinValue}} до
-                  {{.cfg.HeightParams.MaxValue}}
-                </p>
-              </label>
+      <div class="content">
+        <div class="back-button">
+          <a class="btn secondary" href="/orders/{{.gate.OrderID}}"
+            >Вернуться назад</a
+          >
+        </div>
+        <form action="" method="post">
+          <div class="gate-item">
+            <div>
+              <h2>Конфигурация</h2>
+              <div class="configuration">
+                <!--Тип ворот-->
+                <label for=""
+                  >Тип ворот
+                  <input
+                    class="input gate-type"
+                    id="gate-type"
+                    name="gate-type"
+                    type="text"
+                    value="{{.gate.GateType.Label}}"
+                    data-value="{{.gate.GateType}}"
+                    readonly
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  />
+                </label>
+                <!--Количество-->
+                <label for="amount"
+                  >Количество
+                  <input
+                    class="input validator"
+                    name="amount"
+                    id="amount"
+                    type="number"
+                    min="1"
+                    placeholder="Значение должно быть не меньше 1"
+                    title="Значение должно быть не меньше 1"
+                    value="{{.gate.Amount}}"
+                    oninput="window.updateGateSizePrice()"
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  />
+                  <p class="validator-hint">
+                    Количество должно быть не меньше 1
+                  </p>
+                </label>
+                <div class="sizes">
+                  <!--Ширина-->
+                  <label for="width">
+                    Ширина
+                    <input
+                      name="width"
+                      id="width"
+                      type="number"
+                      class="input validator"
+                      value="{{.gate.Width}}"
+                      placeholder="Значение должно быть от {{.cfg.WidthParams.MinValue}} до {{.cfg.WidthParams.MaxValue}}"
+                      title="Значение должно быть от {{.cfg.WidthParams.MinValue}} до {{.cfg.WidthParams.MaxValue}}"
+                      min="{{.cfg.WidthParams.MinValue}}"
+                      max="{{.cfg.WidthParams.MaxValue}}"
+                      oninput="window.updateGateSizePrice()"
+                      {{if
+                      ne
+                      .orderStatus
+                      `pending`}}disabled{{end}}
+                    />
+                    <p class="validator-hint">
+                      Ширина должна быть от {{.cfg.WidthParams.MinValue}} до
+                      {{.cfg.WidthParams.MaxValue}}
+                    </p>
+                  </label>
+                  <!--Высота-->
+                  <label for="height"
+                    >Высота
+                    <input
+                      class="input validator"
+                      name="height"
+                      id="height"
+                      type="number"
+                      placeholder="Значение должно быть от {{.cfg.HeightParams.MinValue}} до {{.cfg.HeightParams.MaxValue}}"
+                      title="Значение должно быть от {{.cfg.HeightParams.MinValue}} до {{.cfg.HeightParams.MaxValue}}"
+                      min="{{.cfg.HeightParams.MinValue}}"
+                      max="{{.cfg.HeightParams.MaxValue}}"
+                      value="{{.gate.Height}}"
+                      oninput="window.updateGateSizePrice()"
+                      {{if
+                      ne
+                      .orderStatus
+                      `pending`}}disabled{{end}}
+                    />
+                    <p class="validator-hint">
+                      Высота должна быть от {{.cfg.HeightParams.MinValue}} до
+                      {{.cfg.HeightParams.MaxValue}}
+                    </p>
+                  </label>
+                </div>
+                <!--Высота притолки-->
+                <label for="headroom"
+                  >Высота притолки
+                  <input
+                    class="input"
+                    name="headroom"
+                    id="headroom"
+                    type="number"
+                    min="0"
+                    value="{{.gate.Headroom}}"
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  />
+                </label>
+
+                <!--Тип подъема-->
+                <label for="lift-type"
+                  >Тип подъема
+                  <select
+                    class="select lift-type"
+                    name="lift-type"
+                    id="lift-type"
+                    onchange="
+                      window.updateGatePrice(
+                        document.querySelector('.gate-item'),
+                      )
+                    "
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  >
+                    {{range .cfg.LiftTypes}}
+                    <option
+                      value="{{.ID}}"
+                      data-retail-markup="{{.RetailMarkup}}"
+                      data-wholesale-markup="{{.WholesaleMarkup}}"
+                      {{if
+                      eq
+                      .ID
+                      $.gate.LiftTypeID}}
+                      selected
+                      {{end}}
+                    >
+                      {{.Name}}
+                    </option>
+                    {{end}}
+                  </select>
+                </label>
+
+                <!--Количество циклов-->
+                <label for="cycle-amount"
+                  >Количество циклов
+                  <select
+                    class="select cycle-amount"
+                    name="cycle-amount"
+                    id="cycle-amount"
+                    onchange="
+                      window.updateGatePrice(
+                        document.querySelector('.gate-item'),
+                      )
+                    "
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  >
+                    {{range .cfg.CycleAmounts}}
+                    <option
+                      value="{{.ID}}"
+                      data-retail-markup="{{.RetailMarkup}}"
+                      data-wholesale-markup="{{.WholesaleMarkup}}"
+                      {{if
+                      eq
+                      .ID
+                      $.gate.CycleAmountID}}selected{{end}}
+                    >
+                      {{.Amount}}
+                    </option>
+                    {{end}}
+                  </select>
+                </label>
+
+                <!--Цвет ворот снаружи-->
+                <label for="color-out"
+                  >Цвет ворот снаружи
+                  <select
+                    class="select color-out"
+                    name="color-out"
+                    id="color-out"
+                    {{if
+                    ne
+                    .orderStatus
+                    `pending`}}disabled{{end}}
+                  >
+                    {{range .cfg.Colors}}
+                    <option
+                      value="{{.ID}}"
+                      {{if
+                      eq
+                      .ID
+                      $.gate.ColorOutID}}selected{{end}}
+                    >
+                      {{.Code}}
+                    </option>
+                    {{end}}
+                  </select>
+                </label>
+
+                <!--Привод-->
+                <div class="drive-block">
+                  <!--Тип привода-->
+                  <label
+                    >Тип привода
+                    <select
+                      name="drive-type"
+                      class="drive-type select"
+                      onchange="window.updateDriveType(this)"
+                      {{if
+                      ne
+                      .orderStatus
+                      `pending`}}disabled{{end}}
+                    >
+                      {{range .cfg.DriveTypes}}
+                      <option
+                        value="{{.}}"
+                        {{if
+                        eq
+                        .
+                        $.gate.DriveType}}selected{{end}}
+                      >
+                        {{.Label}}
+                      </option>
+                      {{end}}
+                    </select>
+                  </label>
+                  <label
+                    >Длина цепи
+                    <input
+                      oninput="
+                        window.updateGatePrice(
+                          document.querySelector('.gate-item'),
+                        )
+                      "
+                      data-chain-drive-retail-price="{{.cfg.ManualDrive.RcpRetailPrice}}"
+                      data-chain-drive-wholesale-price="{{.cfg.ManualDrive.RcpWholesalePrice}}"
+                      data-chain-retail-price="{{.cfg.ManualDrive.ChainMeterRetailPrice}}"
+                      data-chain-wholesale-price="{{.cfg.ManualDrive.ChainMeterWholesalePrice}}"
+                      id="chain-length"
+                      name="chain-length"
+                      class="chain-length input"
+                      type="number"
+                      min="0"
+                      {{if
+                      eq
+                      .gate.DriveType
+                      `manual`}}
+                      value="{{.manualDrive.ChainLength}}"
+                      {{else}}
+                      value="0"
+                      {{end}}
+                      {{if
+                      ne
+                      .orderStatus
+                      `pending`}}disabled{{end}}
+                    />
+                  </label>
+
+                  <div class="drive-auto">
+                    {{if eq .gate.GateType "ind"}}
+                    <label for="drive"
+                      >Привод промышленный
+                      <select
+                        class="select drive"
+                        name="drive"
+                        id="drive"
+                        {{if
+                        ne
+                        .orderStatus
+                        `pending`}}disabled{{end}}
+                      >
+                        {{range .cfg.IndustrialDrives}}
+                        <option
+                          value="{{.ID}}"
+                          data-retail-price="{{.RetailPrice}}"
+                          data-wholesale-price="{{.WholesalePrice}}"
+                          {{if
+                          ne
+                          $.gate.DriveType
+                          `manual`}}
+                          {{if
+                          eq
+                          .ID
+                          $.industrialDrive.DriveID}}selected{{end}}
+                          {{end}}
+                        >
+                          {{.Name}}
+                        </option>
+                        {{end}}
+                      </select>
+                    </label>
+                    {{else}}
+                    <label for="drive"
+                      >Привод бытовой
+                      <select
+                        class="select drive"
+                        name="drive"
+                        id="drive"
+                        {{if
+                        ne
+                        .orderStatus
+                        `pending`}}disabled{{end}}
+                      >
+                        {{range .cfg.ResidentialDrives}}
+                        <option
+                          value="{{.ID}}"
+                          data-retail-price="{{.RetailPrice}}"
+                          data-wholesale-price="{{.WholesalePrice}}"
+                          {{if
+                          ne
+                          $.gate.DriveType
+                          `manual`}}
+                          {{if
+                          eq
+                          .ID
+                          $.residentialDrive.DriveID}}selected{{end}}
+                          {{end}}
+                        >
+                          {{.Name}}
+                        </option>
+                        {{end}}
+                      </select>
+                    </label>
+                    {{end}}
+                    <label for="rail"
+                      >Направляющая
+                      <select
+                        class="select rail"
+                        name="rail"
+                        id="rail"
+                        {{if
+                        ne
+                        .orderStatus
+                        `pending`}}disabled{{end}}
+                      >
+                        {{range .cfg.Rails}}
+                        <option
+                          value="{{.ID}}"
+                          data-retail-price="{{.RetailPrice}}"
+                          data-wholesale-price="{{.WholesalePrice}}"
+                          {{if
+                          ne
+                          $.gate.DriveType
+                          `manual`}}
+                          {{if
+                          eq
+                          .ID
+                          $.residentialDrive.RailID}}selected{{end}}
+                          {{end}}
+                        >
+                          {{.Name}}
+                        </option>
+                        {{end}}
+                      </select></label
+                    >
+                  </div>
+                </div>
+              </div>
             </div>
-            <!--Высота притолки-->
-            <label for="headroom"
-              >Высота притолки
-              <input
-                class="input"
-                name="headroom"
-                id="headroom"
-                type="number"
-                min="0"
-                value="{{.gate.Headroom}}"
-                {{if
-                ne
-                .orderStatus
-                `pending`}}disabled{{end}}
-              />
-            </label>
-
-            <!--Тип подъема-->
-            <label for="lift-type"
-              >Тип подъема
-              <select
-                class="select lift-type"
-                name="lift-type"
-                id="lift-type"
-                onchange="
-                  window.updateGatePrice(document.querySelector('.gate-item'))
-                "
-                {{if
-                ne
-                .orderStatus
-                `pending`}}disabled{{end}}
-              >
-                {{range .cfg.LiftTypes}}
-                <option
-                  value="{{.ID}}"
-                  data-retail-markup="{{.RetailMarkup}}"
-                  data-wholesale-markup="{{.WholesaleMarkup}}"
-                  {{if
-                  eq
-                  .ID
-                  $.gate.LiftTypeID}}
-                  selected
-                  {{end}}
+            <div>
+              <h2>Дополнительные опции</h2>
+              <div class="additional-options">
+                <ul
+                  class="option-list"
+                  data-retail-price="0"
+                  data-wholesale-price="0"
                 >
-                  {{.Name}}
-                </option>
-                {{end}}
-              </select>
-            </label>
+                  {{range .options}} {{$gateOption := .}}
 
-            <!--Количество циклов-->
-            <label for="cycle-amount"
-              >Количество циклов
-              <select
-                class="select cycle-amount"
-                name="cycle-amount"
-                id="cycle-amount"
-                onchange="
-                  window.updateGatePrice(document.querySelector('.gate-item'))
-                "
-                {{if
-                ne
-                .orderStatus
-                `pending`}}disabled{{end}}
-              >
-                {{range .cfg.CycleAmounts}}
-                <option
-                  value="{{.ID}}"
-                  data-retail-markup="{{.RetailMarkup}}"
-                  data-wholesale-markup="{{.WholesaleMarkup}}"
-                  {{if
-                  eq
-                  .ID
-                  $.gate.CycleAmountID}}selected{{end}}
-                >
-                  {{.Amount}}
-                </option>
-                {{end}}
-              </select>
-            </label>
+                  <li class="option-item">
+                    <select
+                      name="option"
+                      class="option select"
+                      onchange="window.updateOptionsPrice(this)"
+                      {{if
+                      ne
+                      $.orderStatus
+                      `pending`}}disabled{{end}}
+                    >
+                      {{range $.cfg.Options}}
+                      <option
+                        value="{{.ID}}"
+                        data-retail-price="{{.RetailPrice}}"
+                        data-wholesale-price="{{.WholesalePrice}}"
+                        {{if
+                        eq
+                        .ID
+                        $gateOption.OptionID}}selected{{end}}
+                      >
+                        {{.Name}}
+                      </option>
+                      {{end}}
+                    </select>
 
-            <!--Цвет ворот снаружи-->
-            <label for="color-out"
-              >Цвет ворот снаружи
-              <select
-                class="select color-out"
-                name="color-out"
-                id="color-out"
-                {{if
-                ne
-                .orderStatus
-                `pending`}}disabled{{end}}
-              >
-                {{range .cfg.Colors}}
-                <option
-                  value="{{.ID}}"
-                  {{if
-                  eq
-                  .ID
-                  $.gate.ColorOutID}}selected{{end}}
-                >
-                  {{.Code}}
-                </option>
-                {{end}}
-              </select>
-            </label>
+                    <div class="controls">
+                      <input
+                        type="number"
+                        name="amount"
+                        class="amount input"
+                        min="1"
+                        value="{{$gateOption.Amount}}"
+                        oninput="window.updateOptionsPrice(this)"
+                        {{if
+                        ne
+                        $.orderStatus
+                        `pending`}}disabled{{end}}
+                      />
 
-            <!--Привод-->
-            <div class="drive-block">
-              <!--Тип привода-->
-              <label
-                >Тип привода
-                <select
-                  name="drive-type"
-                  class="drive-type select"
-                  onchange="window.updateDriveType(this)"
-                  {{if
-                  ne
-                  .orderStatus
-                  `pending`}}disabled{{end}}
-                >
-                  {{range .cfg.DriveTypes}}
-                  <option
-                    value="{{.}}"
-                    {{if
-                    eq
-                    .
-                    $.gate.DriveType}}selected{{end}}
-                  >
-                    {{.Label}}
-                  </option>
-                  {{end}}
-                </select>
-              </label>
-              <label
-                >Длина цепи
-                <input
-                  oninput="
-                    window.updateGatePrice(document.querySelector('.gate-item'))
-                  "
-                  data-chain-drive-retail-price="{{.cfg.ManualDrive.RcpRetailPrice}}"
-                  data-chain-drive-wholesale-price="{{.cfg.ManualDrive.RcpWholesalePrice}}"
-                  data-chain-retail-price="{{.cfg.ManualDrive.ChainMeterRetailPrice}}"
-                  data-chain-wholesale-price="{{.cfg.ManualDrive.ChainMeterWholesalePrice}}"
-                  id="chain-length"
-                  name="chain-length"
-                  class="chain-length input"
-                  type="number"
-                  min="0"
-                  {{if
-                  eq
-                  .gate.DriveType
-                  `manual`}}
-                  value="{{.manualDrive.ChainLength}}"
+                      <button
+                        type="button"
+                        class="btn secondary"
+                        onclick="removeItem(this, '.option-item')"
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  </li>
+
                   {{else}}
-                  value="0"
+                  <li>
+                    <p>Нет выбранных опций</p>
+                  </li>
                   {{end}}
-                  {{if
-                  ne
-                  .orderStatus
-                  `pending`}}disabled{{end}}
-                />
-              </label>
-
-              <div class="drive-auto">
-                {{if eq .gate.GateType "ind"}}
-                <label for="drive"
-                  >Привод промышленный
-                  <select
-                    class="select drive"
-                    name="drive"
-                    id="drive"
-                    {{if
-                    ne
-                    .orderStatus
-                    `pending`}}disabled{{end}}
+                </ul>
+                {{if eq .orderStatus `pending`}}
+                <div class="button-container">
+                  <button
+                    id="add-option"
+                    type="button"
+                    class="btn primary"
+                    onclick="window.addGateOption(this)"
                   >
-                    {{range .cfg.IndustrialDrives}}
-                    <option
-                      value="{{.ID}}"
-                      data-retail-price="{{.RetailPrice}}"
-                      data-wholesale-price="{{.WholesalePrice}}"
-                      {{if
-                      ne
-                      $.gate.DriveType
-                      `manual`}}
-                      {{if
-                      eq
-                      .ID
-                      $.industrialDrive.DriveID}}selected{{end}}
-                      {{end}}
-                    >
-                      {{.Name}}
-                    </option>
-                    {{end}}
-                  </select>
-                </label>
-                {{else}}
-                <label for="drive"
-                  >Привод бытовой
-                  <select
-                    class="select drive"
-                    name="drive"
-                    id="drive"
-                    {{if
-                    ne
-                    .orderStatus
-                    `pending`}}disabled{{end}}
-                  >
-                    {{range .cfg.ResidentialDrives}}
-                    <option
-                      value="{{.ID}}"
-                      data-retail-price="{{.RetailPrice}}"
-                      data-wholesale-price="{{.WholesalePrice}}"
-                      {{if
-                      ne
-                      $.gate.DriveType
-                      `manual`}}
-                      {{if
-                      eq
-                      .ID
-                      $.residentialDrive.DriveID}}selected{{end}}
-                      {{end}}
-                    >
-                      {{.Name}}
-                    </option>
-                    {{end}}
-                  </select>
-                </label>
+                    Добавить
+                  </button>
+                </div>
                 {{end}}
-                <label for="rail"
-                  >Направляющая
-                  <select
-                    class="select rail"
-                    name="rail"
-                    id="rail"
-                    {{if
-                    ne
-                    .orderStatus
-                    `pending`}}disabled{{end}}
-                  >
-                    {{range .cfg.Rails}}
-                    <option
-                      value="{{.ID}}"
-                      data-retail-price="{{.RetailPrice}}"
-                      data-wholesale-price="{{.WholesalePrice}}"
-                      {{if
-                      ne
-                      $.gate.DriveType
-                      `manual`}}
-                      {{if
-                      eq
-                      .ID
-                      $.residentialDrive.RailID}}selected{{end}}
-                      {{end}}
-                    >
-                      {{.Name}}
-                    </option>
-                    {{end}}
-                  </select></label
-                >
               </div>
             </div>
           </div>
-          <div class="additional-options">
-            <h2>Дополнительные опции</h2>
-            <ul
-              class="option-list"
-              data-retail-price="0"
-              data-wholesale-price="0"
-            >
-              {{range .options}} {{$gateOption := .}}
-
-              <li class="option-item">
-                <select
-                  name="option"
-                  class="option select"
-                  onchange="window.updateOptionsPrice(this)"
-                  {{if
-                  ne
-                  $.orderStatus
-                  `pending`}}disabled{{end}}
-                >
-                  {{range $.cfg.Options}}
-                  <option
-                    value="{{.ID}}"
-                    data-retail-price="{{.RetailPrice}}"
-                    data-wholesale-price="{{.WholesalePrice}}"
-                    {{if
-                    eq
-                    .ID
-                    $gateOption.OptionID}}selected{{end}}
-                  >
-                    {{.Name}}
-                  </option>
-                  {{end}}
-                </select>
-
-                <div class="controls">
-                  <input
-                    type="number"
-                    name="amount"
-                    class="amount input"
-                    min="1"
-                    value="{{$gateOption.Amount}}"
-                    oninput="window.updateOptionsPrice(this)"
-                    {{if
-                    ne
-                    $.orderStatus
-                    `pending`}}disabled{{end}}
-                  />
-
-                  <button
-                    type="button"
-                    class="btn secondary"
-                    onclick="removeItem(this, '.option-item')"
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </li>
-
-              {{else}}
-              <li>
-                <p>Нет выбранных опций</p>
-              </li>
-              {{end}}
-            </ul>
-            {{if eq .orderStatus `pending`}}
-            <div>
-              <button
-                id="add-option"
-                type="button"
-                class="btn primary"
-                onclick="window.addGateOption(this)"
-              >
-                Добавить
-              </button>
-            </div>
-            {{end}}
-          </div>
-        </div>
-      </form>
+        </form>
+      </div>
       <footer class="footer footer-horizontal calc-footer dark">
         <div>
           <div class="price-row">
