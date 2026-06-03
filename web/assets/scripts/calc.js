@@ -325,10 +325,9 @@ function updateGatePreview(gate) {
 window.updateGatePreview = updateGatePreview;
 
 
-
 // Функция для скачивания коммерческого предложения
 // Собирает все данные с формы, кодирует для protobuf и отправляет на сервер
-// Получает word-файл и скачивает его
+// Получает pdf-файл и скачивает его
 window.downloadOffer = async () => {
   const payload = {
     orderGates: buildGatePayload(),
@@ -347,7 +346,23 @@ window.downloadOffer = async () => {
     body: buf,
   });
 
-  if (!res.ok)// Функция, запрашивающая цену за размер ворот
+  if (!res.ok) {
+    throw new Error("Не удалось сформировать КП");
+  }
+
+  const blob = await res.blob();
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "commercial-offer.pdf";
+  a.click();
+
+  URL.revokeObjectURL(url);
+};
+
+// Функция, запрашивающая цену за размер ворот
 // принимает параметры: w - ширина, h - высота, t - тип ворот
 async function fetchSizePrice(w, h, t) {
   const res = await fetch(`/sizes?width=${w}&height=${h}&gateType=${t}`);
@@ -571,20 +586,6 @@ window.placeOrder = async () => {
 
     window.location.href = "/orders";
   }
-}; {
-    throw new Error("Не удалось сформировать КП");
-  }
-
-  const blob = await res.blob();
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "commercial-offer.pdf";
-  a.click();
-
-  URL.revokeObjectURL(url);
 };
 
 // Инициализация proto-схем после загрузки
