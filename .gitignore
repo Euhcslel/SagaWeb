@@ -1,6 +1,7 @@
 .env
 /logs
 /data/*/*
+!/data/*/.gitkeep
 .env.docker
 node_modules/
 bun.lock
