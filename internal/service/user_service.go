@@ -131,9 +131,14 @@ func GetUserInfo(user *users.User) (*UserInfo, error) {
 			return nil, err
 		}
 
+		address := ""
+		if dealer.Address != nil {
+			address = *dealer.Address
+		}
+
 		userInfo.Dealer = &DealerInfo{
 			CompanyName: dealer.Company.Name,
-			Address:     *dealer.Address,
+			Address:     address,
 		}
 	}
 

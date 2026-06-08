@@ -9,6 +9,11 @@ func GetDealersList() ([]UserInfo, error) {
 	}
 	var dealersInfo []UserInfo
 	for _, dealer := range dealers {
+		address := ""
+		if dealer.Address != nil {
+			address = *dealer.Address
+		}
+
 		dealersInfo = append(dealersInfo, UserInfo{
 			ID:       dealer.User.ID,
 			Fullname: dealer.Company.Name,
@@ -18,7 +23,7 @@ func GetDealersList() ([]UserInfo, error) {
 
 			Dealer: &DealerInfo{
 				CompanyName: dealer.Company.Name,
-				Address:     *dealer.Address,
+				Address:     address,
 			},
 		})
 
