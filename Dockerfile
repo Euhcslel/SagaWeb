@@ -3,10 +3,20 @@ FROM oven/bun:alpine AS js-builder
 
 WORKDIR /js
 
+RUN apk add --no-cache protobuf
+
 COPY package.json ./
 RUN bun install
 
-COPY web/assets/scripts/gen/ web/assets/scripts/gen/
+COPY api/proto/ api/proto/
+COPY web/assets/scripts/gen/bundle_entry.js web/assets/scripts/gen/
+
+RUN protoc \
+    --plugin=protoc-gen-es=./node_modules/.bin/protoc-gen-es \
+    --es_out=web/assets/scripts/gen/ \
+    --es_opt=target=js \
+    --proto_path=api/proto \
+    order.proto prices.proto documents.proto status.proto
 
 RUN bun build web/assets/scripts/gen/bundle_entry.js \
     --outfile web/assets/scripts/proto_bundle.js \
