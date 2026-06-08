@@ -34,8 +34,6 @@ services:
 
   app:
     build: .
-    ports:
-      - "80:80"
     volumes:
       - ./.env.docker:/app/.env:ro
       - ./data:/app/data
@@ -43,6 +41,18 @@ services:
     depends_on:
       size_import:
         condition: service_completed_successfully
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - app
     restart: unless-stopped
 
 volumes:
