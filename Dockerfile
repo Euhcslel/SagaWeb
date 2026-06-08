@@ -9,16 +9,21 @@ COPY package.json ./
 RUN bun install
 
 COPY api/proto/ api/proto/
-COPY web/assets/scripts/gen/bundle_entry.js web/assets/scripts/gen/
 
-RUN protoc \
-    --plugin=protoc-gen-es=./node_modules/.bin/protoc-gen-es \
-    --es_out=web/assets/scripts/gen/ \
-    --es_opt=target=js \
-    --proto_path=api/proto \
-    order.proto prices.proto documents.proto status.proto
+RUN mkdir -p web/assets/scripts/gen && \
+    protoc \
+        --plugin=protoc-gen-es=./node_modules/.bin/protoc-gen-es \
+        --es_out=web/assets/scripts/gen/ \
+        --es_opt=target=js \
+        --proto_path=api/proto \
+        order.proto prices.proto documents.proto status.proto
 
-RUN bun build web/assets/scripts/gen/bundle_entry.js \
+RUN cd web/assets/scripts/gen && \
+    (for f in *_pb.js; do printf 'export * from "./%s";\n' "$f"; done; \
+     printf 'export { create, toBinary, fromBinary } from "@bufbuild/protobuf";\n') \
+    > _entry.js
+
+RUN bun build web/assets/scripts/gen/_entry.js \
     --outfile web/assets/scripts/proto_bundle.js \
     --format esm --minify
 
