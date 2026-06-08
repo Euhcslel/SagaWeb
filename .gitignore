@@ -7,5 +7,7 @@ node_modules/
 bun.lock
 api/proto/*.pb
 internal/generated/*.pb.go
+!internal/generated/.gitkeep
 web/assets/scripts/gen/*_pb.js
+!/web/assets/scripts/gen/.gitkeep
 web/assets/scripts/proto_bundle.js
