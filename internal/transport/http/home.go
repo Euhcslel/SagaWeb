@@ -18,6 +18,27 @@ func formatDateTime(t time.Time) string {
 	return t.Format("02.01.2006 15:04")
 }
 
+// Функция для форматирования даты (для input type="date")
+func formatDate(t *time.Time) string {
+	if t == nil {
+		return ""
+	}
+	return t.Format("2006-01-02")
+}
+
+// Функция для форматирования даты для отображения
+func formatDateDisplay(t *time.Time) string {
+	if t == nil {
+		return "—"
+	}
+	return t.Format("02.01.2006")
+}
+
+// Функция для умножения цены на количество
+func mulPrice(d decimal.Decimal, amount int32) decimal.Decimal {
+	return d.Mul(decimal.NewFromInt32(amount))
+}
+
 // Функция для вывода цены в корректном формате
 func formatPrice(d decimal.Decimal) string {
 	d = d.Round(2)
@@ -40,8 +61,11 @@ func formatPrice(d decimal.Decimal) string {
 var templates = template.Must(
 	template.New("").
 		Funcs(template.FuncMap{
-			"fmtTime":     formatDateTime,
-			"fmtPrice": formatPrice,
+			"fmtTime":        formatDateTime,
+			"fmtPrice":       formatPrice,
+			"fmtDate":        formatDate,
+			"fmtDateDisplay": formatDateDisplay,
+			"mulPrice":       mulPrice,
 		}).
 		ParseGlob("web/templates/**/*.html"),
 )

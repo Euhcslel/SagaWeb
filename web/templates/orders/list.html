@@ -24,18 +24,23 @@
                 <th>Заказчик</th>
                 <th>Менеджер</th>
                 <th>Дата заказа</th>
+                <th>Дата готовности</th>
                 <th>Статус</th>
+                {{if eq .user.Role "logistician"}}<th></th>{{end}}
               </tr>
             </thead>
             <tbody>
               {{range .orders}}
               <tr
-                onclick="window.location='/orders/{{.ID}}'"
+                    {{if ne $.user.Role "logistician"}}onclick="window.location='/orders/{{.ID}}'"{{end}}
                     {{if eq .Status `confirmed`}}class="status-confirmed"{{end}}
                     {{if eq .Status `pending`}}class="status-pending"{{end}}
                     {{if eq .Status `paid`}}class="status-paid"{{end}}
                     {{if eq .Status `cancelled`}}class="status-cancelled"{{end}}
                     {{if eq .Status `done`}}class="status-done"{{end}}
+                data-id="{{.ID}}"
+                data-status="{{.Status}}"
+                data-manufacture-date="{{fmtDate .ManufactureDate}}"
               >
                 <td><p>Заказ #{{.ID}}</p></td>
                 <td>
@@ -53,7 +58,18 @@
                   {{end}}
                 </td>
                 <td>{{fmtTime .CreatedAt}}</td>
+                <td>{{fmtDateDisplay .ManufactureDate}}</td>
                 <td>{{.Status.Label}}</td>
+                {{if eq $.user.Role "logistician"}}
+                <td>
+                  <button class="btn secondary" onclick="openEditModal(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                      <path d="m15 5 4 4" />
+                    </svg>
+                  </button>
+                </td>
+                {{end}}
               </tr>
               {{end}}
             </tbody>
@@ -61,6 +77,70 @@
         </div>
       </div>
     </main>
+
+    {{if eq .user.Role "logistician"}}
+    <dialog id="edit-modal" class="modal">
+      <div class="modal-box">
+        <h2>Заказ #<span id="modal-order-id"></span></h2>
+        <form id="edit-form" onsubmit="submitEdit(event)">
+          <label>
+            Статус
+            <select class="select" name="status" id="modal-status">
+              {{range .statuses}}
+              <option value="{{.}}">{{.Label}}</option>
+              {{end}}
+            </select>
+          </label>
+          <label>
+            Дата готовности
+            <input class="input" type="date" name="manufacture_date" id="modal-manufacture-date" />
+          </label>
+          <div>
+            <button class="btn primary" type="submit">Сохранить</button>
+            <button class="btn secondary" type="button" onclick="document.getElementById('edit-modal').close()">Отмена</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <script>
+      let currentOrderId = null;
+
+      function openEditModal(btn) {
+        const row = btn.closest('tr');
+        currentOrderId = row.dataset.id;
+
+        document.getElementById('modal-order-id').textContent = currentOrderId;
+        document.getElementById('modal-status').value = row.dataset.status;
+        document.getElementById('modal-manufacture-date').value = row.dataset.manufactureDate || '';
+
+        document.getElementById('edit-modal').showModal();
+      }
+
+      async function submitEdit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const body = {
+          status: form.status.value,
+          manufacture_date: form.manufacture_date.value,
+        };
+
+        const resp = await fetch(`/logistician/orders/${currentOrderId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (resp.ok) {
+          document.getElementById('edit-modal').close();
+          window.location.reload();
+        } else {
+          alert('Ошибка при сохранении');
+        }
+      }
+    </script>
+    {{end}}
+
     {{template "footer" .}}
   </body>
 </html>

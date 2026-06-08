@@ -85,25 +85,13 @@
   &.disabled,
   fieldset:disabled & {
     cursor: not-allowed;
-    opacity: 0.7;
-
-    border-color: var(--color-base-200);
-    background-color: var(--color-base-200);
+    opacity: 0.6;
+    background-color: color-mix(in oklch, var(--color-base-200) 50%, transparent);
+    border-color: color-mix(in oklch, var(--color-base-200) 50%, transparent);
     box-shadow: none;
-
-    color: color-mix(in oklch, var(--color-base-content) 40%, #0000);
-
-    &::placeholder {
-      color: color-mix(in oklch, var(--color-base-content) 25%, #0000);
-    }
 
     > input {
       cursor: not-allowed;
-      color: inherit;
-
-      &::placeholder {
-        color: color-mix(in oklch, var(--color-base-content) 25%, #0000);
-      }
     }
 
     svg {
@@ -157,7 +145,7 @@
   &:focus,
   &:focus-within {
     color: var(--color-base-content);
-    background-color: var(--color-base-100);
+    background-color: light-dark(var(--color-base-100), var(--color-base-700));
     border-color: #0000;
     box-shadow: none;
   }

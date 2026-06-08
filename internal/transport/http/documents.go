@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/generated"
 	"github.com/Euhcslel/SagaWeb/internal/helpers"
@@ -182,6 +183,54 @@ func DeleteOrderDocument(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
+}
+
+// Route: /orders/{order_id}/appendix
+// Method: GET
+// Query params: contract_number (string), appendix_number (int, default 1), contract_date (YYYY-MM-DD, default today)
+func GetAppendixForOrder(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	contractNumber := r.URL.Query().Get("contract_number")
+	if contractNumber == "" {
+		helpers.WriteError(w, fmt.Errorf("contract_number обязателен"), http.StatusBadRequest)
+		return
+	}
+
+	appendixNumber := 1
+	if v := r.URL.Query().Get("appendix_number"); v != "" {
+		appendixNumber, err = strconv.Atoi(v)
+		if err != nil || appendixNumber < 1 {
+			helpers.WriteError(w, fmt.Errorf("некорректный appendix_number"), http.StatusBadRequest)
+			return
+		}
+	}
+
+	contractDate := time.Now()
+	if v := r.URL.Query().Get("contract_date"); v != "" {
+		contractDate, err = time.Parse("2006-01-02", v)
+		if err != nil {
+			helpers.WriteError(w, fmt.Errorf("некорректный contract_date, ожидается YYYY-MM-DD"), http.StatusBadRequest)
+			return
+		}
+	}
+
+	file, err := service.GetAppendixForOrder(user, orderID, appendixNumber, contractNumber, contractDate)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	filename := fmt.Sprintf("appendix_%d_%d.pdf", orderID, appendixNumber)
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	w.Write(file)
 }
 
 // Route: /offer

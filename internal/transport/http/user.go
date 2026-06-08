@@ -3,13 +3,15 @@ package http
 import (
 	"errors"
 	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/helpers"
 	"github.com/Euhcslel/SagaWeb/internal/service"
 	"github.com/Euhcslel/SagaWeb/internal/types"
 	"github.com/Euhcslel/SagaWeb/internal/utils"
-	"strconv"
 )
 
 // Route: /user
@@ -101,7 +103,7 @@ func GetDealersRegRequests(w http.ResponseWriter, r *http.Request) {
 
 	data := map[string]any{
 		"user":        user,
-		"css":         "",
+		"css":         "user.css",
 		"regRequests": regRequests,
 	}
 	if err := templates.ExecuteTemplate(w, "reg_requests.html", data); err != nil {
@@ -140,4 +142,47 @@ func RejectDealerRegRequest(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
+}
+
+// Route: /user/dealers/{dealer_id}/contract
+// Method: POST
+func AttachContractToDealer(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	dealerID, err := strconv.ParseInt(r.PathValue("dealer_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	signedAt, err := time.Parse("2006-01-02", r.FormValue("signed_at"))
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	file, handler, err := r.FormFile("contract_file")
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+	if file != nil {
+		defer file.Close()
+	}
+
+	if err := service.AttachContractToDealer(user, dealerID, r.FormValue("contract_number"), signedAt, file, handler); err != nil {
+		if errors.Is(err, errs.ErrForbidden) {
+			helpers.WriteError(w, err, http.StatusForbidden)
+			return
+		}
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/user/dealers", http.StatusSeeOther)
 }

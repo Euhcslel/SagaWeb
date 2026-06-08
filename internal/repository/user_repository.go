@@ -2,23 +2,58 @@ package repository
 
 import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/companies"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_contract"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_registration_requests"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	"github.com/Euhcslel/SagaWeb/internal/types"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 func GetUserDealers(db *gorm.DB, userID int64) ([]dealer_manager_assignments.DealerManagerAssignment, error) {
-	var dealers []dealer_manager_assignments.DealerManagerAssignment
-	if err := db.Model(dealer_manager_assignments.DealerManagerAssignment{}).Preload("Dealer").Where("manager_id = ?", userID).Find(&dealers).Error; err != nil {
+	var result []dealer_manager_assignments.DealerManagerAssignment
+	err := db.Model(dealer_manager_assignments.DealerManagerAssignment{}).
+		Preload("Dealer").
+		Preload("Dealer.User").
+		Where("manager_id = ?", userID).
+		Find(&result).Error
+	if err != nil {
 		return nil, err
 	}
+	return result, nil
+}
 
-	return dealers, nil
+func UpsertDealerContract(db *gorm.DB, contract dealer_contract.DealerContract) error {
+	return db.Save(&contract).Error
+}
+
+func GetDealerContract(db *gorm.DB, dealerID int64) (*dealer_contract.DealerContract, error) {
+	var contract dealer_contract.DealerContract
+	res := db.Where("dealer_id = ?", dealerID).Limit(1).Find(&contract)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected == 0 {
+		return nil, nil
+	}
+	return &contract, nil
+}
+
+func GetDealerContractsByDealerIDs(db *gorm.DB, dealerIDs []int64) (map[int64]*dealer_contract.DealerContract, error) {
+	result := make(map[int64]*dealer_contract.DealerContract)
+	if len(dealerIDs) == 0 {
+		return result, nil
+	}
+	var contracts []dealer_contract.DealerContract
+	if err := db.Where("dealer_id IN ?", dealerIDs).Find(&contracts).Error; err != nil {
+		return nil, err
+	}
+	for i := range contracts {
+		result[contracts[i].DealerID] = &contracts[i]
+	}
+	return result, nil
 }
 
 func GetDealerInfo(db *gorm.DB, userID int64) (*dealers.Dealer, error) {

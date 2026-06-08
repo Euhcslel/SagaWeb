@@ -5,32 +5,18 @@ import {
   updateProductsPrice,
   fmtPrice,
 } from "./gate-form-utils.js";
+import {
+  create,
+  toBinary,
+  fromBinary,
+  DocumentsListSchema,
+  UpdateOrderStatusRequestSchema,
+  UpdateProductsRequestSchema,
+} from "./proto_bundle.js";
 
 window.removeItem = removeItem;
 window.addProduct = addProduct;
 window.updateProductsPrice = updateProductsPrice;
-
-const Proto = {
-  DocumentsList: null,
-  UpdateOrderStatusRequest: null,
-  UpdateProductsRequest: null,
-};
-
-// Функция, инициализирующая proto-схемы
-async function initProtobuf() {
-  const documentsRoot = await protobuf.load("/api/proto/documents.proto");
-  Proto.DocumentsList = documentsRoot.lookupType("proto.DocumentsList");
-
-  const statusRoot = await protobuf.load("/api/proto/status.proto");
-  Proto.UpdateOrderStatusRequest = statusRoot.lookupType(
-    "proto.UpdateOrderStatusRequest",
-  );
-
-  const productsRoot = await protobuf.load("/api/proto/order.proto");
-  Proto.UpdateProductsRequest = productsRoot.lookupType(
-    "proto.UpdateProductsRequest",
-  );
-}
 
 // Функция, удаляющая ворота из заказа
 window.deleteGate = async (gateId) => {
@@ -112,9 +98,7 @@ window.loadDocuments = async () => {
 
   const buf = await res.arrayBuffer();
 
-  const msg = Proto.DocumentsList.decode(new Uint8Array(buf));
-
-  const docsList = Proto.DocumentsList.toObject(msg, { longs: Number });
+  const docsList = fromBinary(DocumentsListSchema, new Uint8Array(buf));
 
   const docsTable = document.getElementById("documents-list");
   docsTable.innerHTML = "";
@@ -203,12 +187,8 @@ window.changeOrderStatus = async () => {
   const payload = {
     status: OrderStatus[selectedStatus],
   };
-  // Кодирование в protobuf
-  const err = Proto.UpdateOrderStatusRequest.verify(payload);
-  if (err) throw new Error(err);
-
-  const msg = Proto.UpdateOrderStatusRequest.create(payload);
-  const buf = Proto.UpdateOrderStatusRequest.encode(msg).finish();
+  const msg = create(UpdateOrderStatusRequestSchema, payload);
+  const buf = toBinary(UpdateOrderStatusRequestSchema, msg);
 
   const path = window.location.pathname;
 
@@ -313,7 +293,7 @@ window.saveProducts = async () => {
 
   const products = Array.from(productMap.entries()).map(
     ([productId, amount]) => ({
-      productId,
+      productId: BigInt(productId),
       amount,
     }),
   );
@@ -322,13 +302,8 @@ window.saveProducts = async () => {
     products,
   };
 
-  const err = Proto.UpdateProductsRequest.verify(payload);
-  if (err) {
-    throw new Error(err);
-  }
-
-  const msg = Proto.UpdateProductsRequest.create(payload);
-  const buf = Proto.UpdateProductsRequest.encode(msg).finish();
+  const msg = create(UpdateProductsRequestSchema, payload);
+  const buf = toBinary(UpdateProductsRequestSchema, msg);
 
   const path = window.location.pathname;
 
@@ -378,6 +353,43 @@ window.updateOrderPrice = () => {
   );
 };
 
-await initProtobuf();
+// Функция, скачивающая приложение к договору в виде PDF
+window.downloadAppendix = async () => {
+  const contractNumber = document.getElementById("appendix-contract-number").value.trim();
+  if (!contractNumber) {
+    alert("Укажите номер договора");
+    return;
+  }
+
+  const appendixNumber = document.getElementById("appendix-number").value || "1";
+  const contractDate = document.getElementById("appendix-contract-date").value;
+
+  const path = window.location.pathname;
+  const parts = path.split("/");
+  const orderId = parts[2];
+
+  const params = new URLSearchParams({ contract_number: contractNumber, appendix_number: appendixNumber });
+  if (contractDate) params.set("contract_date", contractDate);
+
+  const response = await fetch(`/orders/${orderId}/appendix?${params}`, { method: "GET" });
+
+  if (!response.ok) {
+    alert("Ошибка при генерации приложения");
+    return;
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `appendix_${orderId}_${appendixNumber}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+
+  document.getElementById("appendix-modal").close();
+};
+
 updateProductsPrice();
 updateOrderPrice();

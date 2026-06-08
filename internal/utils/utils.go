@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 	"net/http"
+	"time"
+
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/sessions"
@@ -22,7 +24,7 @@ func GetUserBySessionToken(r *http.Request) (*users.User, error) {
 	var session sessions.Session
 	err = database.DB.
 		Preload("User").
-		Where("token = ?", token).
+		Where("token = ? AND expires_at > ?", token, time.Now()).
 		First(&session).Error
 	if err != nil {
 		return nil, err
@@ -47,7 +49,7 @@ func SetSession(w http.ResponseWriter, userID int64) error {
 		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 	}
 	http.SetCookie(w, cookie)

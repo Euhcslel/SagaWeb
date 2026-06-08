@@ -8,6 +8,13 @@ import {
   updateGatePrice as sharedUpdateGatePrice,
   fmtPrice,
 } from "./gate-form-utils.js";
+import {
+  create,
+  toBinary,
+  fromBinary,
+  OrderRequestSchema,
+  SizePriceSchema,
+} from "./proto_bundle.js";
 
 window.removeItem = removeItem;
 window.addGateOption = addGateOption;
@@ -18,21 +25,6 @@ window.updateGatePrice = (gate) => {
   sharedUpdateGatePrice(gate);
   updateOrderPrice();
 };
-
-// Proto-схемы
-let Proto = {
-  SizePrice: null,
-  OrderRequest: null,
-};
-
-// Функция, инициализирующая proto-схемы
-async function initProtobuf() {
-  const pricesRoot = await protobuf.load("/api/proto/prices.proto");
-  Proto.SizePrice = pricesRoot.lookupType("proto.SizePrice");
-
-  const orderRoot = await protobuf.load("/api/proto/order.proto");
-  Proto.OrderRequest = orderRoot.lookupType("proto.OrderRequest");
-}
 
 // Функция, удаляющая вкладку ворот и соответствующий шаблон формы
 window.removeGateElement = async (event) => {
@@ -334,11 +326,8 @@ window.downloadOffer = async () => {
     products: buildProductsList(),
   };
 
-  const err = Proto.OrderRequest.verify(payload);
-  if (err) throw new Error(err);
-
-  const msg = Proto.OrderRequest.create(payload);
-  const buf = Proto.OrderRequest.encode(msg).finish();
+  const msg = create(OrderRequestSchema, payload);
+  const buf = toBinary(OrderRequestSchema, msg);
 
   const res = await fetch("/offer", {
     method: "POST",
@@ -369,18 +358,16 @@ async function fetchSizePrice(w, h, t) {
 
   const buf = await res.arrayBuffer();
 
-  const msg = Proto.SizePrice.decode(new Uint8Array(buf));
+  const d = fromBinary(SizePriceSchema, new Uint8Array(buf));
 
-  const d = Proto.SizePrice.toObject(msg, { longs: Number });
-
-  if (d.dealer) {
+  if (d.price.case === "dealer") {
     return {
-      retail: d.dealer.clientPrice / 100,
-      wholesale: d.dealer.dealerPrice / 100,
+      retail: Number(d.price.value.clientPrice) / 100,
+      wholesale: Number(d.price.value.dealerPrice) / 100,
     };
   }
 
-  return { retail: d.client.clientPrice / 100, wholesale: 0 };
+  return { retail: Number(d.price.value.clientPrice) / 100, wholesale: 0 };
 }
 
 // Функция, которая пересчитывает стоимость всего заказа
@@ -433,7 +420,7 @@ function buildProductsList() {
   });
 
   return Object.entries(productsMap).map(([productId, amount]) => ({
-    productId: Number(productId),
+    productId: BigInt(productId),
     amount: amount,
   }));
 }
@@ -443,30 +430,35 @@ function buildDrivePayload(gate) {
   const driveType = getSelectedOption(gate.querySelector(".drive-type")).value;
   if (driveType === "manual") {
     return {
-      manual: {
-        chainLength: Number(gate.querySelector(".chain-length").value),
+      driveType: {
+        case: "manual",
+        value: { chainLength: Number(gate.querySelector(".chain-length").value) },
       },
     };
   }
 
   if (driveType === "industrial") {
     return {
-      industrial: {
-        driveId: Number(gate.querySelector(".drive").value),
+      driveType: {
+        case: "industrial",
+        value: { driveId: BigInt(gate.querySelector(".drive").value) },
       },
     };
   }
 
   if (driveType === "residential") {
     return {
-      residential: {
-        driveId: Number(gate.querySelector(".drive").value),
-        railId: Number(gate.querySelector(".rail").value),
+      driveType: {
+        case: "residential",
+        value: {
+          driveId: BigInt(gate.querySelector(".drive").value),
+          railId: BigInt(gate.querySelector(".rail").value),
+        },
       },
     };
   }
 
-  return null;
+  return undefined;
 }
 
 // Функция, возвращающа выбранный option у select
@@ -531,7 +523,7 @@ function buildGatePayload() {
     });
 
     const options = Object.entries(optionsMap).map(([optionId, amount]) => ({
-      optionId: Number(optionId),
+      optionId: BigInt(optionId),
       amount: amount,
     }));
 
@@ -539,9 +531,9 @@ function buildGatePayload() {
       gateType: gateType,
       width: width,
       height: height,
-      liftTypeId: liftType,
-      colorOutId: colorOut,
-      cycleAmountId: cycleAmount,
+      liftTypeId: BigInt(liftType),
+      colorOutId: BigInt(colorOut),
+      cycleAmountId: BigInt(cycleAmount),
       options: options,
       headroom: headroom,
       drive: drive,
@@ -570,11 +562,8 @@ window.placeOrder = async () => {
       products: buildProductsList(),
     };
 
-    const err = Proto.OrderRequest.verify(payload);
-    if (err) throw new Error(err);
-
-    const msg = Proto.OrderRequest.create(payload);
-    const buf = Proto.OrderRequest.encode(msg).finish();
+    const msg = create(OrderRequestSchema, payload);
+    const buf = toBinary(OrderRequestSchema, msg);
 
     const res = await fetch("/orders", {
       method: "POST",
@@ -588,7 +577,5 @@ window.placeOrder = async () => {
   }
 };
 
-// Инициализация proto-схем после загрузки
-await initProtobuf();
 // Чтобы изначально были хотя бы одни ворота
 addGateElement();

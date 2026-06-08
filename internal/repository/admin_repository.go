@@ -8,7 +8,9 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
 
 func CreateNewColor(color colors.Color) error {
@@ -33,6 +35,10 @@ func CreateNewOption(option options.Option) error {
 
 func CreateNewProduct(product products.Product) error {
 	return database.DB.Create(&product).Error
+}
+
+func CreateNewRail(rail rails.Rail) error {
+	return database.DB.Create(&rail).Error
 }
 
 func CreateNewResidentialDrive(residentialDrive residential_gate_drives.ResidentialGateDrive) error {
@@ -62,10 +68,11 @@ func UpdateIndustrialDrive(industrialDrive industrial_gate_drives.IndustrialGate
 	return database.DB.Model(&industrial_gate_drives.IndustrialGateDrive{}).
 		Where("id = ?", industrialDrive.ID).
 		Updates(map[string]any{
-			"name":             industrialDrive.Name,
-			"wholesale_price":  industrialDrive.WholesalePrice,
-			"retail_price":     industrialDrive.RetailPrice,
-			"specifications":   industrialDrive.Specifications,
+			"name":            industrialDrive.Name,
+			"wholesale_price": industrialDrive.WholesalePrice,
+			"retail_price":    industrialDrive.RetailPrice,
+			"specifications":  industrialDrive.Specifications,
+			"image_path":      industrialDrive.ImagePath,
 		}).Error
 }
 
@@ -88,6 +95,7 @@ func UpdateOption(option options.Option) error {
 			"name":            option.Name,
 			"wholesale_price": option.WholesalePrice,
 			"retail_price":    option.RetailPrice,
+			"image_path":      option.ImagePath,
 		}).Error
 }
 
@@ -98,6 +106,19 @@ func UpdateProduct(product products.Product) error {
 			"name":            product.Name,
 			"wholesale_price": product.WholesalePrice,
 			"retail_price":    product.RetailPrice,
+			"image_path":      product.ImagePath,
+		}).Error
+}
+
+func UpdateRail(rail rails.Rail) error {
+	return database.DB.Model(&rails.Rail{}).
+		Where("id = ?", rail.ID).
+		Updates(map[string]any{
+			"name":            rail.Name,
+			"wholesale_price": rail.WholesalePrice,
+			"retail_price":    rail.RetailPrice,
+			"specifications":  rail.Specifications,
+			"image_path":      rail.ImagePath,
 		}).Error
 }
 
@@ -109,6 +130,7 @@ func UpdateResidentialDrive(residentialDrive residential_gate_drives.Residential
 			"wholesale_price": residentialDrive.WholesalePrice,
 			"retail_price":    residentialDrive.RetailPrice,
 			"specifications":  residentialDrive.Specifications,
+			"image_path":      residentialDrive.ImagePath,
 		}).Error
 }
 
@@ -136,6 +158,41 @@ func DeleteProduct(rowId int64) error {
 	return database.DB.Where("id = ?", rowId).Delete(&products.Product{}).Error
 }
 
+func DeleteRail(rowId int64) error {
+	return database.DB.Where("id = ?", rowId).Delete(&rails.Rail{}).Error
+}
+
 func DeleteResidentialDrive(rowId int64) error {
 	return database.DB.Where("id = ?", rowId).Delete(&residential_gate_drives.ResidentialGateDrive{}).Error
+}
+
+func GetAllUsers() ([]users.User, error) {
+	var result []users.User
+	err := database.DB.Find(&result).Error
+	return result, err
+}
+
+func AdminCreateUser(user users.User) error {
+	return database.DB.Create(&user).Error
+}
+
+func AdminUpdateUser(user users.User) error {
+	return database.DB.Model(&users.User{}).
+		Where("id = ?", user.ID).
+		Updates(map[string]any{
+			"fullname":     user.Fullname,
+			"email":        user.Email,
+			"phone_number": user.PhoneNumber,
+			"role":         user.Role,
+		}).Error
+}
+
+func AdminUpdateUserPassword(id int64, hash []byte) error {
+	return database.DB.Model(&users.User{}).
+		Where("id = ?", id).
+		Update("password_hash", hash).Error
+}
+
+func AdminDeleteUser(id int64) error {
+	return database.DB.Where("id = ?", id).Delete(&users.User{}).Error
 }

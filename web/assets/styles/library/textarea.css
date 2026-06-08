@@ -1,6 +1,6 @@
 .textarea {
     border: var(--border) solid #0000;
-    background-color: var(--color-base-100);
+    background-color: light-dark(var(--color-base-100), var(--color-base-700));
     border-radius: var(--radius-field);
     min-height: 5rem;
     flex-shrink: 1;
@@ -74,7 +74,7 @@
     &:focus,
     &:focus-within {
         color: var(--color-base-content);
-        background-color: var(--color-base-100);
+        background-color: light-dark(var(--color-base-100), var(--color-base-700));
         border-color: #0000;
         box-shadow: none;
     }

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    {{if .css}}
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
+    {{end}}
+    <title>Импорт размеров</title>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main>
+      <div class="page-container">
+        <h1>Импорт прайс-листа размеров</h1>
+        {{if .success}}
+        <div class="success-alert">Прайс-лист успешно обновлён</div>
+        {{end}}
+
+        <form class="import-form" method="post" enctype="multipart/form-data" action="/logistician/size-import">
+          <div class="import-section">
+            <h2>Промышленные ворота</h2>
+            <label>
+              Дилерские цены (.xlsx)
+              <input class="file-input" type="file" name="ind_dealer" accept=".xlsx,.xls" required />
+            </label>
+            <label>
+              Клиентские цены (.xlsx)
+              <input class="file-input" type="file" name="ind_client" accept=".xlsx,.xls" required />
+            </label>
+          </div>
+
+          <hr />
+
+          <div class="import-section">
+            <h2>Бытовые ворота</h2>
+            <label>
+              Дилерские цены (.xlsx)
+              <input class="file-input" type="file" name="res_dealer" accept=".xlsx,.xls" required />
+            </label>
+            <label>
+              Клиентские цены (.xlsx)
+              <input class="file-input" type="file" name="res_client" accept=".xlsx,.xls" required />
+            </label>
+          </div>
+
+          <div>
+            <button class="btn primary" type="submit">Загрузить и обновить</button>
+          </div>
+        </form>
+      </div>
+    </main>
+    {{template "footer" .}}
+  </body>
+</html>

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"log"
+	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
@@ -23,9 +24,25 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 
+	"github.com/Euhcslel/SagaWeb/internal/types"
+
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+func GetOrderWithCustomer(db *gorm.DB, orderID int64) (*orders.Order, error) {
+	var order orders.Order
+	if err := db.
+		Preload("Dealer.User").
+		Preload("Dealer.Company").
+		Preload("Manager").
+		Where("id = ?", orderID).
+		First(&order).Error; err != nil {
+		return nil, err
+	}
+	return &order, nil
+}
 
 func GetAllDealerOrders(db *gorm.DB, user *users.User) ([]orders.Order, error) {
 	var orders []orders.Order
@@ -269,6 +286,18 @@ func UpdateOrderStatus(db *gorm.DB, orderID int64, status enums.OrderStatus) err
 	return db.Model(&orders.Order{}).Where("id = ?", orderID).Update("status", status).Error
 }
 
+func SetOrderFinalizedAt(db *gorm.DB, orderID int64) error {
+	return db.Model(&orders.Order{}).
+		Where("id = ? AND finalized_at IS NULL", orderID).
+		Update("finalized_at", db.Raw("CURRENT_TIMESTAMP")).Error
+}
+
+func GetOrderFinalizedAt(db *gorm.DB, orderID int64) (*time.Time, error) {
+	var t *time.Time
+	err := db.Model(&orders.Order{}).Where("id = ?", orderID).Pluck("finalized_at", &t).Error
+	return t, err
+}
+
 func GetOrderStatus(orderID int64) (*string, error) {
 	var status string
 	if err := database.DB.Model(&orders.Order{}).
@@ -371,4 +400,166 @@ func GetProductByID(db *gorm.DB, productID int64) (*products.Product, error) {
 		return nil, err
 	}
 	return &product, nil
+}
+
+
+func GetProductHistoricalPrices(db *gorm.DB, productIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
+	if len(productIDs) == 0 {
+		return map[int64]types.PricePair{}, nil
+	}
+	type row struct {
+		ProductID      int64           `gorm:"column:product_id"`
+		RetailPrice    decimal.Decimal `gorm:"column:retail_price"`
+		WholesalePrice decimal.Decimal `gorm:"column:wholesale_price"`
+	}
+	var rows []row
+	err := db.Raw(`
+		SELECT DISTINCT ON (product_id) product_id, retail_price, wholesale_price
+		FROM product_price_history
+		WHERE product_id IN ? AND set_at <= ?
+		ORDER BY product_id, set_at DESC
+	`, productIDs, at).Scan(&rows).Error
+	result := make(map[int64]types.PricePair, len(rows))
+	for _, r := range rows {
+		result[r.ProductID] = types.PricePair{RetailPrice: r.RetailPrice, WholesalePrice: r.WholesalePrice}
+	}
+	return result, err
+}
+
+func GetOptionHistoricalPrices(db *gorm.DB, optionIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
+	if len(optionIDs) == 0 {
+		return map[int64]types.PricePair{}, nil
+	}
+	type row struct {
+		OptionID       int64           `gorm:"column:option_id"`
+		RetailPrice    decimal.Decimal `gorm:"column:retail_price"`
+		WholesalePrice decimal.Decimal `gorm:"column:wholesale_price"`
+	}
+	var rows []row
+	err := db.Raw(`
+		SELECT DISTINCT ON (option_id) option_id, retail_price, wholesale_price
+		FROM option_price_history
+		WHERE option_id IN ? AND set_at <= ?
+		ORDER BY option_id, set_at DESC
+	`, optionIDs, at).Scan(&rows).Error
+	result := make(map[int64]types.PricePair, len(rows))
+	for _, r := range rows {
+		result[r.OptionID] = types.PricePair{RetailPrice: r.RetailPrice, WholesalePrice: r.WholesalePrice}
+	}
+	return result, err
+}
+
+func GetIndustrialDriveHistoricalPrices(db *gorm.DB, driveIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
+	if len(driveIDs) == 0 {
+		return map[int64]types.PricePair{}, nil
+	}
+	type row struct {
+		DriveID        int64           `gorm:"column:drive_id"`
+		RetailPrice    decimal.Decimal `gorm:"column:retail_price"`
+		WholesalePrice decimal.Decimal `gorm:"column:wholesale_price"`
+	}
+	var rows []row
+	err := db.Raw(`
+		SELECT DISTINCT ON (drive_id) drive_id, retail_price, wholesale_price
+		FROM industrial_gate_drive_price_history
+		WHERE drive_id IN ? AND set_at <= ?
+		ORDER BY drive_id, set_at DESC
+	`, driveIDs, at).Scan(&rows).Error
+	result := make(map[int64]types.PricePair, len(rows))
+	for _, r := range rows {
+		result[r.DriveID] = types.PricePair{RetailPrice: r.RetailPrice, WholesalePrice: r.WholesalePrice}
+	}
+	return result, err
+}
+
+func GetResidentialDriveHistoricalPrices(db *gorm.DB, driveIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
+	if len(driveIDs) == 0 {
+		return map[int64]types.PricePair{}, nil
+	}
+	type row struct {
+		DriveID        int64           `gorm:"column:drive_id"`
+		RetailPrice    decimal.Decimal `gorm:"column:retail_price"`
+		WholesalePrice decimal.Decimal `gorm:"column:wholesale_price"`
+	}
+	var rows []row
+	err := db.Raw(`
+		SELECT DISTINCT ON (drive_id) drive_id, retail_price, wholesale_price
+		FROM residential_gate_drive_price_history
+		WHERE drive_id IN ? AND set_at <= ?
+		ORDER BY drive_id, set_at DESC
+	`, driveIDs, at).Scan(&rows).Error
+	result := make(map[int64]types.PricePair, len(rows))
+	for _, r := range rows {
+		result[r.DriveID] = types.PricePair{RetailPrice: r.RetailPrice, WholesalePrice: r.WholesalePrice}
+	}
+	return result, err
+}
+
+func GetRailHistoricalPrices(db *gorm.DB, railIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
+	if len(railIDs) == 0 {
+		return map[int64]types.PricePair{}, nil
+	}
+	type row struct {
+		RailID         int64           `gorm:"column:rail_id"`
+		RetailPrice    decimal.Decimal `gorm:"column:retail_price"`
+		WholesalePrice decimal.Decimal `gorm:"column:wholesale_price"`
+	}
+	var rows []row
+	err := db.Raw(`
+		SELECT DISTINCT ON (rail_id) rail_id, retail_price, wholesale_price
+		FROM rail_price_history
+		WHERE rail_id IN ? AND set_at <= ?
+		ORDER BY rail_id, set_at DESC
+	`, railIDs, at).Scan(&rows).Error
+	result := make(map[int64]types.PricePair, len(rows))
+	for _, r := range rows {
+		result[r.RailID] = types.PricePair{RetailPrice: r.RetailPrice, WholesalePrice: r.WholesalePrice}
+	}
+	return result, err
+}
+
+func GetLiftTypeHistoricalMarkups(db *gorm.DB, liftTypeIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
+	if len(liftTypeIDs) == 0 {
+		return map[int64]types.PricePair{}, nil
+	}
+	type row struct {
+		LiftTypeID      int64           `gorm:"column:lift_type_id"`
+		RetailMarkup    decimal.Decimal `gorm:"column:retail_markup"`
+		WholesaleMarkup decimal.Decimal `gorm:"column:wholesale_markup"`
+	}
+	var rows []row
+	err := db.Raw(`
+		SELECT DISTINCT ON (lift_type_id) lift_type_id, retail_markup, wholesale_markup
+		FROM lift_type_markup_history
+		WHERE lift_type_id IN ? AND set_at <= ?
+		ORDER BY lift_type_id, set_at DESC
+	`, liftTypeIDs, at).Scan(&rows).Error
+	result := make(map[int64]types.PricePair, len(rows))
+	for _, r := range rows {
+		result[r.LiftTypeID] = types.PricePair{RetailPrice: r.RetailMarkup, WholesalePrice: r.WholesaleMarkup}
+	}
+	return result, err
+}
+
+func GetCycleAmountHistoricalMarkups(db *gorm.DB, cycleAmountIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
+	if len(cycleAmountIDs) == 0 {
+		return map[int64]types.PricePair{}, nil
+	}
+	type row struct {
+		CycleAmountID   int64           `gorm:"column:cycle_amount_id"`
+		RetailMarkup    decimal.Decimal `gorm:"column:retail_markup"`
+		WholesaleMarkup decimal.Decimal `gorm:"column:wholesale_markup"`
+	}
+	var rows []row
+	err := db.Raw(`
+		SELECT DISTINCT ON (cycle_amount_id) cycle_amount_id, retail_markup, wholesale_markup
+		FROM cycle_amount_markup_history
+		WHERE cycle_amount_id IN ? AND set_at <= ?
+		ORDER BY cycle_amount_id, set_at DESC
+	`, cycleAmountIDs, at).Scan(&rows).Error
+	result := make(map[int64]types.PricePair, len(rows))
+	for _, r := range rows {
+		result[r.CycleAmountID] = types.PricePair{RetailPrice: r.RetailMarkup, WholesalePrice: r.WholesaleMarkup}
+	}
+	return result, err
 }

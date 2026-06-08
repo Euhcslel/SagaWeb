@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
@@ -34,8 +35,10 @@ func checkOrderAccess(user *users.User, orderID int64) error {
 	switch user.Role {
 	case enums.DealerRole:
 		query = query.Where("dealer_id = ?", user.ID)
-	case enums.ManagerRole, enums.AdminRole, enums.LogisticianRole:
+	case enums.ManagerRole, enums.AdminRole:
 		query = query.Where("manager_id = ?", user.ID)
+	case enums.LogisticianRole:
+		// логистик видит все заказы без фильтра
 	default:
 		return errs.ErrForbidden
 	}
@@ -52,9 +55,12 @@ func checkOrderAccess(user *users.User, orderID int64) error {
 
 func GetAllUserOrders(user *users.User) ([]orders.Order, error) {
 	// Вернуть limit потом
-	if user.Role == enums.DealerRole {
+	switch user.Role {
+	case enums.DealerRole:
 		return repository.GetAllDealerOrders(database.DB, user)
-	} else {
+	case enums.LogisticianRole:
+		return repository.GetAllOrders()
+	default:
 		return repository.GetAllManagerOrders(database.DB, user)
 	}
 }
@@ -126,6 +132,33 @@ func GetOrderPageData(user *users.User, orderID int64) (*orderPageData, error) {
 		return nil, err
 	}
 
+	// Для неактивных заказов подгружаем исторические цены товаров
+	if orderStatus != enums.OrderStatusPending {
+		finalizedAt, err := repository.GetOrderFinalizedAt(database.DB, orderID)
+		if err != nil {
+			return nil, err
+		}
+
+		if finalizedAt != nil {
+			productIDs := make([]int64, len(products))
+			for i, p := range products {
+				productIDs[i] = p.ID
+			}
+
+			historicalPrices, err := repository.GetProductHistoricalPrices(database.DB, productIDs, *finalizedAt)
+			if err != nil {
+				return nil, err
+			}
+
+			for i, p := range products {
+				if prices, ok := historicalPrices[p.ID]; ok {
+					products[i].RetailPrice = prices.RetailPrice
+					products[i].WholesalePrice = prices.WholesalePrice
+				}
+			}
+		}
+	}
+
 	pageData := &orderPageData{
 		Order:    order,
 		Products: products,
@@ -194,7 +227,133 @@ func GetCurrentGatePageData(user *users.User, orderID int64, gateID int64) (Curr
 
 	pageData.OrderStatus = enums.OrderStatus(*orderStatus)
 
+	// Для неактивных заказов подгружаем исторические цены из истории
+	if pageData.OrderStatus != enums.OrderStatusPending {
+		finalizedAt, err := repository.GetOrderFinalizedAt(database.DB, orderID)
+		if err != nil {
+			return CurrentGatePageData{}, err
+		}
+
+		if finalizedAt != nil {
+			if err = applyHistoricalConfigPrices(database.DB, pageData.Configuration, *finalizedAt); err != nil {
+				return CurrentGatePageData{}, err
+			}
+		}
+	}
+
 	return pageData, nil
+}
+
+func applyHistoricalConfigPrices(db *gorm.DB, cfg *types.Config, at time.Time) error {
+	// Опции
+	if len(cfg.Options) > 0 {
+		ids := make([]int64, len(cfg.Options))
+		for i, o := range cfg.Options {
+			ids[i] = o.ID
+		}
+		prices, err := repository.GetOptionHistoricalPrices(db, ids, at)
+		if err != nil {
+			return err
+		}
+		for i, o := range cfg.Options {
+			if p, ok := prices[o.ID]; ok {
+				cfg.Options[i].RetailPrice = p.RetailPrice
+				cfg.Options[i].WholesalePrice = p.WholesalePrice
+			}
+		}
+	}
+
+	// Промышленные приводы
+	if len(cfg.IndustrialDrives) > 0 {
+		ids := make([]int64, len(cfg.IndustrialDrives))
+		for i, d := range cfg.IndustrialDrives {
+			ids[i] = d.ID
+		}
+		prices, err := repository.GetIndustrialDriveHistoricalPrices(db, ids, at)
+		if err != nil {
+			return err
+		}
+		for i, d := range cfg.IndustrialDrives {
+			if p, ok := prices[d.ID]; ok {
+				cfg.IndustrialDrives[i].RetailPrice = p.RetailPrice
+				cfg.IndustrialDrives[i].WholesalePrice = p.WholesalePrice
+			}
+		}
+	}
+
+	// Бытовые приводы
+	if len(cfg.ResidentialDrives) > 0 {
+		ids := make([]int64, len(cfg.ResidentialDrives))
+		for i, d := range cfg.ResidentialDrives {
+			ids[i] = d.ID
+		}
+		prices, err := repository.GetResidentialDriveHistoricalPrices(db, ids, at)
+		if err != nil {
+			return err
+		}
+		for i, d := range cfg.ResidentialDrives {
+			if p, ok := prices[d.ID]; ok {
+				cfg.ResidentialDrives[i].RetailPrice = p.RetailPrice
+				cfg.ResidentialDrives[i].WholesalePrice = p.WholesalePrice
+			}
+		}
+	}
+
+	// Направляющие
+	if len(cfg.Rails) > 0 {
+		ids := make([]int64, len(cfg.Rails))
+		for i, r := range cfg.Rails {
+			ids[i] = r.ID
+		}
+		prices, err := repository.GetRailHistoricalPrices(db, ids, at)
+		if err != nil {
+			return err
+		}
+		for i, r := range cfg.Rails {
+			if p, ok := prices[r.ID]; ok {
+				cfg.Rails[i].RetailPrice = p.RetailPrice
+				cfg.Rails[i].WholesalePrice = p.WholesalePrice
+			}
+		}
+	}
+
+	// Типы подъёма (наценки)
+	if len(cfg.LiftTypes) > 0 {
+		ids := make([]int64, len(cfg.LiftTypes))
+		for i, l := range cfg.LiftTypes {
+			ids[i] = l.ID
+		}
+		markups, err := repository.GetLiftTypeHistoricalMarkups(db, ids, at)
+		if err != nil {
+			return err
+		}
+		for i, l := range cfg.LiftTypes {
+			if p, ok := markups[l.ID]; ok {
+				cfg.LiftTypes[i].RetailMarkup = p.RetailPrice
+				cfg.LiftTypes[i].WholesaleMarkup = p.WholesalePrice
+			}
+		}
+	}
+
+	// Количество циклов (наценки)
+	if len(cfg.CycleAmounts) > 0 {
+		ids := make([]int64, len(cfg.CycleAmounts))
+		for i, c := range cfg.CycleAmounts {
+			ids[i] = c.ID
+		}
+		markups, err := repository.GetCycleAmountHistoricalMarkups(db, ids, at)
+		if err != nil {
+			return err
+		}
+		for i, c := range cfg.CycleAmounts {
+			if p, ok := markups[c.ID]; ok {
+				cfg.CycleAmounts[i].RetailMarkup = p.RetailPrice
+				cfg.CycleAmounts[i].WholesaleMarkup = p.WholesalePrice
+			}
+		}
+	}
+
+	return nil
 }
 
 func DeleteUserOrder(user *users.User, orderID int64) error {
@@ -209,11 +368,6 @@ func DeleteUserOrder(user *users.User, orderID int64) error {
 	return nil
 }
 
-// Структура, описывающая пару из цены для клиента и дилера
-type PricePair struct {
-	RetailPrice    decimal.Decimal
-	WholesalePrice decimal.Decimal
-}
 
 func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*order_gates.OrderGate, error) {
 	if err := checkOrderAccess(user, orderID); err != nil {
@@ -235,9 +389,9 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*o
 		}
 
 		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
-			gateType, PricePair{WholesalePrice: cfg.IndustrialDrives[0].WholesalePrice,
+			gateType, types.PricePair{WholesalePrice: cfg.IndustrialDrives[0].WholesalePrice,
 				RetailPrice: cfg.IndustrialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
-			PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
+			types.PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
 		if err != nil {
 			return nil, err
 		}
@@ -276,9 +430,9 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*o
 		}
 
 		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
-			gateType, PricePair{WholesalePrice: cfg.ResidentialDrives[0].WholesalePrice,
+			gateType, types.PricePair{WholesalePrice: cfg.ResidentialDrives[0].WholesalePrice,
 				RetailPrice: cfg.ResidentialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
-			PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
+			types.PricePair{WholesalePrice: decimal.Zero, RetailPrice: decimal.Zero})
 		if err != nil {
 			return nil, err
 		}
@@ -316,8 +470,8 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*o
 }
 
 func calculateGatePrice(width, height int64, gateType enums.GateType,
-	drivePrices PricePair, liftType lift_types.LiftType,
-	cycleAmount cycle_amounts.CycleAmount, optionsPrices PricePair) (*PricePair, error) {
+	drivePrices types.PricePair, liftType lift_types.LiftType,
+	cycleAmount cycle_amounts.CycleAmount, optionsPrices types.PricePair) (*types.PricePair, error) {
 	var gateRetailPrice decimal.Decimal
 	var gateWholesalePrice decimal.Decimal
 
@@ -338,15 +492,15 @@ func calculateGatePrice(width, height int64, gateType enums.GateType,
 		Add(cycleAmount.WholesaleMarkup.Div(decimal.NewFromInt(100)).Mul(sizePrice.WholesalePrice)).
 		Add(optionsPrices.WholesalePrice)
 
-	return &PricePair{RetailPrice: gateRetailPrice, WholesalePrice: gateWholesalePrice}, nil
+	return &types.PricePair{RetailPrice: gateRetailPrice, WholesalePrice: gateWholesalePrice}, nil
 }
 
-func calculateOptionsPrices(tx *gorm.DB, gateOptions []*generated.Option) (*PricePair, error) {
+func calculateOptionsPrices(tx *gorm.DB, gateOptions []*generated.Option) (*types.PricePair, error) {
 	if len(gateOptions) == 0 {
-		return &PricePair{}, nil
+		return &types.PricePair{}, nil
 	}
 
-	var optionsPrices PricePair
+	var optionsPrices types.PricePair
 	if len(gateOptions) > 0 {
 		optionIDs := make([]int64, 0, len(gateOptions))
 
@@ -458,7 +612,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 			return err
 		}
 
-		var drivePrices PricePair
+		var drivePrices types.PricePair
 		switch d := gate.Drive.DriveType.(type) {
 		case *generated.Drive_Industrial:
 			driveID := d.Industrial.DriveId
@@ -467,7 +621,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 				return err
 			}
 
-			drivePrices = PricePair{WholesalePrice: drive.WholesalePrice, RetailPrice: drive.RetailPrice}
+			drivePrices = types.PricePair{WholesalePrice: drive.WholesalePrice, RetailPrice: drive.RetailPrice}
 
 		case *generated.Drive_Residential:
 			driveID := d.Residential.DriveId
@@ -482,7 +636,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 				return err
 			}
 
-			drivePrices = PricePair{WholesalePrice: drive.WholesalePrice.Add(rail.WholesalePrice),
+			drivePrices = types.PricePair{WholesalePrice: drive.WholesalePrice.Add(rail.WholesalePrice),
 				RetailPrice: drive.RetailPrice.Add(rail.RetailPrice)}
 
 		case *generated.Drive_Manual:
@@ -492,7 +646,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 				return err
 			}
 
-			drivePrices = PricePair{
+			drivePrices = types.PricePair{
 				WholesalePrice: manualPrices.ChainMeterWholesalePrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpWholesalePrice),
 				RetailPrice:    manualPrices.ChainMeterRetailPrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpRetailPrice)}
 		}
@@ -634,7 +788,7 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 		return err
 	}
 
-	var drivePrices PricePair
+	var drivePrices types.PricePair
 	switch gateData.Drive.DriveType.(type) {
 	case *generated.Drive_Industrial:
 		//Если это другой тип привода у ворот
@@ -667,7 +821,7 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 			return err
 		}
 
-		drivePrices = PricePair{WholesalePrice: drive.WholesalePrice, RetailPrice: drive.RetailPrice}
+		drivePrices = types.PricePair{WholesalePrice: drive.WholesalePrice, RetailPrice: drive.RetailPrice}
 
 	case *generated.Drive_Residential:
 		if gate.DriveType != enums.ResDriveType {
@@ -704,7 +858,7 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 			return err
 		}
 
-		drivePrices = PricePair{WholesalePrice: drive.WholesalePrice.Add(rail.WholesalePrice),
+		drivePrices = types.PricePair{WholesalePrice: drive.WholesalePrice.Add(rail.WholesalePrice),
 			RetailPrice: drive.RetailPrice.Add(rail.RetailPrice)}
 
 	case *generated.Drive_Manual:
@@ -736,7 +890,7 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 			return err
 		}
 
-		drivePrices = PricePair{
+		drivePrices = types.PricePair{
 			WholesalePrice: manualPrices.ChainMeterWholesalePrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpWholesalePrice),
 			RetailPrice:    manualPrices.ChainMeterRetailPrice.Mul(decimal.NewFromInt32(chain)).Add(manualPrices.RcpRetailPrice)}
 	}
@@ -799,6 +953,12 @@ func UpdateOrderStatus(user *users.User, orderID int64, updateStatusRequest *gen
 
 	if err = repository.UpdateOrderStatus(database.DB, orderID, status); err != nil {
 		return err
+	}
+
+	if status != enums.OrderStatusPending {
+		if err = repository.SetOrderFinalizedAt(database.DB, orderID); err != nil {
+			return err
+		}
 	}
 
 	return nil

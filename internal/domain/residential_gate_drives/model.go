@@ -11,7 +11,8 @@ type ResidentialGateDrive struct {
 	Name           string          `gorm:"column:name;not null"`
 	WholesalePrice decimal.Decimal `gorm:"column:wholesale_price"`
 	RetailPrice    decimal.Decimal `gorm:"column:retail_price"`
-	Specifications *string          `gorm:"column:specifications"`
+	Specifications *string         `gorm:"column:specifications"`
+	ImagePath      string          `gorm:"column:image_path"`
 }
 
 func (*ResidentialGateDrive) TableName() string {

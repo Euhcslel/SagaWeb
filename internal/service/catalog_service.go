@@ -1,0 +1,84 @@
+package service
+
+import (
+	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
+	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/options"
+	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
+	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/repository"
+	"github.com/Euhcslel/SagaWeb/internal/utils"
+	"github.com/shopspring/decimal"
+)
+
+type CatalogPageData struct {
+	Products          []products.Product
+	Options           []options.Option
+	IndustrialDrives  []industrial_gate_drives.IndustrialGateDrive
+	ResidentialDrives []residential_gate_drives.ResidentialGateDrive
+	Rails             []rails.Rail
+	IsDealer          bool
+}
+
+func GetCatalogPageData(user *users.User) (*CatalogPageData, error) {
+	role := enums.ClientRole
+	if user != nil {
+		role = user.Role
+	}
+	isDealer := utils.HasDealerAccess(role)
+
+	prods, err := repository.GetProducts()
+	if err != nil {
+		return nil, err
+	}
+
+	opts, err := repository.GetOptions()
+	if err != nil {
+		return nil, err
+	}
+
+	indDrives, err := repository.GetIndustrialDrives()
+	if err != nil {
+		return nil, err
+	}
+
+	resDrives, err := repository.GetResidentialDrives()
+	if err != nil {
+		return nil, err
+	}
+
+	railsList, err := repository.GetRails()
+	if err != nil {
+		return nil, err
+	}
+
+	if !isDealer {
+		zero := decimal.Zero
+		for i := range prods {
+			prods[i].WholesalePrice = zero
+		}
+		for i := range opts {
+			opts[i].WholesalePrice = zero
+		}
+		for i := range indDrives {
+			indDrives[i].WholesalePrice = zero
+		}
+		for i := range resDrives {
+			resDrives[i].WholesalePrice = zero
+		}
+		for i := range railsList {
+			railsList[i].WholesalePrice = zero
+		}
+	}
+
+	return &CatalogPageData{
+		Products:          prods,
+		Options:           opts,
+		IndustrialDrives:  indDrives,
+		ResidentialDrives: resDrives,
+		Rails:             railsList,
+		IsDealer:          isDealer,
+	}, nil
+}

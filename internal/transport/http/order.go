@@ -28,9 +28,10 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css":    "order_list.css",
-		"orders": orders,
-		"user":   user,
+		"css":      "order_list.css",
+		"orders":   orders,
+		"user":     user,
+		"statuses": enums.GetAllOrderStatuses(),
 	}
 
 	if err := templates.ExecuteTemplate(w, "list.html", data); err != nil {

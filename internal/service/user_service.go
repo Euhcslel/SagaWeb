@@ -5,11 +5,15 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/smtp"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_contract"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
@@ -21,18 +25,78 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GetUserDealers(user *users.User) ([]dealer_manager_assignments.DealerManagerAssignment, error) {
-	role := user.Role
+type DealerWithContract struct {
+	dealer_manager_assignments.DealerManagerAssignment
+	Contract *dealer_contract.DealerContract
+}
 
-	if role == enums.ManagerRole {
-		dealers, err := repository.GetUserDealers(database.DB, user.ID)
-		if err != nil {
-			return nil, err
-		}
-		return dealers, nil
-	} else {
+func GetUserDealers(user *users.User) ([]DealerWithContract, error) {
+	if user.Role != enums.ManagerRole && user.Role != enums.AdminRole {
 		return nil, errs.ErrForbidden
 	}
+
+	assignments, err := repository.GetUserDealers(database.DB, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	dealerIDs := make([]int64, len(assignments))
+	for i, a := range assignments {
+		dealerIDs[i] = a.DealerID
+	}
+
+	contractMap, err := repository.GetDealerContractsByDealerIDs(database.DB, dealerIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]DealerWithContract, len(assignments))
+	for i, a := range assignments {
+		result[i] = DealerWithContract{
+			DealerManagerAssignment: a,
+			Contract:                contractMap[a.DealerID],
+		}
+	}
+	return result, nil
+}
+
+func AttachContractToDealer(user *users.User, dealerID int64, contractNumber string, signedAt time.Time, file multipart.File, handler *multipart.FileHeader) error {
+	if user.Role != enums.ManagerRole && user.Role != enums.AdminRole {
+		return errs.ErrForbidden
+	}
+
+	dir := os.Getenv("CONTRACTS_DIRECTORY")
+
+	existing, err := repository.GetDealerContract(database.DB, dealerID)
+	if err != nil {
+		return err
+	}
+	if existing != nil && existing.Path != nil && dir != "" {
+		_ = os.Remove(filepath.Join(dir, *existing.Path))
+	}
+
+	contract := dealer_contract.DealerContract{
+		DealerID:       dealerID,
+		ContractNumber: contractNumber,
+		SignedAt:       signedAt,
+	}
+
+	if file != nil && handler != nil {
+		if dir == "" {
+			return fmt.Errorf("переменная CONTRACTS_DIRECTORY не задана")
+		}
+		dst, err := os.OpenFile(filepath.Join(dir, handler.Filename), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			return err
+		}
+		defer dst.Close()
+		if _, err = io.Copy(dst, file); err != nil {
+			return err
+		}
+		contract.Path = &handler.Filename
+	}
+
+	return repository.UpsertDealerContract(database.DB, contract)
 }
 
 type UserInfo struct {

@@ -84,25 +84,16 @@
   &:has(> input[disabled]),
   &:is(:disabled, [disabled]) {
     cursor: not-allowed;
-    opacity: 0.7;
-
-    border-color: var(--color-base-200);
-    background-color: var(--color-base-200);
+    opacity: 0.6;
+    border-color: color-mix(in oklch, var(--color-base-200) 50%, transparent);
+    background-color: color-mix(in oklch, var(--color-base-200) 50%, transparent);
     box-shadow: none;
-
-    color: color-mix(in oklch, var(--color-base-content) 20%, #0000);
 
     &::file-selector-button {
       cursor: not-allowed;
-      border-color: var(--color-base-200);
-      background-color: var(--color-base-200);
-
+      border-color: color-mix(in oklch, var(--color-base-200) 50%, transparent);
+      background-color: color-mix(in oklch, var(--color-base-200) 50%, transparent);
       --button-border-color: #0000;
-      --button-foreground-color: color-mix(
-        in oklch,
-        var(--color-base-content) 20%,
-        #0000
-      );
     }
   }
 }
@@ -132,7 +123,7 @@
   &:focus,
   &:focus-within {
     color: var(--color-base-content);
-    background-color: var(--color-base-100);
+    background-color: light-dark(var(--color-base-100), var(--color-base-700));
     border-color: #0000;
     box-shadow: none;
   }

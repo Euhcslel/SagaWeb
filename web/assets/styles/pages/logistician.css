@@ -1,0 +1,72 @@
+h1 {
+  font-size: var(--font-size-l);
+  margin-bottom: var(--spacing-l);
+}
+
+.page-container {
+  padding: var(--spacing-l);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
+  align-items: start;
+}
+
+.page-container .table {
+  width: 100%;
+}
+
+.page-container > div:has(> .btn),
+.page-container > div:has(> a.btn) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-s);
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.import-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-l);
+  max-width: 600px;
+}
+
+.import-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+}
+
+.import-section h2 {
+  font-size: var(--font-size-m);
+  font-weight: 600;
+}
+
+.import-section label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.success-alert {
+  padding: var(--spacing-m);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-m);
+}
+
+.modal-box label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}

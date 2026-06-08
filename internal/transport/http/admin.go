@@ -12,12 +12,16 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
+	rails_domain "github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
+	users_domain "github.com/Euhcslel/SagaWeb/internal/domain/users"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/helpers"
+	"github.com/Euhcslel/SagaWeb/internal/repository"
 	"github.com/Euhcslel/SagaWeb/internal/service"
 	"github.com/Euhcslel/SagaWeb/internal/utils"
 	"github.com/shopspring/decimal"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Route: /tables/{table_name}
@@ -27,7 +31,7 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 
 	role := user.Role
 	if role != enums.AdminRole {
-		http.Redirect(w, r, "/", http.StatusForbidden)
+		helpers.WriteError(w, errs.ErrForbidden, http.StatusForbidden)
 		return
 	}
 
@@ -49,6 +53,10 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 		"tableData": tablePageData,
 	}
 
+	if tableName == "users" {
+		data["roles"] = enums.GetAllRoles()
+	}
+
 	if err := templates.ExecuteTemplate(w, tableName+".html", data); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
@@ -61,7 +69,7 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 
 	role := user.Role
 	if role != enums.AdminRole {
-		http.Redirect(w, r, "/", http.StatusForbidden)
+		helpers.WriteError(w, errs.ErrForbidden, http.StatusForbidden)
 		return
 	}
 
@@ -71,9 +79,20 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		helpers.WriteError(w, err, http.StatusBadRequest)
-		return
+	tablesWithImagesUpdate := map[string]bool{
+		"products": true, "options": true,
+		"industrial_drives": true, "residential_drives": true, "rails": true,
+	}
+	if tablesWithImagesUpdate[tableName] {
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+	} else {
+		if err := r.ParseForm(); err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 	}
 
 	var tableData any
@@ -122,17 +141,41 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 		specificationsValue := r.FormValue("specifications")
 		specifications := &specificationsValue
 
+		imagePath := r.FormValue("image-path")
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+
 		tableData = industrial_gate_drives.IndustrialGateDrive{
 			ID:             rowId,
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
 			Specifications: specifications,
+			ImagePath:      imagePath,
 		}
 	case "lift_types":
 		maxHeadroom, err := strconv.ParseInt(r.FormValue("max-headroom"), 10, 32)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		minHeadroom, err := strconv.ParseInt(r.FormValue("min-headroom"), 10, 32)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		wholesaleMakup, err := decimal.NewFromString(r.FormValue("wholesale-markup"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailMakup, err := decimal.NewFromString(r.FormValue("retail-markup"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
@@ -149,10 +192,25 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 		}
 	case "options":
 		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
 			return
+		}
+
+		imagePath := r.FormValue("image-path")
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
 		}
 
 		tableData = options.Option{
@@ -160,13 +218,29 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
+			ImagePath:      imagePath,
 		}
 	case "products":
 		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
 			return
+		}
+
+		imagePath := r.FormValue("image-path")
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
 		}
 
 		tableData = products.Product{
@@ -174,9 +248,14 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
+			ImagePath:      imagePath,
 		}
-	case "residential_drives":
+	case "rails":
 		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
@@ -186,13 +265,83 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 		specificationsValue := r.FormValue("specifications")
 		specifications := &specificationsValue
 
+		imagePath := r.FormValue("image-path")
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+
+		tableData = rails_domain.Rail{
+			ID:             rowId,
+			Name:           r.FormValue("name"),
+			WholesalePrice: wholesalePrice,
+			RetailPrice:    retailPrice,
+			Specifications: specifications,
+			ImagePath:      imagePath,
+		}
+	case "residential_drives":
+		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+
+		specificationsValue := r.FormValue("specifications")
+		specifications := &specificationsValue
+
+		imagePath := r.FormValue("image-path")
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+
 		tableData = residential_gate_drives.ResidentialGateDrive{
 			ID:             rowId,
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
 			Specifications: specifications,
+			ImagePath:      imagePath,
 		}
+	case "users":
+		updatedUser := users_domain.User{
+			ID:          rowId,
+			Fullname:    r.FormValue("fullname"),
+			Email:       r.FormValue("email"),
+			PhoneNumber: r.FormValue("phone"),
+			Role:        enums.Role(r.FormValue("role")),
+		}
+		if err := repository.AdminUpdateUser(updatedUser); err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+		if pw := r.FormValue("password"); pw != "" {
+			hash, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+			if err := repository.AdminUpdateUserPassword(rowId, hash); err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+		return
 	default:
 		helpers.WriteError(w, errors.New("invalid table name"), http.StatusBadRequest)
 		return
@@ -211,7 +360,7 @@ func DeleteRow(w http.ResponseWriter, r *http.Request) {
 
 	role := user.Role
 	if role != enums.AdminRole {
-		http.Redirect(w, r, "/", http.StatusForbidden)
+		helpers.WriteError(w, errs.ErrForbidden, http.StatusForbidden)
 		return
 	}
 
@@ -240,7 +389,7 @@ func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
 
 	role := user.Role
 	if role != enums.AdminRole {
-		http.Redirect(w, r, "/", http.StatusForbidden)
+		helpers.WriteError(w, errs.ErrForbidden, http.StatusForbidden)
 		return
 	}
 
@@ -261,7 +410,7 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 
 	role := user.Role
 	if role != enums.AdminRole {
-		http.Redirect(w, r, "/", http.StatusForbidden)
+		helpers.WriteError(w, errs.ErrForbidden, http.StatusForbidden)
 		return
 	}
 
@@ -271,9 +420,20 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		helpers.WriteError(w, err, http.StatusBadRequest)
-		return
+	tablesWithImages := map[string]bool{
+		"products": true, "options": true,
+		"industrial_drives": true, "residential_drives": true, "rails": true,
+	}
+	if tablesWithImages[tableName] {
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+	} else {
+		if err := r.ParseForm(); err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 	}
 
 	var tableData any
@@ -285,6 +445,10 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 		}
 	case "cycle_amounts":
 		wholesaleMakup, err := decimal.NewFromString(r.FormValue("wholesale-markup"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailMakup, err := decimal.NewFromString(r.FormValue("retail-markup"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
@@ -298,6 +462,10 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 		}
 	case "industrial_drives":
 		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
@@ -307,16 +475,40 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 		specificationsValue := r.FormValue("specifications")
 		specifications := &specificationsValue
 
+		imagePath := "no_image"
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+
 		tableData = industrial_gate_drives.IndustrialGateDrive{
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
 			Specifications: specifications,
+			ImagePath:      imagePath,
 		}
 	case "lift_types":
 		maxHeadroom, err := strconv.ParseInt(r.FormValue("max-headroom"), 10, 32)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		minHeadroom, err := strconv.ParseInt(r.FormValue("min-headroom"), 10, 32)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		wholesaleMakup, err := decimal.NewFromString(r.FormValue("wholesale-markup"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailMakup, err := decimal.NewFromString(r.FormValue("retail-markup"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
@@ -332,32 +524,69 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 		}
 	case "options":
 		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
 			return
+		}
+
+		imagePath := "no_image"
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
 		}
 
 		tableData = options.Option{
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
+			ImagePath:      imagePath,
 		}
 	case "products":
 		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+
 		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
 			return
 		}
 
+		imagePath := "no_image"
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+
 		tableData = products.Product{
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
+			ImagePath:      imagePath,
 		}
 	case "residential_drives":
 		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
 		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
 		if err != nil {
 			helpers.WriteError(w, err, http.StatusBadRequest)
@@ -367,12 +596,81 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 		specificationsValue := r.FormValue("specifications")
 		specifications := &specificationsValue
 
+		imagePath := "no_image"
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+
 		tableData = residential_gate_drives.ResidentialGateDrive{
 			Name:           r.FormValue("name"),
 			WholesalePrice: wholesalePrice,
 			RetailPrice:    retailPrice,
 			Specifications: specifications,
+			ImagePath:      imagePath,
 		}
+	case "rails":
+		wholesalePrice, err := decimal.NewFromString(r.FormValue("wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		retailPrice, err := decimal.NewFromString(r.FormValue("retail-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+
+		specificationsValue := r.FormValue("specifications")
+		specifications := &specificationsValue
+
+		imagePath := "no_image"
+		file, handler, err := r.FormFile("image")
+		if err == nil {
+			defer file.Close()
+			imagePath, err = service.UploadProductImage(file, handler)
+			if err != nil {
+				helpers.WriteError(w, err, http.StatusInternalServerError)
+				return
+			}
+		}
+
+		tableData = rails_domain.Rail{
+			Name:           r.FormValue("name"),
+			WholesalePrice: wholesalePrice,
+			RetailPrice:    retailPrice,
+			Specifications: specifications,
+			ImagePath:      imagePath,
+		}
+	case "users":
+		passwordRaw := r.FormValue("password")
+		if passwordRaw == "" {
+			helpers.WriteError(w, errors.New("пароль обязателен"), http.StatusBadRequest)
+			return
+		}
+		hash, err := bcrypt.GenerateFromPassword([]byte(passwordRaw), bcrypt.DefaultCost)
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+		newUser := users_domain.User{
+			Fullname:     r.FormValue("fullname"),
+			Email:        r.FormValue("email"),
+			PhoneNumber:  r.FormValue("phone"),
+			Role:         enums.Role(r.FormValue("role")),
+			PasswordHash: hash,
+		}
+		if err := repository.AdminCreateUser(newUser); err != nil {
+			helpers.WriteError(w, err, http.StatusInternalServerError)
+			return
+		}
+		http.Redirect(w, r, "/tables/users", http.StatusSeeOther)
+		return
 	default:
 		helpers.WriteError(w, errors.New("invalid table name"), http.StatusBadRequest)
 		return

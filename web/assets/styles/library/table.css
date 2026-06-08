@@ -38,25 +38,26 @@
     }
 
     :where(.table-pin-rows thead tr) {
-        background-color: var(--color-base-100);
+        background-color: light-dark(var(--color-base-100), var(--color-base-800));
         position: sticky;
         top: 0;
         z-index: 1;
     }
 
     :where(.table-pin-rows tfoot tr) {
-        background-color: var(--color-base-100);
+        background-color: light-dark(var(--color-base-100), var(--color-base-800));
         position: sticky;
         bottom: 0;
         z-index: 1;
     }
 
     :where(.table-pin-cols tr th) {
-        background-color: var(--color-base-100);
+        background-color: light-dark(var(--color-base-100), var(--color-base-800));
         position: sticky;
         right: 0;
         left: 0;
     }
+
 
     :where(thead tr :is(td, th), tbody tr:not(:last-child) :is(td, th)) {
         border-bottom: var(--border) solid color-mix(in oklch, var(--color-base-content) 5%, #0000);

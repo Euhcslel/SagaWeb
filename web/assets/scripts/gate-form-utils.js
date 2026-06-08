@@ -71,9 +71,15 @@ export function updateOptionsPrice(element) {
     const optionSelect = optionItem.querySelector(".option");
     const selectedOption = optionSelect.options[optionSelect.selectedIndex];
     const amount = Number(optionItem.querySelector(".amount").value);
-    optionsRetailPrice += Number(selectedOption.dataset.retailPrice) * amount;
-    optionsWholesalePrice +=
-      Number(selectedOption.dataset.wholesalePrice) * amount;
+    const itemRetail = Number(selectedOption.dataset.retailPrice) * amount;
+    const itemWholesale = Number(selectedOption.dataset.wholesalePrice) * amount;
+    optionsRetailPrice += itemRetail;
+    optionsWholesalePrice += itemWholesale;
+
+    const priceDisplay = optionItem.querySelector(".option-price-display");
+    if (priceDisplay) {
+      priceDisplay.textContent = `Клиент: ${fmtPrice(itemRetail)} / Дилер: ${fmtPrice(itemWholesale)}`;
+    }
   });
 
   optionList.dataset.retailPrice = optionsRetailPrice;
@@ -133,6 +139,8 @@ export function updateGatePrice(gate) {
 
   let driveRetailPrice = 0;
   let driveWholesalePrice = 0;
+  let driveOnlyRetailPrice = 0;
+  let driveOnlyWholesalePrice = 0;
   const driveType = gate.querySelector(".drive-type");
   switch (driveType.value) {
     case "manual": {
@@ -145,26 +153,37 @@ export function updateGatePrice(gate) {
         Number(chainLengthInput.dataset.chainDriveWholesalePrice) +
         Number(chainLength) *
           Number(chainLengthInput.dataset.chainWholesalePrice);
+      driveOnlyRetailPrice = driveRetailPrice;
+      driveOnlyWholesalePrice = driveWholesalePrice;
       break;
     }
     case "residential": {
       const drive = gate.querySelector(".drive");
-      const selectedDrive = drive.options[drive.selectedIndex];
+      const selectedDrive = drive?.options[drive.selectedIndex];
       const rail = gate.querySelector(".rail");
-      const selectedRail = rail.options[rail.selectedIndex];
-      driveRetailPrice +=
-        Number(selectedDrive.dataset.retailPrice) +
-        Number(selectedRail.dataset.retailPrice);
-      driveWholesalePrice +=
-        Number(selectedDrive.dataset.wholesalePrice) +
-        Number(selectedRail.dataset.wholesalePrice);
+      const selectedRail = rail?.options[rail.selectedIndex];
+      if (selectedDrive) {
+        driveOnlyRetailPrice = Number(selectedDrive.dataset.retailPrice);
+        driveOnlyWholesalePrice = Number(selectedDrive.dataset.wholesalePrice);
+      }
+      if (selectedRail) {
+        driveRetailPrice += driveOnlyRetailPrice + Number(selectedRail.dataset.retailPrice);
+        driveWholesalePrice += driveOnlyWholesalePrice + Number(selectedRail.dataset.wholesalePrice);
+      } else {
+        driveRetailPrice += driveOnlyRetailPrice;
+        driveWholesalePrice += driveOnlyWholesalePrice;
+      }
       break;
     }
     case "industrial": {
       const drive = gate.querySelector(".drive");
-      const selectedDrive = drive.options[drive.selectedIndex];
-      driveRetailPrice += Number(selectedDrive.dataset.retailPrice);
-      driveWholesalePrice += Number(selectedDrive.dataset.wholesalePrice);
+      const selectedDrive = drive?.options[drive.selectedIndex];
+      if (selectedDrive) {
+        driveOnlyRetailPrice = Number(selectedDrive.dataset.retailPrice);
+        driveOnlyWholesalePrice = Number(selectedDrive.dataset.wholesalePrice);
+        driveRetailPrice += driveOnlyRetailPrice;
+        driveWholesalePrice += driveOnlyWholesalePrice;
+      }
       break;
     }
   }
@@ -193,6 +212,32 @@ export function updateGatePrice(gate) {
     fmtPrice(retailGatePrice);
   document.getElementById("gate-wholesale-price").textContent =
     fmtPrice(wholesaleGatePrice);
+
+  const liftEl = gate.querySelector(".lift-markup-display");
+  if (liftEl) liftEl.textContent =
+    `Наценка: клиент +${liftTypeRetailMarkup}% / дилер +${liftTypeWholesaleMarkup}%`;
+
+  const cycleEl = gate.querySelector(".cycle-markup-display");
+  if (cycleEl) cycleEl.textContent =
+    `Наценка: клиент +${cycleAmountRetailMarkup}% / дилер +${cycleAmountWholesaleMarkup}%`;
+
+  const driveEl = gate.querySelector(".drive-price-display");
+  if (driveEl) driveEl.textContent =
+    `Клиент: ${fmtPrice(driveOnlyRetailPrice)} / Дилер: ${fmtPrice(driveOnlyWholesalePrice)}`;
+
+  const railEl = gate.querySelector(".rail-price-display");
+  if (railEl && driveType.value === "residential") {
+    const rail = gate.querySelector(".rail");
+    const selectedRail = rail.options[rail.selectedIndex];
+    const railRetail = Number(selectedRail.dataset.retailPrice);
+    const railWholesale = Number(selectedRail.dataset.wholesalePrice);
+    railEl.textContent = `Клиент: ${fmtPrice(railRetail)} / Дилер: ${fmtPrice(railWholesale)}`;
+  }
+
+  const chainEl = gate.querySelector(".chain-price-display");
+  if (chainEl && driveType.value === "manual") {
+    chainEl.textContent = `Клиент: ${fmtPrice(driveRetailPrice)} / Дилер: ${fmtPrice(driveWholesalePrice)}`;
+  }
 }
 
 export function fmtPrice(price) {

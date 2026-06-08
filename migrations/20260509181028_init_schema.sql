@@ -30,7 +30,6 @@ CREATE TYPE registration_request_status AS ENUM (
 
 CREATE TYPE role AS ENUM (
     'dealer',
-    'client',
     'manager',
     'admin',
     'logistician'
@@ -88,6 +87,18 @@ CREATE TABLE dealers (
     CONSTRAINT fk_dealers_company
         FOREIGN KEY (company_id)
         REFERENCES companies(id)
+);
+
+CREATE TABLE dealer_contract (
+    dealer_id       BIGINT NOT NULL PRIMARY KEY,
+    contract_number TEXT NOT NULL,
+    signed_at       DATE NOT NULL,
+    path            TEXT,
+    created_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_dealer_contracts_dealer
+        FOREIGN KEY (dealer_id)
+        REFERENCES dealers(user_id)
 );
 
 CREATE TABLE dealer_manager_assignments (
@@ -155,14 +166,16 @@ CREATE TABLE products (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     wholesale_price NUMERIC(10,2),
-    retail_price NUMERIC(10,2)
+    retail_price NUMERIC(10,2),
+    image_path TEXT NOT NULL DEFAULT 'no_image'
 );
 
 CREATE TABLE options (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     wholesale_price NUMERIC(10,2),
-    retail_price NUMERIC(10,2)
+    retail_price NUMERIC(10,2),
+    image_path TEXT NOT NULL DEFAULT 'no_image'
 );
 
 CREATE TABLE rails (
@@ -170,7 +183,8 @@ CREATE TABLE rails (
     name TEXT NOT NULL,
     wholesale_price NUMERIC(10,2),
     retail_price NUMERIC(10,2),
-    specifications TEXT
+    specifications TEXT,
+    image_path TEXT NOT NULL DEFAULT 'no_image'
 );
 
 CREATE TABLE industrial_gate_drives (
@@ -178,7 +192,8 @@ CREATE TABLE industrial_gate_drives (
     name TEXT NOT NULL,
     wholesale_price NUMERIC(10,2),
     retail_price NUMERIC(10,2),
-    specifications TEXT
+    specifications TEXT,
+    image_path TEXT NOT NULL DEFAULT 'no_image'
 );
 
 CREATE TABLE residential_gate_drives (
@@ -186,7 +201,8 @@ CREATE TABLE residential_gate_drives (
     name TEXT NOT NULL,
     wholesale_price NUMERIC(10,2),
     retail_price NUMERIC(10,2),
-    specifications TEXT
+    specifications TEXT,
+    image_path TEXT NOT NULL DEFAULT 'no_image'
 );
 
 CREATE TABLE manual_drive_prices (
@@ -220,6 +236,8 @@ CREATE TABLE orders (
     manager_id BIGINT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     status order_status DEFAULT 'pending'::order_status NOT NULL,
+    manufacture_date DATE NULL,
+    finalized_at TIMESTAMPTZ NULL,
 
     CONSTRAINT fk_orders_dealer
         FOREIGN KEY (dealer_id)
@@ -391,16 +409,16 @@ CREATE TABLE order_bills (
         ON DELETE CASCADE
 );
 
-CREATE TABLE order_contracts (
-    order_id BIGINT NOT NULL,
-    contract_number TEXT NOT NULL,
-    path TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE order_appendices (
+    order_id         BIGINT NOT NULL,
+    appendix_number  TEXT NOT NULL,
+    path             TEXT NOT NULL,
+    created_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT order_contracts_pkey
-        PRIMARY KEY (order_id, contract_number),
+    CONSTRAINT order_appendices_pkey
+        PRIMARY KEY (order_id, appendix_number),
 
-    CONSTRAINT fk_order_contracts_order
+    CONSTRAINT fk_order_appendices_order
         FOREIGN KEY (order_id)
         REFERENCES orders(id)
         ON UPDATE CASCADE
@@ -996,8 +1014,9 @@ DROP TABLE IF EXISTS order_gates;
 
 DROP TABLE IF EXISTS order_offers;
 DROP TABLE IF EXISTS order_documents;
-DROP TABLE IF EXISTS order_contracts;
+DROP TABLE IF EXISTS order_appendices;
 DROP TABLE IF EXISTS order_bills;
+DROP TABLE IF EXISTS order_contracts;
 DROP TABLE IF EXISTS orders;
 
 DROP TABLE IF EXISTS cycle_amount_markup_history;
@@ -1022,6 +1041,7 @@ DROP TABLE IF EXISTS colors;
 
 DROP TABLE IF EXISTS dealer_registration_requests;
 DROP TABLE IF EXISTS dealer_manager_assignments;
+DROP TABLE IF EXISTS dealer_contract;
 DROP TABLE IF EXISTS dealers;
 DROP TABLE IF EXISTS companies;
 DROP TABLE IF EXISTS sessions;

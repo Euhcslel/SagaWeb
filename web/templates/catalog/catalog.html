@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/web/assets/images/favicon.ico" />
+    <link rel="stylesheet" href="/web/assets/styles/library/index.css" />
+    {{if .css}}
+    <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
+    {{end}}
+    <title>Каталог</title>
+  </head>
+  <body>
+    {{template "header-nav" .}}
+    <main class="catalog">
+      <div class="tabs tabs-lift">
+
+        <input type="radio" name="catalog-tabs" class="tab" aria-label="Товары" checked />
+        <div class="tab-content catalog-tab-content">
+          <div class="catalog-table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Фото</th>
+                  <th>Наименование</th>
+                  <th>Розничная цена</th>
+                  {{if .isDealer}}<th>Оптовая цена</th>{{end}}
+                </tr>
+              </thead>
+              <tbody>
+                {{range .Products}}
+                <tr>
+                  <td>
+                    <img class="catalog-product-image" {{if ne .ImagePath "no_image"}} src="/data/images/{{.ImagePath}}" {{else}} src="/data/images/no_image.webp" {{end}} alt="{{.Name}}" />
+                  </td>
+                  <td>{{.Name}}</td>
+                  <td>{{fmtPrice .RetailPrice}}</td>
+                  {{if $.isDealer}}<td>{{fmtPrice .WholesalePrice}}</td>{{end}}
+                </tr>
+                {{else}}
+                <tr><td colspan="{{if .isDealer}}4{{else}}3{{end}}">Нет данных</td></tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <input type="radio" name="catalog-tabs" class="tab" aria-label="Опции" />
+        <div class="tab-content catalog-tab-content">
+          <div class="catalog-table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Фото</th>
+                  <th>Наименование</th>
+                  <th>Розничная цена</th>
+                  {{if .isDealer}}<th>Оптовая цена</th>{{end}}
+                </tr>
+              </thead>
+              <tbody>
+                {{range .Options}}
+                <tr>
+                  <td>
+                    <img class="catalog-product-image" {{if ne .ImagePath "no_image"}} src="/data/images/{{.ImagePath}}" {{else}} src="/data/images/no_image.webp" {{end}} alt="{{.Name}}" />
+                  </td>
+                  <td>{{.Name}}</td>
+                  <td>{{fmtPrice .RetailPrice}}</td>
+                  {{if $.isDealer}}<td>{{fmtPrice .WholesalePrice}}</td>{{end}}
+                </tr>
+                {{else}}
+                <tr><td colspan="{{if .isDealer}}4{{else}}3{{end}}">Нет данных</td></tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <input type="radio" name="catalog-tabs" class="tab" aria-label="Промышленные приводы" />
+        <div class="tab-content catalog-tab-content">
+          <div class="catalog-table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Фото</th>
+                  <th>Наименование</th>
+                  <th>Розничная цена</th>
+                  {{if .isDealer}}<th>Оптовая цена</th>{{end}}
+                  <th>Характеристики</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{range .IndustrialDrives}}
+                <tr>
+                  <td>
+                    <img class="catalog-product-image" {{if ne .ImagePath "no_image"}} src="/data/images/{{.ImagePath}}" {{else}} src="/data/images/no_image.webp" {{end}} alt="{{.Name}}" />
+                  </td>
+                  <td>{{.Name}}</td>
+                  <td>{{fmtPrice .RetailPrice}}</td>
+                  {{if $.isDealer}}<td>{{fmtPrice .WholesalePrice}}</td>{{end}}
+                  <td><span class="catalog-specs">{{if .Specifications}}{{.Specifications}}{{end}}</span></td>
+                </tr>
+                {{else}}
+                <tr><td colspan="{{if .isDealer}}5{{else}}4{{end}}">Нет данных</td></tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <input type="radio" name="catalog-tabs" class="tab" aria-label="Гаражные приводы" />
+        <div class="tab-content catalog-tab-content">
+          <div class="catalog-table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Фото</th>
+                  <th>Наименование</th>
+                  <th>Розничная цена</th>
+                  {{if .isDealer}}<th>Оптовая цена</th>{{end}}
+                  <th>Характеристики</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{range .ResidentialDrives}}
+                <tr>
+                  <td>
+                    <img class="catalog-product-image" {{if ne .ImagePath "no_image"}} src="/data/images/{{.ImagePath}}" {{else}} src="/data/images/no_image.webp" {{end}} alt="{{.Name}}" />
+                  </td>
+                  <td>{{.Name}}</td>
+                  <td>{{fmtPrice .RetailPrice}}</td>
+                  {{if $.isDealer}}<td>{{fmtPrice .WholesalePrice}}</td>{{end}}
+                  <td><span class="catalog-specs">{{if .Specifications}}{{.Specifications}}{{end}}</span></td>
+                </tr>
+                {{else}}
+                <tr><td colspan="{{if .isDealer}}5{{else}}4{{end}}">Нет данных</td></tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <input type="radio" name="catalog-tabs" class="tab" aria-label="Рейки" />
+        <div class="tab-content catalog-tab-content">
+          <div class="catalog-table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Фото</th>
+                  <th>Наименование</th>
+                  <th>Розничная цена</th>
+                  {{if .isDealer}}<th>Оптовая цена</th>{{end}}
+                  <th>Характеристики</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{range .Rails}}
+                <tr>
+                  <td>
+                    <img class="catalog-product-image" {{if ne .ImagePath "no_image"}} src="/data/images/{{.ImagePath}}" {{else}} src="/data/images/no_image.webp" {{end}} alt="{{.Name}}" />
+                  </td>
+                  <td>{{.Name}}</td>
+                  <td>{{fmtPrice .RetailPrice}}</td>
+                  {{if $.isDealer}}<td>{{fmtPrice .WholesalePrice}}</td>{{end}}
+                  <td><span class="catalog-specs">{{if .Specifications}}{{.Specifications}}{{end}}</span></td>
+                </tr>
+                {{else}}
+                <tr><td colspan="{{if .isDealer}}5{{else}}4{{end}}">Нет данных</td></tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+    {{template "footer" .}}
+  </body>
+</html>

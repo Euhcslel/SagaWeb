@@ -38,6 +38,10 @@
         <button class="btn secondary" onclick="window.loadDocuments()">
           Список документов
         </button>
+        <!--Скачать приложение к договору-->
+        <button class="btn secondary" onclick="document.getElementById('appendix-modal').showModal()">
+          Приложение к договору
+        </button>
         <!--Статус-->
         {{if ne .user.Role "dealer"}}
         <select
@@ -78,8 +82,8 @@
                   <li>Тип подъема: {{.Gate.LiftType.Name}}</li>
                   <li>Цвет: {{.Gate.ColorOut.Code}}</li>
                   <li>Количество циклов: {{.Gate.CycleAmount.Amount}}</li>
-                  <li>Цена (клиент): {{fmtPrice .Gate.GateRetailPrice}}</li>
-                  <li>Цена (дилер): {{fmtPrice .Gate.GateWholesalePrice}}</li>
+                  <li>Цена (клиент): {{fmtPrice (mulPrice .Gate.GateRetailPrice .Gate.Amount)}}</li>
+                  <li>Цена (дилер): {{fmtPrice (mulPrice .Gate.GateWholesalePrice .Gate.Amount)}}</li>
                 </ul>
                 <div class="card-actions">
                   <!--Перейти в детали заказа-->
@@ -306,6 +310,30 @@
           </div>
         </div>
       </dialog>
+      <!--Модальное окно для генерации приложения к договору-->
+      <dialog id="appendix-modal" class="modal">
+        <div class="modal-box">
+          <h3>Приложение к договору</h3>
+          <div class="file-inputs">
+            <label>
+              Номер договора *
+              <input id="appendix-contract-number" type="text" class="input" placeholder="например: 48" required />
+            </label>
+            <label>
+              Номер приложения
+              <input id="appendix-number" type="number" class="input" min="1" value="1" />
+            </label>
+            <label>
+              Дата договора
+              <input id="appendix-contract-date" type="date" class="input" />
+            </label>
+          </div>
+          <div class="modal-action">
+            <button class="btn secondary" onclick="document.getElementById('appendix-modal').close()">Отмена</button>
+            <button class="btn primary" onclick="window.downloadAppendix()">Скачать PDF</button>
+          </div>
+        </div>
+      </dialog>
       <!--Модальное окно с документами-->
       <dialog id="documents-modal" class="modal">
         <div class="modal-box">
@@ -427,7 +455,6 @@
         </div>
       </li>
     </template>
-    <script src="/web/assets/scripts/protobuf.min.js"></script>
     <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
   </body>
 </html>

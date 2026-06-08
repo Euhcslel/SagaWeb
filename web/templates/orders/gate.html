@@ -131,6 +131,10 @@
                     </p>
                   </label>
                 </div>
+                <div class="size-price-display">
+                  <span>Цена за размер (клиент): <b id="size-retail-price">—</b></span>
+                  <span>Цена за размер (дилер): <b id="size-wholesale-price">—</b></span>
+                </div>
                 <!--Высота притолки-->
                 <label for="headroom"
                   >Высота притолки
@@ -181,6 +185,7 @@
                     </option>
                     {{end}}
                   </select>
+                  <span class="lift-markup-display config-hint"></span>
                 </label>
 
                 <!--Количество циклов-->
@@ -214,6 +219,7 @@
                     </option>
                     {{end}}
                   </select>
+                  <span class="cycle-markup-display config-hint"></span>
                 </label>
 
                 <!--Цвет ворот снаружи-->
@@ -299,10 +305,11 @@
                       .orderStatus
                       `pending`}}disabled{{end}}
                     />
+                    <span class="chain-price-display config-hint"></span>
                   </label>
 
                   <div class="drive-auto">
-                    {{if eq .gate.GateType "ind"}}
+                    {{if eq .gate.GateType "industrial"}}
                     <label for="drive"
                       >Привод промышленный
                       <select
@@ -333,6 +340,7 @@
                         </option>
                         {{end}}
                       </select>
+                      <span class="drive-price-display config-hint"></span>
                     </label>
                     {{else}}
                     <label for="drive"
@@ -365,6 +373,7 @@
                         </option>
                         {{end}}
                       </select>
+                      <span class="drive-price-display config-hint"></span>
                     </label>
                     {{end}}
                     <label for="rail"
@@ -396,7 +405,8 @@
                           {{.Name}}
                         </option>
                         {{end}}
-                      </select></label
+                      </select>
+                      <span class="rail-price-display config-hint"></span></label
                     >
                   </div>
                 </div>
@@ -450,7 +460,7 @@
                         $.orderStatus
                         `pending`}}disabled{{end}}
                       />
-
+                      <span class="option-price-display"></span>
                       <button
                         type="button"
                         class="btn secondary"
@@ -536,6 +546,7 @@
             value="1"
             oninput="window.updateOptionsPrice(this)"
           />
+          <span class="option-price-display"></span>
           <button
             type="button"
             class="btn secondary"
@@ -546,7 +557,6 @@
         </div>
       </div>
     </template>
-    <script src="/web/assets/scripts/protobuf.min.js"></script>
     <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
   </body>
 </html>

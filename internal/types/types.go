@@ -1,6 +1,8 @@
 package types
 
 import (
+	"github.com/shopspring/decimal"
+
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
@@ -14,6 +16,11 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
 )
+
+type PricePair struct {
+	RetailPrice    decimal.Decimal
+	WholesalePrice decimal.Decimal
+}
 
 type SizeParams struct {
 	MinValue int64

@@ -54,13 +54,23 @@ func main() {
 		protoAssets.ServeHTTP(w, r)
 	}))
 
+	productImages := http.StripPrefix(
+		"/data/images/",
+		http.FileServer(http.Dir("./data/images")),
+	)
+
+	mux.Handle("GET /data/images/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
+		productImages.ServeHTTP(w, r)
+	}))
+
 	// Главная страница
 	mux.Handle("GET /", handlers.WithOptionalAuth(http.HandlerFunc(handlers.MainHandler)))
 
 	// Аутентификация
-	mux.Handle("GET /sign_in", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignInForm)))
+	mux.Handle("GET /sign_in", handlers.CacheControl("public, max-age=3600")(handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignInForm))))
 	mux.Handle("POST /sign_in", handlers.WithOptionalAuth(handlers.RateLimit(http.HandlerFunc(handlers.SignIn))))
-	mux.Handle("GET /sign_up", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUpForm)))
+	mux.Handle("GET /sign_up", handlers.CacheControl("public, max-age=3600")(handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignUpForm))))
 	mux.Handle("POST /sign_up", handlers.WithOptionalAuth(handlers.RateLimit(http.HandlerFunc(handlers.SignUp))))
 	mux.Handle("POST /sign_out", handlers.WithOptionalAuth(http.HandlerFunc(handlers.SignOut)))
 
@@ -69,6 +79,7 @@ func main() {
 	mux.Handle("POST /user", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateUserInfo)))
 
 	mux.Handle("GET /user/dealers", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserDealers)))
+	mux.Handle("POST /user/dealers/{dealer_id}/contract", handlers.RequireAuth(http.HandlerFunc(handlers.AttachContractToDealer)))
 
 	// Заявки на регистрацию
 	mux.Handle("GET /dealers/requests", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealersRegRequests)))
@@ -99,10 +110,17 @@ func main() {
 	mux.Handle("GET /orders/{order_id}/documents/{document_type}/{document_name}", handlers.RequireAuth(http.HandlerFunc(handlers.DownloadOrderDocument)))
 	mux.Handle("DELETE /orders/{order_id}/documents/{document_type}/{document_name}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteOrderDocument)))
 	mux.Handle("POST /offer", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetOfferForOrder)))
+	mux.Handle("GET /orders/{order_id}/appendix", handlers.RequireAuth(http.HandlerFunc(handlers.GetAppendixForOrder)))
 
-	mux.Handle("GET /calculator", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCalculatorForUser)))
+	mux.Handle("GET /calculator", handlers.CacheControl("private, max-age=300")(handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCalculatorForUser))))
+	mux.Handle("GET /catalog", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCatalog)))
 
 	mux.Handle("GET /sizes", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetPriceBasedOnSize)))
+
+	// Логистик
+	mux.Handle("GET /logistician/size-import", handlers.RequireAuth(http.HandlerFunc(handlers.GetSizeImportPage)))
+	mux.Handle("POST /logistician/size-import", handlers.RequireAuth(http.HandlerFunc(handlers.ImportSizes)))
+	mux.Handle("PUT /logistician/orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateLogisticianOrder)))
 
 	// Администратор
 	mux.Handle("GET /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseRedactor)))
@@ -112,7 +130,6 @@ func main() {
 
 	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 
-	//Настроить SecurityHeaders
-	err = http.ListenAndServe(":80", http.NewCrossOriginProtection().Handler(mux))
+	err = http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(handlers.SecurityHeaders(mux)))
 	log.Fatal(err)
 }

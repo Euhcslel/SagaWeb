@@ -1,6 +1,7 @@
 package docgen
 
 import (
+	_ "embed"
 	"fmt"
 	"reflect"
 	"strings"
@@ -13,11 +14,17 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+//go:embed fonts/DejaVuSans.ttf
+var fontRegular []byte
+
+//go:embed fonts/DejaVuSans-Bold.ttf
+var fontBold []byte
+
 const (
 	marginX      = 18.0
 	contentWidth = 210.0 - 2*marginX
-	lineHeight   = 4.5 // высота одной строки текста внутри ячейки
-	minRowHeight = 7.0 // минимальная высота строки таблицы
+	lineHeight   = 4.5
+	minRowHeight = 7.0
 )
 
 var columnWidth = struct {
@@ -37,9 +44,8 @@ func newDoc() *Doc {
 	pdf.SetMargins(marginX, 14, marginX)
 	pdf.SetAutoPageBreak(true, 15)
 
-	const fontDir = "C:/Windows/Fonts"
-	pdf.AddUTF8Font("DejaVu", "", fontDir+"/arial.ttf")
-	pdf.AddUTF8Font("DejaVu", "B", fontDir+"/arialbd.ttf")
+	pdf.AddUTF8FontFromBytes("DejaVu", "", fontRegular)
+	pdf.AddUTF8FontFromBytes("DejaVu", "B", fontBold)
 
 	pdf.AddPage()
 	return &Doc{pdf: pdf}

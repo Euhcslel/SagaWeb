@@ -4,7 +4,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_bills"
-	"github.com/Euhcslel/SagaWeb/internal/domain/order_contracts"
+	"github.com/Euhcslel/SagaWeb/internal/domain/order_appendices"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_documents"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_offers"
 	"gorm.io/gorm"
@@ -18,10 +18,10 @@ func AttachOfferToOrder(db *gorm.DB, orderID int64, offerNumber string, path str
 	}).Error
 }
 
-func AttachContractToOrder(db *gorm.DB, orderID int64, contractNumber string, path string) error {
-	return db.Create(&order_contracts.OrderContract{
+func AttachAppendiceToOrder(db *gorm.DB, orderID int64, appendixNumber string, path string) error {
+	return db.Create(&order_appendices.OrderAppendix{
 		OrderID:        orderID,
-		ContractNumber: contractNumber,
+		AppendiceNumber: appendixNumber,
 		Path:           path,
 	}).Error
 }
@@ -56,10 +56,10 @@ func GetOfferFileName(orderID int64, offerNumber string) (string, error) {
 	return fileName, nil
 }
 
-func GetContractFileName(orderID int64, contractNumber string) (string, error) {
+func GetAppendiceFileName(orderID int64, appendixNumber string) (string, error) {
 	var fileName string
-	if err := database.DB.Model(&order_contracts.OrderContract{}).
-		Where("contract_number = ? AND order_id = ?", contractNumber, orderID).
+	if err := database.DB.Model(&order_appendices.OrderAppendix{}).
+		Where("appendix_number = ? AND order_id = ?", appendixNumber, orderID).
 		Pluck("path", &fileName).Error; err != nil {
 		return "", err
 	}
@@ -92,10 +92,10 @@ func DeleteOrderOffer(db *gorm.DB, offerNumber string) error {
 		Error
 }
 
-func DeleteOrderContract(db *gorm.DB, contractNumber string) error {
+func DeleteOrderAppendix(db *gorm.DB, appendixNumber string) error {
 	return db.
-		Where("contract_number = ?", contractNumber).
-		Delete(&order_contracts.OrderContract{}).
+		Where("appendix_number = ?", appendixNumber).
+		Delete(&order_appendices.OrderAppendix{}).
 		Error
 }
 
@@ -128,15 +128,15 @@ func GetOffersNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	return offersNumberList, nil
 }
 
-func GetContractsNumberList(db *gorm.DB, orderID int64) ([]string, error) {
-	var contractsNumberList []string
-	if err := db.Model(&order_contracts.OrderContract{}).
+func GetAppendicesNumberList(db *gorm.DB, orderID int64) ([]string, error) {
+	var appendicesNumberList []string
+	if err := db.Model(&order_appendices.OrderAppendix{}).
 		Where("order_id = ?", orderID).
-		Pluck("contract_number", &contractsNumberList).Error; err != nil {
+		Pluck("appendix_number", &appendicesNumberList).Error; err != nil {
 		return nil, err
 	}
 
-	return contractsNumberList, nil
+	return appendicesNumberList, nil
 }
 
 func GetBillsNumberList(db *gorm.DB, orderID int64) ([]string, error) {

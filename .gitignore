@@ -1,2 +1,10 @@
 .env
 /logs
+/data/*/*
+.env.docker
+node_modules/
+bun.lock
+api/proto/*.pb
+internal/generated/*.pb.go
+web/assets/scripts/gen/*_pb.js
+web/assets/scripts/proto_bundle.js

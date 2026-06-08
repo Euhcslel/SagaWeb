@@ -6,26 +6,18 @@ import {
   updateGatePrice,
   fmtPrice,
 } from "./gate-form-utils.js";
+import {
+  create,
+  toBinary,
+  fromBinary,
+  GateConfigSchema,
+  SizePriceSchema,
+} from "./proto_bundle.js";
 
 window.removeItem = removeItem;
 window.addGateOption = addGateOption;
 window.updateOptionsPrice = updateOptionsPrice;
 window.updateGatePrice = updateGatePrice;
-
-// Proto-схемы
-let Proto = {
-  SizePrice: null,
-  GateConfig: null,
-};
-
-// Функция, инициализирующая proto-схемы
-async function initProtobuf() {
-  const pricesRoot = await protobuf.load("/api/proto/prices.proto");
-  Proto.SizePrice = pricesRoot.lookupType("proto.SizePrice");
-
-  const gateRoot = await protobuf.load("/api/proto/order.proto");
-  Proto.GateConfig = gateRoot.lookupType("proto.GateConfig");
-}
 
 // Функция, запрашивающая цену за размер ворот
 // принимает параметры: w - ширина, h - высота, t - тип ворот
@@ -34,18 +26,16 @@ async function fetchSizePrice(w, h, t) {
 
   const buf = await res.arrayBuffer();
 
-  const msg = Proto.SizePrice.decode(new Uint8Array(buf));
+  const d = fromBinary(SizePriceSchema, new Uint8Array(buf));
 
-  const d = Proto.SizePrice.toObject(msg, { longs: Number });
-
-  if (d.dealer) {
+  if (d.price.case === "dealer") {
     return {
-      retail: d.dealer.clientPrice / 100,
-      wholesale: d.dealer.dealerPrice / 100,
+      retail: Number(d.price.value.clientPrice) / 100,
+      wholesale: Number(d.price.value.dealerPrice) / 100,
     };
   }
 
-  return { retail: d.client.clientPrice / 100, wholesale: 0 };
+  return { retail: Number(d.price.value.clientPrice) / 100, wholesale: 0 };
 }
 
 // Функция, срабатывающая при изменении значений ширины и высоты
@@ -66,6 +56,11 @@ window.updateGateSizePrice = async () => {
   sizes.dataset.retailPrice = price.retail;
   sizes.dataset.wholesalePrice = price.wholesale;
 
+  document.getElementById("size-retail-price").textContent = fmtPrice(price.retail);
+  document.getElementById("size-wholesale-price").textContent = price.wholesale
+    ? fmtPrice(price.wholesale)
+    : "—";
+
   updateGatePrice(document.querySelector(".gate-item"));
 };
 
@@ -82,7 +77,7 @@ window.updateDriveType = () => {
 
   chainLabel.hidden = !isManual;
   driveAutoBlock.hidden = isManual;
-  railLabel.hidden = isManual || gateType !== "res";
+  railLabel.hidden = isManual || gateType !== "residential";
 
   updateGatePrice(document.querySelector(".gate-item"));
 };
@@ -93,25 +88,30 @@ window.SaveGateConfiguration = async () => {
   switch (document.querySelector(".drive-type").value) {
     case "manual":
       drive = {
-        manual: {
-          chainLength: Number(document.getElementById("chain-length").value),
+        driveType: {
+          case: "manual",
+          value: { chainLength: Number(document.getElementById("chain-length").value) },
         },
       };
       break;
 
     case "residential":
       drive = {
-        residential: {
-          driveId: Number(document.getElementById("drive").value),
-          railId: Number(document.getElementById("rail").value),
+        driveType: {
+          case: "residential",
+          value: {
+            driveId: BigInt(document.getElementById("drive").value),
+            railId: BigInt(document.getElementById("rail").value),
+          },
         },
       };
       break;
 
     case "industrial":
       drive = {
-        industrial: {
-          driveId: Number(document.getElementById("drive").value),
+        driveType: {
+          case: "industrial",
+          value: { driveId: BigInt(document.getElementById("drive").value) },
         },
       };
       break;
@@ -132,7 +132,7 @@ window.SaveGateConfiguration = async () => {
   });
 
   const options = Array.from(optionMap.entries()).map(([optionId, amount]) => ({
-    optionId,
+    optionId: BigInt(optionId),
     amount,
   }));
 
@@ -140,22 +140,17 @@ window.SaveGateConfiguration = async () => {
     gateType: gateTypeProto[document.getElementById("gate-type").dataset.value],
     width: Number(document.getElementById("width").value),
     height: Number(document.getElementById("height").value),
-    liftTypeId: Number(document.getElementById("lift-type").value),
-    cycleAmountId: Number(document.getElementById("cycle-amount").value),
-    colorOutId: Number(document.getElementById("color-out").value),
+    liftTypeId: BigInt(document.getElementById("lift-type").value),
+    cycleAmountId: BigInt(document.getElementById("cycle-amount").value),
+    colorOutId: BigInt(document.getElementById("color-out").value),
     drive: drive,
     options: options,
     headroom: Number(document.getElementById("headroom").value),
     amount: Number(document.getElementById("amount").value),
   };
 
-  const err = Proto.GateConfig.verify(payload);
-  if (err) {
-    throw new Error(err);
-  }
-
-  const msg = Proto.GateConfig.create(payload);
-  const buf = Proto.GateConfig.encode(msg).finish();
+  const msg = create(GateConfigSchema, payload);
+  const buf = toBinary(GateConfigSchema, msg);
 
   const path = window.location.pathname;
 
@@ -174,7 +169,6 @@ window.SaveGateConfiguration = async () => {
   window.location.reload();
 };
 
-await initProtobuf();
 await updateGateSizePrice();
 updateOptionsPrice(document.querySelector(".additional-options"));
 updateDriveType();

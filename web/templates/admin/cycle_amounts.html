@@ -8,59 +8,112 @@
     {{if .css}}
     <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
     {{end}}
-    <title>Таблица cycle_amounts</title>
+    <title>Количество циклов</title>
   </head>
   <body>
     {{template "header-nav" .}}
     <main>
       <div class="form-container">
-        <a href="/tables" class="btn secondary">Вернуться назад</a>
-        <form method="post">
-          <div>
-            <label for="amount"
-              >Количество циклов
-              <input
-                class="input"
-                type="text"
-                id="amount"
-                name="amount"
-                required
-              />
-            </label>
-          </div>
-
-          <div>
-            <label for="wholesale-markup"
-              >Оптовая наценка
-              <input
-                class="input"
-                type="number"
-                id="wholesale-markup"
-                name="wholesale-markup"
-                step="0.01"
-                required
-              />
-            </label>
-          </div>
-
-          <div>
-            <label for="retail-markup"
-              >Розничная наценка
-              <input
-                class="input"
-                type="number"
-                id="retail-markup"
-                name="retail-markup"
-                step="0.01"
-                required
-              />
-            </label>
-          </div>
-
-          <button class="btn secondary" type="submit">Сохранить</button>
-        </form>
+        <h1>Количество циклов</h1>
+        <div>
+          <a href="/tables" class="btn secondary">Вернуться назад</a>
+          <button class="btn secondary" onclick="document.getElementById('add-modal').showModal()">Добавить</button>
+        </div>
+        <table class="table">
+          <tr>
+            <th>ID</th>
+            <th>Количество</th>
+            <th>Опт. наценка</th>
+            <th>Розн. наценка</th>
+            <th></th>
+            <th></th>
+          </tr>
+          {{range .tableData}}
+          <tr
+            class="table-row"
+            data-id="{{.ID}}"
+            data-amount="{{.Amount}}"
+            data-wholesale-markup="{{.WholesaleMarkup}}"
+            data-retail-markup="{{.RetailMarkup}}"
+          >
+            <td>{{.ID}}</td>
+            <td>{{.Amount}}</td>
+            <td>{{.WholesaleMarkup}}</td>
+            <td>{{.RetailMarkup}}</td>
+            <td>
+              <button class="btn secondary" onclick="openUpdateModal(`cycle_amounts`, this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                  <path d="m15 5 4 4" />
+                </svg>
+              </button>
+            </td>
+            <td>
+              <button class="btn secondary" onclick="deleteRow({{.ID}}, `cycle_amounts`)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          {{else}}
+          <tr><td colspan="6">Нет ни одной записи</td></tr>
+          {{end}}
+        </table>
       </div>
     </main>
+    <dialog id="add-modal" class="modal">
+      <div class="modal-box">
+        <form method="post">
+          <div>
+            <label>Количество циклов
+              <input class="input" type="text" name="amount" required />
+            </label>
+          </div>
+          <div>
+            <label>Оптовая наценка
+              <input class="input" type="number" name="wholesale-markup" step="0.01" required />
+            </label>
+          </div>
+          <div>
+            <label>Розничная наценка
+              <input class="input" type="number" name="retail-markup" step="0.01" required />
+            </label>
+          </div>
+          <button class="btn primary" type="submit">Сохранить</button>
+        </form>
+      </div>
+    </dialog>
+    <dialog id="edit-modal" class="modal">
+      <div class="modal-box">
+        <form id="edit-form" data-url="/tables/cycle_amounts" onsubmit="updateRow(event)">
+          <div>
+            <label>ID
+              <input class="input id" type="text" name="id" readonly required />
+            </label>
+          </div>
+          <div>
+            <label>Количество циклов
+              <input class="input amount" type="text" name="amount" required />
+            </label>
+          </div>
+          <div>
+            <label>Оптовая наценка
+              <input class="input wholesale-markup" type="number" name="wholesale-markup" step="0.01" required />
+            </label>
+          </div>
+          <div>
+            <label>Розничная наценка
+              <input class="input retail-markup" type="number" name="retail-markup" step="0.01" required />
+            </label>
+          </div>
+          <button class="btn primary" type="submit">Сохранить</button>
+        </form>
+      </div>
+    </dialog>
     {{template "footer" .}}
+    <script src="/web/assets/scripts/admin.js"></script>
   </body>
 </html>

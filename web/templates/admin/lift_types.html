@@ -8,81 +8,138 @@
     {{if .css}}
     <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
     {{end}}
-    <title>Таблица lift_types</title>
+    <title>Типы подъёма</title>
   </head>
   <body>
     {{template "header-nav" .}}
     <main>
       <div class="form-container">
-        <a href="/tables" class="btn secondary">Вернуться назад</a>
-        <form method="post">
-          <div>
-            <label for="name"
-              >Название типа подъём
-              <input class="input" type="text" id="name" name="name" required />
-            </label>
-          </div>
-
-          <div>
-            <label for="min-headroom"
-              >Минимальная притолока
-              <input
-                class="input"
-                type="number"
-                id="min-headroom"
-                name="min-headroom"
-                step="1"
-                required
-              />
-            </label>
-          </div>
-
-          <div>
-            <label for="max-headroom"
-              >Максимальная притолока
-              <input
-                class="input"
-                type="number"
-                id="max-headroom"
-                name="max-headroom"
-                step="1"
-                required
-              />
-            </label>
-          </div>
-
-          <div>
-            <label for="wholesale-markup"
-              >Оптовая наценка
-              <input
-                class="input"
-                type="number"
-                id="wholesale-markup"
-                name="wholesale-markup"
-                step="0.01"
-                required
-              />
-            </label>
-          </div>
-
-          <div>
-            <label for="retail-markup"
-              >Розничная наценка
-              <input
-                class="input"
-                type="number"
-                id="retail-markup"
-                name="retail-markup"
-                step="0.01"
-                required
-              />
-            </label>
-          </div>
-
-          <button class="btn secondary" type="submit">Сохранить</button>
-        </form>
+        <h1>Типы подъёма</h1>
+        <div>
+          <a href="/tables" class="btn secondary">Вернуться назад</a>
+          <button class="btn secondary" onclick="document.getElementById('add-modal').showModal()">Добавить</button>
+        </div>
+        <table class="table">
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Мин. притолока</th>
+            <th>Макс. притолока</th>
+            <th>Опт. наценка</th>
+            <th>Розн. наценка</th>
+            <th></th>
+            <th></th>
+          </tr>
+          {{range .tableData}}
+          <tr
+            class="table-row"
+            data-id="{{.ID}}"
+            data-name="{{.Name}}"
+            data-min-headroom="{{.MinHeadroom}}"
+            data-max-headroom="{{.MaxHeadroom}}"
+            data-wholesale-markup="{{.WholesaleMarkup}}"
+            data-retail-markup="{{.RetailMarkup}}"
+          >
+            <td>{{.ID}}</td>
+            <td>{{.Name}}</td>
+            <td>{{.MinHeadroom}}</td>
+            <td>{{.MaxHeadroom}}</td>
+            <td>{{.WholesaleMarkup}}</td>
+            <td>{{.RetailMarkup}}</td>
+            <td>
+              <button class="btn secondary" onclick="openUpdateModal(`lift_types`, this)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                  <path d="m15 5 4 4" />
+                </svg>
+              </button>
+            </td>
+            <td>
+              <button class="btn secondary" onclick="deleteRow({{.ID}}, `lift_types`)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          {{else}}
+          <tr><td colspan="8">Нет ни одной записи</td></tr>
+          {{end}}
+        </table>
       </div>
     </main>
+    <dialog id="add-modal" class="modal">
+      <div class="modal-box">
+        <form method="post">
+          <div>
+            <label>Название
+              <input class="input" type="text" name="name" required />
+            </label>
+          </div>
+          <div>
+            <label>Мин. притолока
+              <input class="input" type="number" name="min-headroom" step="1" required />
+            </label>
+          </div>
+          <div>
+            <label>Макс. притолока
+              <input class="input" type="number" name="max-headroom" step="1" required />
+            </label>
+          </div>
+          <div>
+            <label>Оптовая наценка
+              <input class="input" type="number" name="wholesale-markup" step="0.01" required />
+            </label>
+          </div>
+          <div>
+            <label>Розничная наценка
+              <input class="input" type="number" name="retail-markup" step="0.01" required />
+            </label>
+          </div>
+          <button class="btn primary" type="submit">Сохранить</button>
+        </form>
+      </div>
+    </dialog>
+    <dialog id="edit-modal" class="modal">
+      <div class="modal-box">
+        <form id="edit-form" data-url="/tables/lift_types" onsubmit="updateRow(event)">
+          <div>
+            <label>ID
+              <input class="input id" type="text" name="id" readonly required />
+            </label>
+          </div>
+          <div>
+            <label>Название
+              <input class="input name" type="text" name="name" required />
+            </label>
+          </div>
+          <div>
+            <label>Мин. притолока
+              <input class="input min-headroom" type="number" name="min-headroom" step="1" required />
+            </label>
+          </div>
+          <div>
+            <label>Макс. притолока
+              <input class="input max-headroom" type="number" name="max-headroom" step="1" required />
+            </label>
+          </div>
+          <div>
+            <label>Оптовая наценка
+              <input class="input wholesale-markup" type="number" name="wholesale-markup" step="0.01" required />
+            </label>
+          </div>
+          <div>
+            <label>Розничная наценка
+              <input class="input retail-markup" type="number" name="retail-markup" step="0.01" required />
+            </label>
+          </div>
+          <button class="btn primary" type="submit">Сохранить</button>
+        </form>
+      </div>
+    </dialog>
     {{template "footer" .}}
+    <script src="/web/assets/scripts/admin.js"></script>
   </body>
 </html>

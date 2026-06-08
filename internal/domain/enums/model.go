@@ -217,6 +217,33 @@ const (
 	LogisticianRole Role = "logistician"
 )
 
+func GetAllRoles() []Role {
+	return []Role{
+		ClientRole,
+		ManagerRole,
+		DealerRole,
+		AdminRole,
+		LogisticianRole,
+	}
+}
+
+func (r Role) Label() string {
+	switch r {
+	case ClientRole:
+		return "Клиент"
+	case ManagerRole:
+		return "Менеджер"
+	case DealerRole:
+		return "Дилер"
+	case AdminRole:
+		return "Администратор"
+	case LogisticianRole:
+		return "Логистик"
+	default:
+		return "Неизвестно"
+	}
+}
+
 // Тип Тип документа (не используется в бд)
 type DocumentType string
 

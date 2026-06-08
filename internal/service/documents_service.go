@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/docgen"
@@ -35,7 +36,7 @@ func UploadOfferToOrder(user *users.User, orderID int64, file multipart.File, ha
 func UploadContractToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
 	return uploadDocument(user, orderID, file, handler, uploadConfig{
 		dirEnvKey: "CONTRACTS_DIRECTORY",
-		attach:    repository.AttachContractToOrder,
+		attach:    repository.AttachAppendiceToOrder,
 	})
 }
 
@@ -100,7 +101,7 @@ func GetAllOrderDocuments(user *users.User, orderID int64) (*generated.Documents
 		})
 	}
 
-	contractsNumberList, err := repository.GetContractsNumberList(database.DB, orderID)
+	contractsNumberList, err := repository.GetAppendicesNumberList(database.DB, orderID)
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
 		return nil, err
 	}
@@ -190,7 +191,7 @@ func DeleteOrderDocument(user *users.User, orderID int64, docType string, docNam
 			return err
 		}
 	case enums.ContractDocumentType:
-		if err := repository.DeleteOrderContract(tx, docName); err != nil {
+		if err := repository.DeleteOrderAppendix(tx, docName); err != nil {
 			return err
 		}
 	case enums.OfferDocumentType:
@@ -223,7 +224,7 @@ func resolveDocumentPath(orderID int64, docType string, docName string) (filePat
 		dir = os.Getenv("OFFERS_DIRECTORY")
 
 	case enums.ContractDocumentType:
-		fileName, err = repository.GetContractFileName(orderID, docName)
+		fileName, err = repository.GetAppendiceFileName(orderID, docName)
 		dir = os.Getenv("CONTRACTS_DIRECTORY")
 
 	case enums.OtherDocumentType:
@@ -377,9 +378,9 @@ func GetOfferForOrder(
 }
 
 // loadOptions грузит опции по id и возвращает их + сумму.
-func loadOptions(gateOptions []*generated.Option) ([]options.Option, PricePair, error) {
+func loadOptions(gateOptions []*generated.Option) ([]options.Option, types.PricePair, error) {
 	if len(gateOptions) == 0 {
-		return nil, PricePair{}, nil
+		return nil, types.PricePair{}, nil
 	}
 
 	ids := make([]int64, 0, len(gateOptions))
@@ -390,12 +391,12 @@ func loadOptions(gateOptions []*generated.Option) ([]options.Option, PricePair, 
 		ids = append(ids, o.OptionId)
 	}
 	if len(ids) == 0 {
-		return nil, PricePair{}, nil
+		return nil, types.PricePair{}, nil
 	}
 
 	list, err := repository.GetOptionsByIDs(database.DB, ids)
 	if err != nil {
-		return nil, PricePair{}, err
+		return nil, types.PricePair{}, err
 	}
 
 	byID := make(map[int64]options.Option, len(list))
@@ -403,7 +404,7 @@ func loadOptions(gateOptions []*generated.Option) ([]options.Option, PricePair, 
 		byID[o.ID] = o
 	}
 
-	var sum PricePair
+	var sum types.PricePair
 	result := make([]options.Option, 0, len(gateOptions))
 	for _, o := range gateOptions {
 		if o.OptionId == 0 || o.Amount <= 0 {
@@ -411,7 +412,7 @@ func loadOptions(gateOptions []*generated.Option) ([]options.Option, PricePair, 
 		}
 		opt, ok := byID[o.OptionId]
 		if !ok {
-			return nil, PricePair{}, errors.New("option not found")
+			return nil, types.PricePair{}, errors.New("option not found")
 		}
 		amount := decimal.NewFromInt32(o.Amount)
 		sum.RetailPrice = sum.RetailPrice.Add(opt.RetailPrice.Mul(amount))
@@ -441,22 +442,159 @@ func loadProducts(in []*generated.Product) ([]order_products.OrderProduct, error
 	return result, nil
 }
 
+// GetAppendixForOrder загружает заказ из БД и генерирует PDF приложения к договору.
+func GetAppendixForOrder(
+	user *users.User,
+	orderID int64,
+	appendixNumber int,
+	contractNumber string,
+	contractDate time.Time,
+) ([]byte, error) {
+	if err := checkOrderAccess(user, orderID); err != nil {
+		return nil, err
+	}
+
+	// Заказ с данными клиента
+	orderRecord, err := repository.GetOrderWithCustomer(database.DB, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ворота с лифтом, цветом, циклами
+	orderGates, err := repository.GetOrderGatesByOrderID(database.DB, orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	var gateIDs []int64
+	for _, g := range orderGates {
+		gateIDs = append(gateIDs, g.RowNumber)
+	}
+
+	// Опции для всех ворот
+	gateOptionsRows, err := repository.GetAllOptionsForOrder(database.DB, orderID, gateIDs)
+	if err != nil {
+		return nil, err
+	}
+	optionsMap := make(map[int64][]options.Option)
+	for _, opt := range gateOptionsRows {
+		optionsMap[opt.RowNumber] = append(optionsMap[opt.RowNumber], opt.Option)
+	}
+
+	// Собираем заказ с приводами
+	order := types.Order{}
+	for _, og := range orderGates {
+		drive, _ := loadDriveForGate(og)
+		order.Gates = append(order.Gates, types.Gate{
+			Gate:    og,
+			Drive:   drive,
+			Options: optionsMap[og.RowNumber],
+		})
+	}
+
+	// Товары с историческими ценами для завершённых заказов
+	order.Products, err = repository.GetAllOrderProducts(database.DB, orderID)
+	if err != nil {
+		return nil, err
+	}
+	orderStatus, err := repository.GetOrderStatus(orderID)
+	if err != nil {
+		return nil, err
+	}
+	if enums.OrderStatus(*orderStatus) != enums.OrderStatusPending {
+		finalizedAt, err := repository.GetOrderFinalizedAt(database.DB, orderID)
+		if err != nil {
+			return nil, err
+		}
+		if finalizedAt != nil && len(order.Products) > 0 {
+			productIDs := make([]int64, len(order.Products))
+			for i, p := range order.Products {
+				productIDs[i] = p.ProductID
+			}
+			historicalPrices, err := repository.GetProductHistoricalPrices(database.DB, productIDs, *finalizedAt)
+			if err != nil {
+				return nil, err
+			}
+			for i, p := range order.Products {
+				if prices, ok := historicalPrices[p.ProductID]; ok {
+					order.Products[i].Product.RetailPrice = prices.RetailPrice
+					order.Products[i].Product.WholesalePrice = prices.WholesalePrice
+				}
+			}
+		}
+	}
+
+	// Данные клиента
+	var customer docgen.CustomerInfo
+	if orderRecord.DealerID != nil && orderRecord.Dealer != nil {
+		customer.OrganizationName = orderRecord.Dealer.Company.Name
+		customer.ContactPerson = orderRecord.Dealer.User.Fullname
+		customer.Phone = orderRecord.Dealer.User.PhoneNumber
+	} else {
+		customer.ContactPerson = orderRecord.Manager.Fullname
+		customer.Phone = orderRecord.Manager.PhoneNumber
+	}
+
+	return docgen.GenerateAppendix(&order, customer, appendixNumber, contractNumber, contractDate)
+}
+
+// loadDriveForGate загружает привод для конкретных ворот в зависимости от типа
+func loadDriveForGate(og order_gates.OrderGate) (any, error) {
+	switch og.DriveType {
+	case enums.IndDriveType:
+		d, err := repository.GetIndustrialDriveForGate(database.DB, og.OrderID, og.RowNumber)
+		if err != nil {
+			return nil, err
+		}
+		ind, err := repository.GetIndustrialDriveByID(database.DB, d.DriveID)
+		if err != nil {
+			return nil, err
+		}
+		return *ind, nil
+	case enums.ResDriveType:
+		rd, err := repository.GetResidentialDriveForGate(database.DB, og.OrderID, og.RowNumber)
+		if err != nil {
+			return nil, err
+		}
+		drv, err := repository.GetResidentialDriveByID(database.DB, rd.DriveID)
+		if err != nil {
+			return nil, err
+		}
+		rail, err := repository.GetRailByID(database.DB, rd.RailID)
+		if err != nil {
+			return nil, err
+		}
+		return types.ResidentialDriveRail{Drive: *drv, Rail: *rail}, nil
+	case enums.ManualDriveType:
+		md, err := repository.GetManualDriveForGate(database.DB, og.OrderID, og.RowNumber)
+		if err != nil {
+			return nil, err
+		}
+		info, err := repository.GetManualDrivePrice(database.DB)
+		if err != nil {
+			return nil, err
+		}
+		return types.ManualDrive{ChainLength: md.ChainLength, PriceInfo: *info}, nil
+	}
+	return nil, nil
+}
+
 // drivePricePair достаёт пару цен из любого варианта привода.
-func drivePricePair(drive any) PricePair {
+func drivePricePair(drive any) types.PricePair {
 	switch d := drive.(type) {
 	case industrial_gate_drives.IndustrialGateDrive:
-		return PricePair{RetailPrice: d.RetailPrice, WholesalePrice: d.WholesalePrice}
+		return types.PricePair{RetailPrice: d.RetailPrice, WholesalePrice: d.WholesalePrice}
 	case types.ResidentialDriveRail:
-		return PricePair{
+		return types.PricePair{
 			RetailPrice:    d.Drive.RetailPrice.Add(d.Rail.RetailPrice),
 			WholesalePrice: d.Drive.WholesalePrice.Add(d.Rail.WholesalePrice),
 		}
 	case types.ManualDrive:
 		chain := decimal.NewFromInt32(d.ChainLength)
-		return PricePair{
+		return types.PricePair{
 			RetailPrice:    d.PriceInfo.ChainMeterRetailPrice.Mul(chain).Add(d.PriceInfo.RcpRetailPrice),
 			WholesalePrice: d.PriceInfo.ChainMeterWholesalePrice.Mul(chain).Add(d.PriceInfo.RcpWholesalePrice),
 		}
 	}
-	return PricePair{}
+	return types.PricePair{}
 }
