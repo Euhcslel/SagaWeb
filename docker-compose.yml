@@ -35,7 +35,7 @@ services:
   app:
     build: .
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
       - ./.env.docker:/app/.env:ro
       - ./data:/app/data
