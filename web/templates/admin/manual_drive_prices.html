@@ -8,13 +8,13 @@
     {{if .css}}
     <link rel="stylesheet" href="/web/assets/styles/pages/{{.css}}" />
     {{end}}
-    <title>Товары</title>
+    <title>Цены ручных приводов</title>
   </head>
   <body>
     {{template "header-nav" .}}
     <main>
       <div class="form-container">
-        <h1>Товары</h1>
+        <h1>Цены ручных приводов</h1>
         <div>
           <a href="/tables" class="btn secondary">Вернуться назад</a>
           <button
@@ -27,10 +27,11 @@
         <table class="table">
           <tr>
             <th>ID</th>
-            <th>Фото</th>
-            <th>Название</th>
-            <th>Опт. цена</th>
-            <th>Розн. цена</th>
+            <th>Цена цепи за метр (розн.)</th>
+            <th>Цена цепи за метр (опт.)</th>
+            <th>Цена RCP (розн.)</th>
+            <th>Цена RCP (опт.)</th>
+            <th>Создан</th>
             <th></th>
             <th></th>
           </tr>
@@ -38,26 +39,21 @@
           <tr
             class="table-row"
             data-id="{{.ID}}"
-            data-name="{{.Name}}"
-            data-wholesale-price="{{.WholesalePrice}}"
-            data-retail-price="{{.RetailPrice}}"
-            data-image-path="{{.ImagePath}}"
+            data-chain-meter-retail-price="{{.ChainMeterRetailPrice}}"
+            data-chain-meter-wholesale-price="{{.ChainMeterWholesalePrice}}"
+            data-rcp-retail-price="{{.RcpRetailPrice}}"
+            data-rcp-wholesale-price="{{.RcpWholesalePrice}}"
           >
             <td>{{.ID}}</td>
-            <td>
-              {{if ne .ImagePath "no_image"}}<img
-                class="admin-thumb"
-                src="/data/images/{{.ImagePath}}"
-                alt="{{.Name}}"
-              />{{else}}—{{end}}
-            </td>
-            <td>{{.Name}}</td>
-            <td>{{.WholesalePrice}}</td>
-            <td>{{.RetailPrice}}</td>
+            <td>{{.ChainMeterRetailPrice}}</td>
+            <td>{{.ChainMeterWholesalePrice}}</td>
+            <td>{{.RcpRetailPrice}}</td>
+            <td>{{.RcpWholesalePrice}}</td>
+            <td>{{.CreatedAt.Format "02.01.2006"}}</td>
             <td>
               <button
                 class="btn secondary"
-                onclick="openUpdateModal(`products`, this)"
+                onclick="openUpdateModal(`manual_drive_prices`, this)"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -80,7 +76,7 @@
             <td>
               <button
                 class="btn secondary"
-                onclick="deleteRow({{.ID}}, `products`)"
+                onclick="deleteRow({{.ID}}, `manual_drive_prices`)"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -102,7 +98,7 @@
           </tr>
           {{else}}
           <tr>
-            <td colspan="7">Нет ни одной записи</td>
+            <td colspan="8">Нет ни одной записи</td>
           </tr>
           {{end}}
         </table>
@@ -110,20 +106,14 @@
     </main>
     <dialog id="add-modal" class="modal">
       <div class="modal-box">
-        <form method="post" action="/tables/products" enctype="multipart/form-data">
+        <form method="post" action="/tables/manual_drive_prices">
           <div>
             <label
-              >Название
-              <input class="input" type="text" name="name" required />
-            </label>
-          </div>
-          <div>
-            <label
-              >Оптовая цена
+              >Цена цепи за метр (розничная)
               <input
                 class="input"
                 type="number"
-                name="wholesale-price"
+                name="chain-meter-retail-price"
                 step="0.01"
                 required
               />
@@ -131,11 +121,11 @@
           </div>
           <div>
             <label
-              >Розничная цена
+              >Цена цепи за метр (оптовая)
               <input
                 class="input"
                 type="number"
-                name="retail-price"
+                name="chain-meter-wholesale-price"
                 step="0.01"
                 required
               />
@@ -143,8 +133,26 @@
           </div>
           <div>
             <label
-              >Изображение
-              <input class="input" type="file" name="image" accept="image/*" />
+              >Цена RCP (розничная)
+              <input
+                class="input"
+                type="number"
+                name="rcp-retail-price"
+                step="0.01"
+                required
+              />
+            </label>
+          </div>
+          <div>
+            <label
+              >Цена RCP (оптовая)
+              <input
+                class="input"
+                type="number"
+                name="rcp-wholesale-price"
+                step="0.01"
+                required
+              />
             </label>
           </div>
           <button class="btn primary" type="submit">Сохранить</button>
@@ -155,7 +163,7 @@
       <div class="modal-box">
         <form
           id="edit-form"
-          data-url="/tables/products"
+          data-url="/tables/manual_drive_prices"
           onsubmit="updateRow(event)"
         >
           <div>
@@ -166,17 +174,11 @@
           </div>
           <div>
             <label
-              >Название
-              <input class="input name" type="text" name="name" required />
-            </label>
-          </div>
-          <div>
-            <label
-              >Оптовая цена
+              >Цена цепи за метр (розничная)
               <input
-                class="input wholesale-price"
+                class="input chain-meter-retail-price"
                 type="number"
-                name="wholesale-price"
+                name="chain-meter-retail-price"
                 step="0.01"
                 required
               />
@@ -184,21 +186,38 @@
           </div>
           <div>
             <label
-              >Розничная цена
+              >Цена цепи за метр (оптовая)
               <input
-                class="input retail-price"
+                class="input chain-meter-wholesale-price"
                 type="number"
-                name="retail-price"
+                name="chain-meter-wholesale-price"
                 step="0.01"
                 required
               />
             </label>
           </div>
-          <input type="hidden" class="image-path" name="image-path" />
           <div>
             <label
-              >Изображение
-              <input class="input" type="file" name="image" accept="image/*" />
+              >Цена RCP (розничная)
+              <input
+                class="input rcp-retail-price"
+                type="number"
+                name="rcp-retail-price"
+                step="0.01"
+                required
+              />
+            </label>
+          </div>
+          <div>
+            <label
+              >Цена RCP (оптовая)
+              <input
+                class="input rcp-wholesale-price"
+                type="number"
+                name="rcp-wholesale-price"
+                step="0.01"
+                required
+              />
             </label>
           </div>
           <button class="btn primary" type="submit">Сохранить</button>

@@ -17,7 +17,12 @@
         <h1>Пользователи</h1>
         <div>
           <a href="/tables" class="btn secondary">Вернуться назад</a>
-          <button class="btn secondary" onclick="document.getElementById('add-modal').showModal()">Добавить</button>
+          <button
+            class="btn secondary"
+            onclick="document.getElementById('add-modal').showModal()"
+          >
+            Добавить
+          </button>
         </div>
         <table class="table">
           <tr>
@@ -44,16 +49,44 @@
             <td>{{.PhoneNumber}}</td>
             <td>{{.Role.Label}}</td>
             <td>
-              <button class="btn secondary" onclick="openUpdateModal(`users`, this)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+              <button
+                class="btn secondary"
+                onclick="openUpdateModal(`users`, this)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                  />
                   <path d="m15 5 4 4" />
                 </svg>
               </button>
             </td>
             <td>
-              <button class="btn secondary" onclick="deleteRow({{.ID}}, `users`)">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <button
+                class="btn secondary"
+                onclick="deleteRow({{.ID}}, `users`)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
                   <path d="M3 6h18" />
                   <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -62,7 +95,9 @@
             </td>
           </tr>
           {{else}}
-          <tr><td colspan="7">Нет ни одного пользователя</td></tr>
+          <tr>
+            <td colspan="7">Нет ни одного пользователя</td>
+          </tr>
           {{end}}
         </table>
       </div>
@@ -70,29 +105,34 @@
 
     <dialog id="add-modal" class="modal">
       <div class="modal-box">
-        <form method="post">
+        <form method="post" action="/tables/users">
           <div>
-            <label>ФИО
+            <label
+              >ФИО
               <input class="input" type="text" name="fullname" required />
             </label>
           </div>
           <div>
-            <label>Email
+            <label
+              >Email
               <input class="input" type="email" name="email" />
             </label>
           </div>
           <div>
-            <label>Телефон
+            <label
+              >Телефон
               <input class="input" type="tel" name="phone" required />
             </label>
           </div>
           <div>
-            <label>Пароль
+            <label
+              >Пароль
               <input class="input" type="password" name="password" required />
             </label>
           </div>
           <div>
-            <label>Роль
+            <label
+              >Роль
               <select class="select" name="role" required>
                 {{range .roles}}
                 <option value="{{.}}">{{.Label}}</option>
@@ -107,34 +147,49 @@
 
     <dialog id="edit-modal" class="modal">
       <div class="modal-box">
-        <form id="edit-form" data-url="/tables/users" onsubmit="updateRow(event)">
+        <form
+          id="edit-form"
+          data-url="/tables/users"
+          onsubmit="updateRow(event)"
+        >
           <div>
-            <label>ID
+            <label
+              >ID
               <input class="input id" type="text" name="id" readonly required />
             </label>
           </div>
           <div>
-            <label>ФИО
-              <input class="input fullname" type="text" name="fullname" required />
+            <label
+              >ФИО
+              <input
+                class="input fullname"
+                type="text"
+                name="fullname"
+                required
+              />
             </label>
           </div>
           <div>
-            <label>Email
+            <label
+              >Email
               <input class="input email" type="email" name="email" />
             </label>
           </div>
           <div>
-            <label>Телефон
+            <label
+              >Телефон
               <input class="input phone" type="tel" name="phone" required />
             </label>
           </div>
           <div>
-            <label>Новый пароль <small>(оставьте пустым, чтобы не менять)</small>
+            <label
+              >Новый пароль <small>(оставьте пустым, чтобы не менять)</small>
               <input class="input password" type="password" name="password" />
             </label>
           </div>
           <div>
-            <label>Роль
+            <label
+              >Роль
               <select class="select role" name="role" required>
                 {{range .roles}}
                 <option value="{{.}}">{{.Label}}</option>
@@ -149,5 +204,6 @@
 
     {{template "footer" .}}
     <script src="/web/assets/scripts/admin.js"></script>
+    <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
   </body>
 </html>

@@ -1,12 +1,15 @@
 package main
 
 import (
-	"github.com/Euhcslel/SagaWeb/internal/database"
-	handlers "github.com/Euhcslel/SagaWeb/internal/transport/http"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/domain/sessions"
+	handlers "github.com/Euhcslel/SagaWeb/internal/transport/http"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -26,11 +29,21 @@ func main() {
 	}
 	defer logFile.Close()
 
+	// Логируем как в файл, так и в консоль
 	mw := io.MultiWriter(os.Stdout, logFile)
 	log.SetOutput(mw)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	database.InitDB()
+
+	// Запускаем фоновую задачу для очистки просроченных сессий
+	go func() {
+		ticker := time.NewTicker(24 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			database.DB.Where("expires_at < ?", time.Now()).Delete(&sessions.Session{})
+		}
+	}()
 
 	mux := http.NewServeMux()
 

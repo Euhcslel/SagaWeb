@@ -9,7 +9,6 @@ import (
 )
 
 var DB *gorm.DB
-var NamedModels map[string]any
 
 func InitDB() *gorm.DB {
 	dsn := os.Getenv("DB_CONNECTION")

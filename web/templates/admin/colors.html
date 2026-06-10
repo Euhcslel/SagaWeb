@@ -68,7 +68,10 @@
               </button>
             </td>
             <td>
-              <button class="btn secondary" onclick="deleteRow({{.ID}}, `colors`)">
+              <button
+                class="btn secondary"
+                onclick="deleteRow({{.ID}}, `colors`)"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -98,7 +101,7 @@
     <!--Модальное окно добавления-->
     <dialog id="add-modal" class="modal">
       <div class="modal-box">
-        <form method="post">
+        <form method="post" action="/tables/colors">
           <div>
             <label for="code"
               >Код цвета
@@ -153,5 +156,6 @@
     </dialog>
     {{template "footer" .}}
     <script src="/web/assets/scripts/admin.js"></script>
+    <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
   </body>
 </html>

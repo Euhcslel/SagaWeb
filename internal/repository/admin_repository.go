@@ -6,6 +6,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
@@ -195,4 +196,31 @@ func AdminUpdateUserPassword(id int64, hash []byte) error {
 
 func AdminDeleteUser(id int64) error {
 	return database.DB.Where("id = ?", id).Delete(&users.User{}).Error
+}
+
+func GetAllManualDrivePrices() ([]manual_drive_prices.ManualDrivePrice, error) {
+	var result []manual_drive_prices.ManualDrivePrice
+	if err := database.DB.Find(&result).Error; err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func CreateManualDrivePrice(price manual_drive_prices.ManualDrivePrice) error {
+	return database.DB.Create(&price).Error
+}
+
+func UpdateManualDrivePrice(price manual_drive_prices.ManualDrivePrice) error {
+	return database.DB.Model(&manual_drive_prices.ManualDrivePrice{}).
+		Where("id = ?", price.ID).
+		Updates(map[string]any{
+			"chain_meter_retail_price":    price.ChainMeterRetailPrice,
+			"chain_meter_wholesale_price": price.ChainMeterWholesalePrice,
+			"rcp_retail_price":            price.RcpRetailPrice,
+			"rcp_wholesale_price":         price.RcpWholesalePrice,
+		}).Error
+}
+
+func DeleteManualDrivePrice(id int64) error {
+	return database.DB.Where("id = ?", id).Delete(&manual_drive_prices.ManualDrivePrice{}).Error
 }

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/helpers"
 	"github.com/Euhcslel/SagaWeb/internal/types"
 	"github.com/Euhcslel/SagaWeb/internal/utils"
@@ -19,7 +20,7 @@ func RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := utils.GetUserBySessionToken(r)
 		if err != nil {
-			helpers.WriteError(w, err, http.StatusUnauthorized)
+			helpers.WriteError(w, errs.ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
 
@@ -64,21 +65,43 @@ func SecurityHeaders(next http.Handler) http.Handler {
 	})
 }
 
+type ipLimiter struct {
+	limiter  *rate.Limiter
+	lastSeen time.Time
+}
+
 var (
 	mutex    sync.Mutex
-	limiters = map[string]*rate.Limiter{}
+	limiters = map[string]*ipLimiter{}
 )
+
+func init() {
+	go func() {
+		ticker := time.NewTicker(10 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			mutex.Lock()
+			for ip, l := range limiters {
+				if time.Since(l.lastSeen) > 30*time.Minute {
+					delete(limiters, ip)
+				}
+			}
+			mutex.Unlock()
+		}
+	}()
+}
 
 // Функция для получения лимитера по IP-адресу
 func getLimiter(ip string) *rate.Limiter {
 	mutex.Lock()
 	defer mutex.Unlock()
-	limit, ok := limiters[ip]
+	l, ok := limiters[ip]
 	if !ok {
-		limit = rate.NewLimiter(rate.Every(12*time.Second), 5)
-		limiters[ip] = limit
+		l = &ipLimiter{limiter: rate.NewLimiter(rate.Every(12*time.Second), 5)}
+		limiters[ip] = l
 	}
-	return limit
+	l.lastSeen = time.Now()
+	return l.limiter
 }
 
 // Middleware, ограничивающий количество запросов от одного IP-адреса

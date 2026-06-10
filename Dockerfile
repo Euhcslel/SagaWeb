@@ -34,6 +34,7 @@ WORKDIR /build
 
 RUN apk add --no-cache protobuf
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 
 COPY go.mod go.sum ./
 RUN go mod download
@@ -49,9 +50,6 @@ RUN protoc \
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server ./cmd/app
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o size_import ./cmd/size_import
-
-# Install goose for migrations
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 
 # Runtime stage
 FROM alpine:latest

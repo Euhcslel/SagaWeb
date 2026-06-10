@@ -11,54 +11,71 @@ function openUpdateModal(tableName, button) {
     case "cycle_amounts":
       modal.querySelector(".id").value = tableRow.dataset.id;
       modal.querySelector(".amount").value = tableRow.dataset.amount;
-      modal.querySelector(".wholesale-markup").value = tableRow.dataset.wholesaleMarkup;
-      modal.querySelector(".retail-markup").value = tableRow.dataset.retailMarkup;
+      modal.querySelector(".wholesale-markup").value =
+        tableRow.dataset.wholesaleMarkup;
+      modal.querySelector(".retail-markup").value =
+        tableRow.dataset.retailMarkup;
       break;
     case "industrial_drives":
       modal.querySelector(".id").value = tableRow.dataset.id;
       modal.querySelector(".name").value = tableRow.dataset.name;
-      modal.querySelector(".wholesale-price").value = tableRow.dataset.wholesalePrice;
+      modal.querySelector(".wholesale-price").value =
+        tableRow.dataset.wholesalePrice;
       modal.querySelector(".retail-price").value = tableRow.dataset.retailPrice;
-      modal.querySelector(".specifications").value = tableRow.dataset.specifications || "";
-      modal.querySelector(".image-path").value = tableRow.dataset.imagePath || "no_image";
+      modal.querySelector(".specifications").value =
+        tableRow.dataset.specifications || "";
+      modal.querySelector(".image-path").value =
+        tableRow.dataset.imagePath || "no_image";
       break;
     case "lift_types":
       modal.querySelector(".id").value = tableRow.dataset.id;
       modal.querySelector(".name").value = tableRow.dataset.name;
       modal.querySelector(".min-headroom").value = tableRow.dataset.minHeadroom;
       modal.querySelector(".max-headroom").value = tableRow.dataset.maxHeadroom;
-      modal.querySelector(".wholesale-markup").value = tableRow.dataset.wholesaleMarkup;
-      modal.querySelector(".retail-markup").value = tableRow.dataset.retailMarkup;
+      modal.querySelector(".wholesale-markup").value =
+        tableRow.dataset.wholesaleMarkup;
+      modal.querySelector(".retail-markup").value =
+        tableRow.dataset.retailMarkup;
       break;
     case "options":
       modal.querySelector(".id").value = tableRow.dataset.id;
       modal.querySelector(".name").value = tableRow.dataset.name;
-      modal.querySelector(".wholesale-price").value = tableRow.dataset.wholesalePrice;
+      modal.querySelector(".wholesale-price").value =
+        tableRow.dataset.wholesalePrice;
       modal.querySelector(".retail-price").value = tableRow.dataset.retailPrice;
-      modal.querySelector(".image-path").value = tableRow.dataset.imagePath || "no_image";
+      modal.querySelector(".image-path").value =
+        tableRow.dataset.imagePath || "no_image";
       break;
     case "products":
       modal.querySelector(".id").value = tableRow.dataset.id;
       modal.querySelector(".name").value = tableRow.dataset.name;
-      modal.querySelector(".wholesale-price").value = tableRow.dataset.wholesalePrice;
+      modal.querySelector(".wholesale-price").value =
+        tableRow.dataset.wholesalePrice;
       modal.querySelector(".retail-price").value = tableRow.dataset.retailPrice;
-      modal.querySelector(".image-path").value = tableRow.dataset.imagePath || "no_image";
+      modal.querySelector(".image-path").value =
+        tableRow.dataset.imagePath || "no_image";
       break;
     case "rails":
       modal.querySelector(".id").value = tableRow.dataset.id;
       modal.querySelector(".name").value = tableRow.dataset.name;
-      modal.querySelector(".wholesale-price").value = tableRow.dataset.wholesalePrice;
+      modal.querySelector(".wholesale-price").value =
+        tableRow.dataset.wholesalePrice;
       modal.querySelector(".retail-price").value = tableRow.dataset.retailPrice;
-      modal.querySelector(".specifications").value = tableRow.dataset.specifications || "";
-      modal.querySelector(".image-path").value = tableRow.dataset.imagePath || "no_image";
+      modal.querySelector(".specifications").value =
+        tableRow.dataset.specifications || "";
+      modal.querySelector(".image-path").value =
+        tableRow.dataset.imagePath || "no_image";
       break;
     case "residential_drives":
       modal.querySelector(".id").value = tableRow.dataset.id;
       modal.querySelector(".name").value = tableRow.dataset.name;
-      modal.querySelector(".wholesale-price").value = tableRow.dataset.wholesalePrice;
+      modal.querySelector(".wholesale-price").value =
+        tableRow.dataset.wholesalePrice;
       modal.querySelector(".retail-price").value = tableRow.dataset.retailPrice;
-      modal.querySelector(".specifications").value = tableRow.dataset.specifications || "";
-      modal.querySelector(".image-path").value = tableRow.dataset.imagePath || "no_image";
+      modal.querySelector(".specifications").value =
+        tableRow.dataset.specifications || "";
+      modal.querySelector(".image-path").value =
+        tableRow.dataset.imagePath || "no_image";
       break;
     case "users":
       modal.querySelector(".id").value = tableRow.dataset.id;
@@ -67,6 +84,13 @@ function openUpdateModal(tableName, button) {
       modal.querySelector(".phone").value = tableRow.dataset.phone;
       modal.querySelector(".role").value = tableRow.dataset.role;
       modal.querySelector(".password").value = "";
+      break;
+    case "manual_drive_prices":
+      modal.querySelector(".id").value = tableRow.dataset.id;
+      modal.querySelector(".chain-meter-retail-price").value = tableRow.dataset.chainMeterRetailPrice;
+      modal.querySelector(".chain-meter-wholesale-price").value = tableRow.dataset.chainMeterWholesalePrice;
+      modal.querySelector(".rcp-retail-price").value = tableRow.dataset.rcpRetailPrice;
+      modal.querySelector(".rcp-wholesale-price").value = tableRow.dataset.rcpWholesalePrice;
       break;
   }
 
@@ -79,16 +103,19 @@ async function updateRow(event) {
   const form = event.target;
   const url = form.dataset.url;
   const formData = new FormData(form);
-
   const hasFileInput = form.querySelector('input[type="file"]') !== null;
 
   const response = await fetch(url, {
     method: "PUT",
     body: hasFileInput ? formData : new URLSearchParams(formData),
-    headers: hasFileInput ? {} : { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: hasFileInput
+      ? {}
+      : { "Content-Type": "application/x-www-form-urlencoded" },
   });
 
   if (!response.ok) {
+    const text = await response.text();
+    Swal.fire({ icon: "error", title: "Ошибка", text });
     return;
   }
 
@@ -96,11 +123,22 @@ async function updateRow(event) {
 }
 
 async function deleteRow(rowId, tableName) {
-  const response = await fetch('/tables/' + tableName + '/' + rowId, {
+  const result = await Swal.fire({
+    title: "Удалить запись?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Удалить",
+    cancelButtonText: "Отмена",
+  });
+  if (!result.isConfirmed) return;
+
+  const response = await fetch("/tables/" + tableName + "/" + rowId, {
     method: "DELETE",
   });
 
   if (!response.ok) {
+    const text = await response.text();
+    Swal.fire({ icon: "error", title: "Ошибка", text });
     return;
   }
 

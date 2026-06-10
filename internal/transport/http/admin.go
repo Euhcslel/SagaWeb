@@ -10,11 +10,12 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 	rails_domain "github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
-	users_domain "github.com/Euhcslel/SagaWeb/internal/domain/users"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/helpers"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
@@ -43,6 +44,10 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 
 	tablePageData, err := service.GetTablePageData(tableName)
 	if err != nil {
+		if errors.Is(err, errs.ErrInvalidTableType) {
+			helpers.WriteError(w, errs.ErrNotFound, http.StatusNotFound)
+			return
+		}
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -319,17 +324,28 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 			ImagePath:      imagePath,
 		}
 	case "users":
-		updatedUser := users_domain.User{
+		role := enums.Role(r.FormValue("role"))
+		valid := false
+		for _, r := range enums.GetAllRoles() {
+			if r == role {
+				valid = true
+				break
+			}
+		}
+
+		if !valid {
+			helpers.WriteError(w, errs.ErrBadRequest, http.StatusBadRequest)
+			return
+		}
+
+		tableData = users.User{
 			ID:          rowId,
 			Fullname:    r.FormValue("fullname"),
 			Email:       r.FormValue("email"),
 			PhoneNumber: r.FormValue("phone"),
-			Role:        enums.Role(r.FormValue("role")),
+			Role:        role,
 		}
-		if err := repository.AdminUpdateUser(updatedUser); err != nil {
-			helpers.WriteError(w, err, http.StatusInternalServerError)
-			return
-		}
+
 		if pw := r.FormValue("password"); pw != "" {
 			hash, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
 			if err != nil {
@@ -341,9 +357,36 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		return
+	case "manual_drive_prices":
+		chainMeterRetailPrice, err := decimal.NewFromString(r.FormValue("chain-meter-retail-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		chainMeterWholesalePrice, err := decimal.NewFromString(r.FormValue("chain-meter-wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		rcpRetailPrice, err := decimal.NewFromString(r.FormValue("rcp-retail-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		rcpWholesalePrice, err := decimal.NewFromString(r.FormValue("rcp-wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		tableData = manual_drive_prices.ManualDrivePrice{
+			ID:                       rowId,
+			ChainMeterRetailPrice:    chainMeterRetailPrice,
+			ChainMeterWholesalePrice: chainMeterWholesalePrice,
+			RcpRetailPrice:           rcpRetailPrice,
+			RcpWholesalePrice:        rcpWholesalePrice,
+		}
 	default:
-		helpers.WriteError(w, errors.New("invalid table name"), http.StatusBadRequest)
+		helpers.WriteError(w, errs.ErrInvalidTableType, http.StatusBadRequest)
 		return
 	}
 
@@ -377,6 +420,10 @@ func DeleteRow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := service.DeleteRow(tableName, rowId); err != nil {
+		if errors.Is(err, errs.ErrInvalidTableType) {
+			helpers.WriteError(w, errs.ErrNotFound, http.StatusNotFound)
+			return
+		}
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -648,6 +695,19 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 			ImagePath:      imagePath,
 		}
 	case "users":
+		role := enums.Role(r.FormValue("role"))
+		valid := false
+		for _, r := range enums.GetAllRoles() {
+			if r == role {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			helpers.WriteError(w, errs.ErrBadRequest, http.StatusBadRequest)
+			return
+		}
+
 		passwordRaw := r.FormValue("password")
 		if passwordRaw == "" {
 			helpers.WriteError(w, errors.New("пароль обязателен"), http.StatusBadRequest)
@@ -658,21 +718,43 @@ func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, err, http.StatusInternalServerError)
 			return
 		}
-		newUser := users_domain.User{
+
+		tableData = users.User{
 			Fullname:     r.FormValue("fullname"),
 			Email:        r.FormValue("email"),
 			PhoneNumber:  r.FormValue("phone"),
-			Role:         enums.Role(r.FormValue("role")),
+			Role:         role,
 			PasswordHash: hash,
 		}
-		if err := repository.AdminCreateUser(newUser); err != nil {
-			helpers.WriteError(w, err, http.StatusInternalServerError)
+	case "manual_drive_prices":
+		chainMeterRetailPrice, err := decimal.NewFromString(r.FormValue("chain-meter-retail-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
 			return
 		}
-		http.Redirect(w, r, "/tables/users", http.StatusSeeOther)
-		return
+		chainMeterWholesalePrice, err := decimal.NewFromString(r.FormValue("chain-meter-wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		rcpRetailPrice, err := decimal.NewFromString(r.FormValue("rcp-retail-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		rcpWholesalePrice, err := decimal.NewFromString(r.FormValue("rcp-wholesale-price"))
+		if err != nil {
+			helpers.WriteError(w, err, http.StatusBadRequest)
+			return
+		}
+		tableData = manual_drive_prices.ManualDrivePrice{
+			ChainMeterRetailPrice:    chainMeterRetailPrice,
+			ChainMeterWholesalePrice: chainMeterWholesalePrice,
+			RcpRetailPrice:           rcpRetailPrice,
+			RcpWholesalePrice:        rcpWholesalePrice,
+		}
 	default:
-		helpers.WriteError(w, errors.New("invalid table name"), http.StatusBadRequest)
+		helpers.WriteError(w, errs.ErrInvalidTableType, http.StatusBadRequest)
 		return
 	}
 

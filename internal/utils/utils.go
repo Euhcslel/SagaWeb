@@ -14,6 +14,7 @@ import (
 	"github.com/samborkent/uuidv7"
 )
 
+// Функция для получения пользователя по токену сессии
 func GetUserBySessionToken(r *http.Request) (*users.User, error) {
 	sessionToken, err := r.Cookie("session_token")
 	if err != nil {
@@ -33,6 +34,8 @@ func GetUserBySessionToken(r *http.Request) (*users.User, error) {
 	return &session.User, nil
 }
 
+// Функция для установки сессии и создания cookie
+// Срок действия сессии - 30 дней
 func SetSession(w http.ResponseWriter, userID int64) error {
 	token := uuidv7.New().String()
 
@@ -48,6 +51,7 @@ func SetSession(w http.ResponseWriter, userID int64) error {
 		Name:     "session_token",
 		Value:    token,
 		Path:     "/",
+		MaxAge:   30 * 24 * 60 * 60,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
@@ -65,6 +69,7 @@ func UserFromContext(ctx context.Context) *users.User {
 	return user
 }
 
+// Функция для проверки доступа к дилерским функциям
 func HasDealerAccess(role enums.Role) bool {
 	return role == enums.DealerRole || role == enums.AdminRole || role == enums.ManagerRole || role == enums.LogisticianRole
 }

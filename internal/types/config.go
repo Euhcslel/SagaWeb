@@ -54,12 +54,6 @@ type Order struct {
 	Status   enums.OrderStatus
 }
 
-type ContextKey string
-
-const (
-	UserContextKey ContextKey = "user"
-)
-
 type UpdatedUserInfo struct {
 	Fullname string
 	Email    string

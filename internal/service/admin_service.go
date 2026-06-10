@@ -6,27 +6,35 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
 	"github.com/Euhcslel/SagaWeb/internal/domain/cycle_amounts"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
 	"github.com/Euhcslel/SagaWeb/internal/domain/lift_types"
+	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
 	"github.com/Euhcslel/SagaWeb/internal/domain/options"
 	"github.com/Euhcslel/SagaWeb/internal/domain/products"
 	"github.com/Euhcslel/SagaWeb/internal/domain/rails"
 	"github.com/Euhcslel/SagaWeb/internal/domain/residential_gate_drives"
+	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
 	"github.com/samborkent/uuidv7"
 )
 
 func UploadProductImage(file multipart.File, handler *multipart.FileHeader) (string, error) {
+
 	dir := os.Getenv("IMAGES_DIRECTORY")
 	if dir == "" {
 		return "", fmt.Errorf("переменная IMAGES_DIRECTORY не задана")
 	}
 
-	ext := filepath.Ext(handler.Filename)
+	allowed := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
+	ext := strings.ToLower(filepath.Ext(handler.Filename))
+	if !allowed[ext] {
+		return "", fmt.Errorf("недопустимый тип файла")
+	}
 	filename := uuidv7.New().String() + ext
 
 	path := filepath.Join(dir, filename)
@@ -117,6 +125,26 @@ func AddNewDataBaseTableRow(tableName string, tableData any) error {
 		if err := repository.CreateNewResidentialDrive(tableData); err != nil {
 			return err
 		}
+	case "users":
+		tableData, ok := tableData.(users.User)
+		if !ok {
+			return errs.ErrInvalidTableType
+		}
+
+		if err := repository.AdminCreateUser(tableData); err != nil {
+			return err
+		}
+	case "manual_drive_prices":
+		tableData, ok := tableData.(manual_drive_prices.ManualDrivePrice)
+		if !ok {
+			return errs.ErrInvalidTableType
+		}
+
+		if err := repository.CreateManualDrivePrice(tableData); err != nil {
+			return err
+		}
+	default:
+		return errs.ErrInvalidTableType
 	}
 
 	return nil
@@ -142,6 +170,8 @@ func GetTablePageData(tableName string) (any, error) {
 		return repository.GetResidentialDrives()
 	case "users":
 		return repository.GetAllUsers()
+	case "manual_drive_prices":
+		return repository.GetAllManualDrivePrices()
 	default:
 		return nil, errs.ErrInvalidTableType
 	}
@@ -219,6 +249,26 @@ func UpdateRow(tableName string, tableData any) error {
 		if err := repository.UpdateResidentialDrive(tableData); err != nil {
 			return err
 		}
+	case "users":
+		tableData, ok := tableData.(users.User)
+		if !ok {
+			return errs.ErrInvalidTableType
+		}
+
+		if err := repository.AdminUpdateUser(tableData); err != nil {
+			return err
+		}
+	case "manual_drive_prices":
+		tableData, ok := tableData.(manual_drive_prices.ManualDrivePrice)
+		if !ok {
+			return errs.ErrInvalidTableType
+		}
+
+		if err := repository.UpdateManualDrivePrice(tableData); err != nil {
+			return err
+		}
+	default:
+		return errs.ErrInvalidTableType
 	}
 
 	return nil
@@ -244,7 +294,9 @@ func DeleteRow(tableName string, rowId int64) error {
 		return repository.DeleteResidentialDrive(rowId)
 	case "users":
 		return repository.AdminDeleteUser(rowId)
+	case "manual_drive_prices":
+		return repository.DeleteManualDrivePrice(rowId)
+	default:
+		return errs.ErrInvalidTableType
 	}
-
-	return nil
 }
