@@ -150,6 +150,6 @@ func main() {
 
 	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 
-	err = http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(handlers.SecurityHeaders(mux)))
+	err = http.ListenAndServe(":80", http.NewCrossOriginProtection().Handler(handlers.SecurityHeaders(mux)))
 	log.Fatal(err)
 }
