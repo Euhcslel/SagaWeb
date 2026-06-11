@@ -58,7 +58,10 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pageData, err := service.GetOrderPageData(user, orderID)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -143,6 +146,8 @@ func DeleteUserOrder(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
+
+	http.Redirect(w, r, "/orders", http.StatusSeeOther)
 }
 
 // Route: /orders/{order_id}

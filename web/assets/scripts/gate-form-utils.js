@@ -5,6 +5,8 @@ export const OrderStatus = {
   paid: 2,
   done: 3,
   cancelled: 4,
+  in_production: 5,
+  ready: 6,
 };
 
 // Объект, хранящий номер типа ворот для protobuf

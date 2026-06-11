@@ -24,7 +24,7 @@ func SignInForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := templates.ExecuteTemplate(w, "sign_in.html", data); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}
 }
 
@@ -62,7 +62,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/user", http.StatusSeeOther)
 }
 
 // Route: /sign_up
@@ -105,6 +105,10 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	err = service.SignUp(fullname, company, phone, email)
 	if err != nil {
+		if errors.Is(err, errs.ErrBadRequest) {
+			helpers.WriteError(w, errors.New("заполните все обязательные поля"), http.StatusBadRequest)
+			return
+		}
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}

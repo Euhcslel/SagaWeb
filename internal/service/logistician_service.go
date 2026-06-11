@@ -8,25 +8,19 @@ import (
 	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
-	"github.com/Euhcslel/SagaWeb/internal/domain/orders"
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
 	"github.com/shopspring/decimal"
 	"github.com/xuri/excelize/v2"
 )
 
-func GetAllOrdersForLogistician(user *users.User) ([]orders.Order, error) {
-	if user.Role != enums.LogisticianRole {
-		return nil, fmt.Errorf("доступ запрещён")
-	}
-	return repository.GetAllOrders()
-}
 
-func UpdateOrderByLogistician(user *users.User, orderID int64, status enums.OrderStatus, manufactureDate *time.Time) error {
+func UpdateOrderByLogistician(user *users.User, orderID int64, manufactureDate *time.Time) error {
 	if user.Role != enums.LogisticianRole {
-		return fmt.Errorf("доступ запрещён")
+		return errs.ErrForbidden
 	}
-	return repository.UpdateOrderByLogistician(orderID, status, manufactureDate)
+	return repository.UpdateOrderManufactureDate(orderID, manufactureDate)
 }
 
 func ImportSizePrices(
@@ -81,10 +75,11 @@ func updateSizes(dealerFile multipart.File, clientFile multipart.File, gateType 
 	// Логика идентична cmd/size_import: i и j — 1-индексированные адреса Excel
 	for i := 1; i < len(clientRows); i++ {
 		heightStr, err := clientXlsx.GetCellValue("Лист1", "A"+strconv.Itoa(i))
+		if err != nil {
+			return fmt.Errorf("ошибка чтения высоты (A%d): %w", i, err)
+		}
 		if heightStr == "" {
 			continue
-		} else if err != nil {
-			return fmt.Errorf("ошибка чтения высоты (A%d): %w", i, err)
 		}
 		height, err := strconv.ParseInt(heightStr, 10, 64)
 		if err != nil {
@@ -101,10 +96,11 @@ func updateSizes(dealerFile multipart.File, clientFile multipart.File, gateType 
 			}
 
 			widthStr, err := clientXlsx.GetCellValue("Лист1", colLetter+"1")
+			if err != nil {
+				return fmt.Errorf("ошибка чтения ширины (%s1): %w", colLetter, err)
+			}
 			if widthStr == "" {
 				continue
-			} else if err != nil {
-				return fmt.Errorf("ошибка чтения ширины (%s1): %w", colLetter, err)
 			}
 			width, err := strconv.ParseInt(widthStr, 10, 64)
 			if err != nil {

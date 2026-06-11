@@ -12,7 +12,7 @@
   </head>
   <body>
     {{template "header-nav" .}}
-    <main>
+    <main style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start">
       <div class="card">
         <div class="card-body">
           <h2 class="card-title">Информация о пользователе</h2>
@@ -126,6 +126,58 @@
           </form>
         </div>
       </div>
+      {{if .userInfo.IsDealer}}
+      <div class="card">
+        <div class="card-body">
+          <h2 class="card-title">Реквизиты компании</h2>
+          <form action="/user/company" method="post">
+            <div>
+              <label class="input">
+                ИНН
+                <input
+                  name="inn"
+                  type="text"
+                  value="{{.userInfo.Dealer.INN}}"
+                  placeholder="ИНН (10 или 12 цифр)"
+                  pattern="[0-9]{10}([0-9]{2})?"
+                  maxlength="12"
+                  title="10 или 12 цифр"
+                />
+              </label>
+            </div>
+            <div>
+              <label class="input">
+                КПП
+                <input
+                  name="kpp"
+                  type="text"
+                  value="{{.userInfo.Dealer.KPP}}"
+                  placeholder="КПП (9 цифр)"
+                  pattern="[0-9]{9}"
+                  maxlength="9"
+                  title="9 цифр"
+                />
+              </label>
+            </div>
+            <div>
+              <label class="input">
+                ОГРН
+                <input
+                  name="ogrn"
+                  type="text"
+                  value="{{.userInfo.Dealer.OGRN}}"
+                  placeholder="ОГРН (13 или 15 цифр)"
+                  pattern="[0-9]{13}([0-9]{2})?"
+                  maxlength="15"
+                  title="13 или 15 цифр"
+                />
+              </label>
+            </div>
+            <button class="btn secondary" type="submit">Сохранить реквизиты</button>
+          </form>
+        </div>
+      </div>
+      {{end}}
     </main>
     {{template "footer" .}}
   </body>

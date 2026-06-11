@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_registration_requests"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
@@ -22,7 +23,7 @@ func SignIn(email, password string) (int64, error) {
 	userID := user.ID
 
 	dbPassword := user.PasswordHash
-	err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
+	err = bcrypt.CompareHashAndPassword(dbPassword, []byte(password))
 	if err != nil {
 		return 0, errs.ErrInvalidCredentials
 	}
@@ -30,6 +31,10 @@ func SignIn(email, password string) (int64, error) {
 }
 
 func SignUp(fullname, company, phone, email string) error {
+	if strings.TrimSpace(fullname) == "" || strings.TrimSpace(email) == "" || strings.TrimSpace(phone) == "" {
+		return errs.ErrBadRequest
+	}
+
 	request := dealer_registration_requests.DealerRegistrationRequest{
 		Company:     company,
 		Fullname:    fullname,

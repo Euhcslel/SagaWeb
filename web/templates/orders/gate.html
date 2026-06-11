@@ -461,6 +461,7 @@
                         `pending`}}disabled{{end}}
                       />
                       <span class="option-price-display"></span>
+                      {{if eq $.orderStatus `pending`}}
                       <button
                         type="button"
                         class="btn secondary"
@@ -468,6 +469,7 @@
                       >
                         Удалить
                       </button>
+                      {{end}}
                     </div>
                   </li>
 
@@ -520,12 +522,11 @@
     </main>
     <!--Блок для выбора дополнительных опций к воротам-->
     <template id="option-template">
-      <div class="option-item">
+      <li class="option-item">
         <select
           name="option"
           class="option select"
           onchange="window.updateOptionsPrice(this)"
-          width="300"
         >
           {{range .cfg.Options}}
           <option
@@ -555,7 +556,7 @@
             Удалить
           </button>
         </div>
-      </div>
+      </li>
     </template>
     <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
   </body>

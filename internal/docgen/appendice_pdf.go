@@ -1,7 +1,6 @@
 package docgen
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
@@ -17,18 +16,19 @@ func formatDateRu(t time.Time) string {
 	return fmt.Sprintf("«%d» %s %d г.", t.Day(), ruMonths[t.Month()-1], t.Year())
 }
 
-// CustomerInfo содержит данные о заказчике для приложения к договору
+// CustomerInfo содержит данные о заказчике для приложения к договору.
 type CustomerInfo struct {
 	OrganizationName string // Наименование организации или ФИО
 	ContactPerson    string // Контактное лицо
 	Phone            string // Телефон
 }
 
-// GenerateAppendix генерирует PDF приложения к договору для конкретного заказа
-func GenerateAppendix(
+// GenerateAppendice генерирует PDF приложения к договору для конкретного заказа.
+func GenerateAppendice(
 	order *types.Order,
+	company CompanyInfo,
 	customer CustomerInfo,
-	appendixNumber int,
+	appendiceNumber int,
 	contractNumber string,
 	contractDate time.Time,
 ) ([]byte, error) {
@@ -36,7 +36,7 @@ func GenerateAppendix(
 
 	// Шапка
 	d.pdf.SetFont("DejaVu", "B", 11)
-	d.pdf.CellFormat(0, 6, fmt.Sprintf("Приложение № %d", appendixNumber), "", 1, "L", false, 0, "")
+	d.pdf.CellFormat(0, 6, fmt.Sprintf("Приложение № %d", appendiceNumber), "", 1, "L", false, 0, "")
 	d.pdf.SetFont("DejaVu", "", 9)
 	d.pdf.CellFormat(0, 5, fmt.Sprintf("к Договору № %s от %s", contractNumber, formatDateRu(contractDate)), "", 1, "L", false, 0, "")
 	d.pdf.Ln(3)
@@ -45,14 +45,16 @@ func GenerateAppendix(
 	d.pdf.SetFont("DejaVu", "", 9)
 	d.pdf.CellFormat(0, 5, "Поставщик:", "", 1, "L", false, 0, "")
 	d.pdf.SetFont("DejaVu", "B", 9)
-	d.pdf.CellFormat(0, 5, "ООО «САГА»", "", 1, "L", false, 0, "")
+	d.pdf.CellFormat(0, 5, company.Name, "", 1, "L", false, 0, "")
 	d.pdf.SetFont("DejaVu", "", 9)
-	d.pdf.CellFormat(0, 5, "ИНН/КПП 6671287803/667801001", "", 1, "L", false, 0, "")
+	if company.INN != "" || company.KPP != "" {
+		d.pdf.CellFormat(0, 5, "ИНН/КПП "+company.INN+"/"+company.KPP, "", 1, "L", false, 0, "")
+	}
 	d.pdf.Ln(5)
 
 	// Центрированный заголовок приложения
 	d.pdf.SetFont("DejaVu", "B", 12)
-	d.pdf.CellFormat(0, 7, fmt.Sprintf("Приложение № %d от %sг.", appendixNumber, time.Now().Format("02.01.2006")), "", 1, "C", false, 0, "")
+	d.pdf.CellFormat(0, 7, fmt.Sprintf("Приложение № %d от %sг.", appendiceNumber, time.Now().Format("02.01.2006")), "", 1, "C", false, 0, "")
 	d.pdf.Ln(4)
 
 	// Данные заказчика
@@ -61,31 +63,22 @@ func GenerateAppendix(
 
 	// Ворота
 	for i, g := range order.Gates {
-		d.drawGateSection(i+1, g)
+		d.drawGateSectionSingle(i+1, g)
 		d.pdf.Ln(4)
 	}
 
 	// Дополнительные товары
 	if len(order.Products) > 0 {
-		startNo := len(order.Gates) + 1
-		d.drawProductsSection(startNo, order.Products)
+		d.drawProductsSectionSingle(len(order.Gates)+1, order.Products)
 		d.pdf.Ln(4)
 	}
 
 	// Итог
-	d.drawGrandTotal(order)
-
+	d.drawGrandTotalSingle(order)
 	d.pdf.Ln(10)
-	d.drawAppendixSignatures(customer)
+	d.drawAppendiceSignatures(company, customer)
 
-	if err := d.pdf.Error(); err != nil {
-		return nil, fmt.Errorf("ошибка построения PDF: %w", err)
-	}
-	var buf bytes.Buffer
-	if err := d.pdf.Output(&buf); err != nil {
-		return nil, fmt.Errorf("ошибка вывода PDF: %w", err)
-	}
-	return buf.Bytes(), nil
+	return renderPDF(d)
 }
 
 func (d *Doc) drawCustomerBlock(c CustomerInfo) {
@@ -104,7 +97,7 @@ func (d *Doc) drawCustomerBlock(c CustomerInfo) {
 	row("Тел.:", c.Phone)
 }
 
-func (d *Doc) drawAppendixSignatures(c CustomerInfo) {
+func (d *Doc) drawAppendiceSignatures(company CompanyInfo, c CustomerInfo) {
 	sigW := contentWidth / 2
 	d.pdf.SetFont("DejaVu", "", 9)
 	d.pdf.CellFormat(sigW, 6, "Поставщик __________________", "", 0, "L", false, 0, "")
@@ -114,5 +107,7 @@ func (d *Doc) drawAppendixSignatures(c CustomerInfo) {
 	}
 	d.pdf.CellFormat(sigW, 6, buyer, "", 1, "L", false, 0, "")
 	d.pdf.Ln(8)
-	d.addLine("Гарантия на оборудование - 12 месяцев, на автоматику 24 месяца.")
+	if company.WarrantyEquipment != "" || company.WarrantyAutomation != "" {
+		d.addLine(fmt.Sprintf("Гарантия на оборудование — %s, на автоматику %s.", company.WarrantyEquipment, company.WarrantyAutomation))
+	}
 }

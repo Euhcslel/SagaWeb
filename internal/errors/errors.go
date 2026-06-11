@@ -12,4 +12,5 @@ var (
 	ErrInvalidDocumentType = errors.New("invalid document type")
 	ErrInvalidTableType    = errors.New("invalid table type")
 	ErrBadRequest          = errors.New("bad user request")
+	ErrNoDealerContract    = errors.New("у дилера отсутствует договор")
 )

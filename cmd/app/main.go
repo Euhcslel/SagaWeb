@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/docgen"
 	"github.com/Euhcslel/SagaWeb/internal/domain/sessions"
 	handlers "github.com/Euhcslel/SagaWeb/internal/transport/http"
 
@@ -20,6 +21,8 @@ func main() {
 	if err_load != nil {
 		log.Fatal("error loading .env file")
 	}
+
+	docgen.InitCompany()
 
 	logFile, err := os.OpenFile("logs/error.log",
 		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
@@ -93,6 +96,8 @@ func main() {
 
 	mux.Handle("GET /user/dealers", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserDealers)))
 	mux.Handle("POST /user/dealers/{dealer_id}/contract", handlers.RequireAuth(http.HandlerFunc(handlers.AttachContractToDealer)))
+	mux.Handle("GET /user/dealers/{dealer_id}/contract/generate", handlers.RequireAuth(http.HandlerFunc(handlers.GenerateDealerContract)))
+	mux.Handle("POST /user/company", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateCompanyDetails)))
 
 	// Заявки на регистрацию
 	mux.Handle("GET /dealers/requests", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealersRegRequests)))
@@ -123,7 +128,9 @@ func main() {
 	mux.Handle("GET /orders/{order_id}/documents/{document_type}/{document_name}", handlers.RequireAuth(http.HandlerFunc(handlers.DownloadOrderDocument)))
 	mux.Handle("DELETE /orders/{order_id}/documents/{document_type}/{document_name}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteOrderDocument)))
 	mux.Handle("POST /offer", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetOfferForOrder)))
-	mux.Handle("GET /orders/{order_id}/appendix", handlers.RequireAuth(http.HandlerFunc(handlers.GetAppendixForOrder)))
+	mux.Handle("GET /orders/{order_id}/appendice", handlers.RequireAuth(http.HandlerFunc(handlers.GetAppendiceForOrder)))
+	mux.Handle("GET /orders/{order_id}/offer/client", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealerOfferForClient)))
+	mux.Handle("GET /orders/{order_id}/offer/self", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealerOfferForSelf)))
 
 	mux.Handle("GET /calculator", handlers.CacheControl("private, max-age=300")(handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCalculatorForUser))))
 	mux.Handle("GET /catalog", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCatalog)))
@@ -143,6 +150,6 @@ func main() {
 
 	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 
-	err = http.ListenAndServe(":80", http.NewCrossOriginProtection().Handler(handlers.SecurityHeaders(mux)))
+	err = http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(handlers.SecurityHeaders(mux)))
 	log.Fatal(err)
 }

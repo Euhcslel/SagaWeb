@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -95,6 +96,11 @@ func UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 func GetDealersRegRequests(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
+	if user.Role != enums.ManagerRole && user.Role != enums.AdminRole {
+		helpers.WriteError(w, errs.ErrForbidden, http.StatusForbidden)
+		return
+	}
+
 	regRequests, err := service.GetDealersRegistrationRequests()
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
@@ -124,6 +130,10 @@ func ConfirmDealerRegRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := service.ConfirmDealerRegistrationRequest(user, requestId); err != nil {
+		if errors.Is(err, errs.ErrForbidden) {
+			helpers.WriteError(w, err, http.StatusForbidden)
+			return
+		}
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -132,6 +142,13 @@ func ConfirmDealerRegRequest(w http.ResponseWriter, r *http.Request) {
 // Route: /dealers/requests/{request_id}/reject
 // Method: POST
 func RejectDealerRegRequest(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	if user.Role != enums.ManagerRole && user.Role != enums.AdminRole {
+		helpers.WriteError(w, errs.ErrForbidden, http.StatusForbidden)
+		return
+	}
+
 	requestId, err := strconv.ParseInt(r.PathValue("request_id"), 10, 64)
 	if err != nil {
 		helpers.WriteError(w, err, http.StatusBadRequest)
@@ -142,6 +159,53 @@ func RejectDealerRegRequest(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
+}
+
+// Route: /user/company
+// Method: POST
+func UpdateCompanyDetails(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	if err := r.ParseForm(); err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err := service.UpdateCompanyDetails(user, r.FormValue("inn"), r.FormValue("kpp"), r.FormValue("ogrn"))
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/user", http.StatusSeeOther)
+}
+
+// Route: /user/dealers/{dealer_id}/contract/generate
+// Method: GET
+func GenerateDealerContract(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	dealerID, err := strconv.ParseInt(r.PathValue("dealer_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	data, err := service.GenerateDealerContract(user, dealerID)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="contract_%d.docx"`, dealerID))
+	w.Write(data)
 }
 
 // Route: /user/dealers/{dealer_id}/contract

@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	"github.com/shopspring/decimal"
 
 	"github.com/Euhcslel/SagaWeb/internal/domain/colors"
@@ -49,9 +51,10 @@ type Gate struct {
 }
 
 type Order struct {
-	Gates    []Gate
-	Products []order_products.OrderProduct
-	Status   enums.OrderStatus
+	Gates           []Gate
+	Products        []order_products.OrderProduct
+	Status          enums.OrderStatus
+	ManufactureDate *time.Time
 }
 
 type UpdatedUserInfo struct {

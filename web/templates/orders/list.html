@@ -16,6 +16,17 @@
       <div class="table-container">
         <h1>Все заказы пользователя</h1>
         <hr class="gradient-line" />
+        <div class="filter-bar">
+          <label>
+            Статус:
+            <select class="select" id="status-filter" onchange="filterOrders()">
+              <option value="">Все</option>
+              {{range .statuses}}
+              <option value="{{.}}">{{.Label}}</option>
+              {{end}}
+            </select>
+          </label>
+        </div>
         <div class="table-scroll">
           <table class="table">
             <thead>
@@ -38,6 +49,8 @@
                     {{if eq .Status `paid`}}class="status-paid"{{end}}
                     {{if eq .Status `cancelled`}}class="status-cancelled"{{end}}
                     {{if eq .Status `done`}}class="status-done"{{end}}
+                    {{if eq .Status `in_production`}}class="status-in_production"{{end}}
+                    {{if eq .Status `ready`}}class="status-ready"{{end}}
                 data-id="{{.ID}}"
                 data-status="{{.Status}}"
                 data-manufacture-date="{{fmtDate .ManufactureDate}}"
@@ -82,7 +95,8 @@
     <dialog id="edit-modal" class="modal">
       <div class="modal-box">
         <h2>Заказ #<span id="modal-order-id"></span></h2>
-        <form id="edit-form" onsubmit="submitEdit(event)">
+
+        <form id="status-form" onsubmit="submitStatusChange(event)">
           <label>
             Статус
             <select class="select" name="status" id="modal-status">
@@ -91,56 +105,134 @@
               {{end}}
             </select>
           </label>
+          <div>
+            <button class="btn primary" type="submit">Изменить статус</button>
+          </div>
+        </form>
+
+        <hr />
+
+        <form id="date-form" onsubmit="submitDateChange(event)">
           <label>
             Дата готовности
             <input class="input" type="date" name="manufacture_date" id="modal-manufacture-date" />
           </label>
           <div>
-            <button class="btn primary" type="submit">Сохранить</button>
-            <button class="btn secondary" type="button" onclick="document.getElementById('edit-modal').close()">Отмена</button>
+            <button class="btn primary" type="submit">Сохранить дату</button>
           </div>
         </form>
+
+        <div>
+          <button class="btn secondary" type="button" onclick="document.getElementById('edit-modal').close()">Закрыть</button>
+        </div>
       </div>
     </dialog>
 
-    <script>
+    <script type="module">
+      import {
+        create,
+        toBinary,
+        fromBinary,
+        DocumentsListSchema,
+        UpdateOrderStatusRequestSchema,
+      } from "/web/assets/scripts/proto_bundle.js";
+      import { OrderStatus } from "/web/assets/scripts/gate-form-utils.js";
+
+      const STATUS_REQUIRES_DOCS = new Set(["paid", "in_production", "ready", "done"]);
       let currentOrderId = null;
 
-      function openEditModal(btn) {
+      window.openEditModal = function(btn) {
         const row = btn.closest('tr');
         currentOrderId = row.dataset.id;
-
         document.getElementById('modal-order-id').textContent = currentOrderId;
         document.getElementById('modal-status').value = row.dataset.status;
         document.getElementById('modal-manufacture-date').value = row.dataset.manufactureDate || '';
-
         document.getElementById('edit-modal').showModal();
-      }
+      };
 
-      async function submitEdit(e) {
+      window.submitStatusChange = async function(e) {
         e.preventDefault();
-        const form = e.target;
-        const body = {
-          status: form.status.value,
-          manufacture_date: form.manufacture_date.value,
-        };
+        const selectedStatus = document.getElementById('modal-status').value;
 
-        const resp = await fetch(`/logistician/orders/${currentOrderId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
+        if (STATUS_REQUIRES_DOCS.has(selectedStatus)) {
+          try {
+            const docsRes = await fetch(`/orders/${currentOrderId}/documents`);
+            if (!docsRes.ok) throw new Error("Не удалось проверить документы заказа");
 
-        if (resp.ok) {
-          document.getElementById('edit-modal').close();
-          window.location.reload();
-        } else {
-          alert('Ошибка при сохранении');
+            const docsArr = await docsRes.arrayBuffer();
+            const docsList = fromBinary(DocumentsListSchema, new Uint8Array(docsArr));
+
+            if (!docsList.contracts || docsList.contracts.length === 0) {
+              Swal.fire({ title: "Невозможно изменить статус", text: "К заказу не прикреплено приложение к договору", icon: "warning" });
+              return;
+            }
+            if (!docsList.bills || docsList.bills.length === 0) {
+              Swal.fire({ title: "Невозможно изменить статус", text: "К заказу не прикреплён счёт", icon: "warning" });
+              return;
+            }
+          } catch (err) {
+            Swal.fire({ title: "Ошибка", text: err.message, icon: "error" });
+            return;
+          }
         }
-      }
+
+        try {
+          const msg = create(UpdateOrderStatusRequestSchema, { status: OrderStatus[selectedStatus] });
+          const buf = toBinary(UpdateOrderStatusRequestSchema, msg);
+
+          const resp = await fetch(`/orders/${currentOrderId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/x-protobuf' },
+            body: buf,
+          });
+
+          if (resp.ok) {
+            document.getElementById('edit-modal').close();
+            window.location.reload();
+          } else {
+            const errorText = await resp.text();
+            Swal.fire({ title: 'Ошибка', text: errorText || 'Ошибка при изменении статуса', icon: 'error' });
+          }
+        } catch (err) {
+          Swal.fire({ title: 'Ошибка', text: err.message, icon: 'error' });
+        }
+      };
+
+      window.submitDateChange = async function(e) {
+        e.preventDefault();
+        const manufactureDate = document.getElementById('modal-manufacture-date').value;
+
+        try {
+          const resp = await fetch(`/logistician/orders/${currentOrderId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ manufacture_date: manufactureDate }),
+          });
+
+          if (resp.ok) {
+            document.getElementById('edit-modal').close();
+            window.location.reload();
+          } else {
+            const errorText = await resp.text();
+            Swal.fire({ title: 'Ошибка', text: errorText || 'Ошибка при сохранении даты', icon: 'error' });
+          }
+        } catch (err) {
+          Swal.fire({ title: 'Ошибка', text: err.message, icon: 'error' });
+        }
+      };
     </script>
     {{end}}
 
+    <script>
+      function filterOrders() {
+        const filter = document.getElementById('status-filter').value;
+        document.querySelectorAll('tbody tr').forEach(function(row) {
+          row.style.display = (!filter || row.dataset.status === filter) ? '' : 'none';
+        });
+      }
+    </script>
+
+    <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>
     {{template "footer" .}}
   </body>
 </html>

@@ -23,7 +23,7 @@ func CreateDealerRegistrationRequest(request dealer_registration_requests.Dealer
 }
 
 func DeleteSession(token string) error {
-	return database.DB.Where("token = ?", token).Delete(sessions.Session{}).Error
+	return database.DB.Where("token = ?", token).Delete(&sessions.Session{}).Error
 }
 
 func GetAllDealerRegistrationRequests() ([]dealer_registration_requests.DealerRegistrationRequest, error) {

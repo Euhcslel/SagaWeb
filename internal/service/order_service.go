@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/database"
@@ -107,11 +108,17 @@ func GetOrderPageData(user *users.User, orderID int64) (*orderPageData, error) {
 
 	orderStatus := enums.OrderStatus(*status)
 
+	manufactureDate, err := repository.GetOrderManufactureDate(database.DB, orderID)
+	if err != nil {
+		return nil, err
+	}
+
 	// Группируем в gates
 	order := types.Order{
-		Gates:    []types.Gate{},
-		Products: []order_products.OrderProduct{},
-		Status:   orderStatus,
+		Gates:           []types.Gate{},
+		Products:        []order_products.OrderProduct{},
+		Status:          orderStatus,
+		ManufactureDate: manufactureDate,
 	}
 
 	for _, og := range orderGates {
@@ -388,6 +395,10 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*o
 			return nil, err
 		}
 
+		if len(cfg.IndustrialDrives) == 0 || len(cfg.LiftTypes) == 0 || len(cfg.CycleAmounts) == 0 || len(cfg.Colors) == 0 {
+			return nil, fmt.Errorf("конфигурация неполная: в базе данных отсутствуют необходимые справочники")
+		}
+
 		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
 			gateType, types.PricePair{WholesalePrice: cfg.IndustrialDrives[0].WholesalePrice,
 				RetailPrice: cfg.IndustrialDrives[0].RetailPrice}, cfg.LiftTypes[0], cfg.CycleAmounts[0],
@@ -411,12 +422,12 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*o
 			GateWholesalePrice: gatePrice.WholesalePrice,
 		}
 
-		gate, err = repository.CreateNewGate(database.DB, gate)
+		gate, err = repository.CreateNewGate(tx, gate)
 		if err != nil {
 			return nil, err
 		}
 
-		err = repository.CreateIndustrialDriveForGate(database.DB, orderID, gate.RowNumber, int64(cfg.IndustrialDrives[0].ID))
+		err = repository.CreateIndustrialDriveForGate(tx, orderID, gate.RowNumber, int64(cfg.IndustrialDrives[0].ID))
 		if err != nil {
 			return nil, err
 		}
@@ -427,6 +438,10 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*o
 		cfg, err := GetGateCfg(gateType, true)
 		if err != nil {
 			return nil, err
+		}
+
+		if len(cfg.ResidentialDrives) == 0 || len(cfg.LiftTypes) == 0 || len(cfg.CycleAmounts) == 0 || len(cfg.Colors) == 0 || len(cfg.Rails) == 0 {
+			return nil, fmt.Errorf("конфигурация неполная: в базе данных отсутствуют необходимые справочники")
 		}
 
 		gatePrice, err := calculateGatePrice(cfg.WidthParams.MinValue, cfg.HeightParams.MinValue,
@@ -452,12 +467,12 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*o
 			GateWholesalePrice: gatePrice.WholesalePrice,
 		}
 
-		gate, err = repository.CreateNewGate(database.DB, gate)
+		gate, err = repository.CreateNewGate(tx, gate)
 		if err != nil {
 			return nil, err
 		}
 
-		err = repository.CreateResidentialDriveForGate(database.DB, orderID, gate.RowNumber, cfg.ResidentialDrives[0].ID, cfg.Rails[0].ID)
+		err = repository.CreateResidentialDriveForGate(tx, orderID, gate.RowNumber, cfg.ResidentialDrives[0].ID, cfg.Rails[0].ID)
 		if err != nil {
 			return nil, err
 		}

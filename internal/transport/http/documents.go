@@ -1,12 +1,14 @@
 package http
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"time"
 
+	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/generated"
 	"github.com/Euhcslel/SagaWeb/internal/helpers"
 	"github.com/Euhcslel/SagaWeb/internal/service"
@@ -26,7 +28,10 @@ func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := service.GetAllOrderDocuments(user, orderID)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -67,7 +72,10 @@ func UploadOfferToOrder(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	err = service.UploadOfferToOrder(user, orderID, file, handler)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -100,7 +108,10 @@ func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	err = service.UploadContractToOrder(user, orderID, file, handler)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -133,7 +144,10 @@ func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	err = service.UploadBillToOrder(user, orderID, file, handler)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -156,12 +170,18 @@ func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
 	documentName := r.PathValue("document_name")
 
 	fileInfo, err := service.GetFileInfo(user, orderID, documentType, documentName)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if errors.Is(err, errs.ErrInvalidDocumentType) {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Disposition", "attachment; filename="+fileInfo.FileName)
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileInfo.FileName))
 	http.ServeFile(w, r, fileInfo.FilePath)
 }
 
@@ -179,16 +199,23 @@ func DeleteOrderDocument(w http.ResponseWriter, r *http.Request) {
 	documentType := r.PathValue("document_type")
 	documentName := r.PathValue("document_name")
 
-	if err := service.DeleteOrderDocument(user, orderID, documentType, documentName); err != nil {
+	err = service.DeleteOrderDocument(user, orderID, documentType, documentName)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if errors.Is(err, errs.ErrInvalidDocumentType) {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 }
 
-// Route: /orders/{order_id}/appendix
+// Route: /orders/{order_id}/appendice
 // Method: GET
-// Query params: contract_number (string), appendix_number (int, default 1), contract_date (YYYY-MM-DD, default today)
-func GetAppendixForOrder(w http.ResponseWriter, r *http.Request) {
+// Query params: contract_number (string), appendice_number (int, default 1), contract_date (YYYY-MM-DD, default today)
+func GetAppendiceForOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
 	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
@@ -203,11 +230,11 @@ func GetAppendixForOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appendixNumber := 1
-	if v := r.URL.Query().Get("appendix_number"); v != "" {
-		appendixNumber, err = strconv.Atoi(v)
-		if err != nil || appendixNumber < 1 {
-			helpers.WriteError(w, fmt.Errorf("некорректный appendix_number"), http.StatusBadRequest)
+	appendiceNumber := 1
+	if v := r.URL.Query().Get("appendice_number"); v != "" {
+		appendiceNumber, err = strconv.Atoi(v)
+		if err != nil || appendiceNumber < 1 {
+			helpers.WriteError(w, fmt.Errorf("некорректный appendice_number"), http.StatusBadRequest)
 			return
 		}
 	}
@@ -221,15 +248,85 @@ func GetAppendixForOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	file, err := service.GetAppendixForOrder(user, orderID, appendixNumber, contractNumber, contractDate)
-	if err != nil {
+	file, err := service.GetAppendiceForOrder(user, orderID, appendiceNumber, contractNumber, contractDate)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if errors.Is(err, errs.ErrNoDealerContract) {
+		helpers.WriteError(w, err, http.StatusUnprocessableEntity)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	filename := fmt.Sprintf("appendix_%d_%d.pdf", orderID, appendixNumber)
+	filename := fmt.Sprintf("appendice_%d_%d.pdf", orderID, appendiceNumber)
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	w.Write(file)
+}
+
+// Route: /orders/{order_id}/offer/client
+// Method: GET
+// Query: client_name (string)
+func GetDealerOfferForClient(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	clientName := r.URL.Query().Get("client_name")
+	if clientName == "" {
+		helpers.WriteError(w, fmt.Errorf("client_name обязателен"), http.StatusBadRequest)
+		return
+	}
+
+	file, err := service.GetDealerOfferForClient(user, orderID, clientName)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="offer_%d_client.pdf"`, orderID))
+	w.Write(file)
+}
+
+// Route: /orders/{order_id}/offer/self
+// Method: GET
+// Query: client_name (string)
+func GetDealerOfferForSelf(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	clientName := r.URL.Query().Get("client_name")
+	if clientName == "" {
+		helpers.WriteError(w, fmt.Errorf("client_name обязателен"), http.StatusBadRequest)
+		return
+	}
+
+	file, err := service.GetDealerOfferForSelf(user, orderID, clientName)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="offer_%d_self.pdf"`, orderID))
 	w.Write(file)
 }
 

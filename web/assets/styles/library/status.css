@@ -33,6 +33,16 @@
   color: var(--color-done-content);
 }
 
+.status-in_production {
+  background-color: var(--color-in-production);
+  color: var(--color-in-production-content);
+}
+
+.status-ready {
+  background-color: var(--color-ready);
+  color: var(--color-ready-content);
+}
+
 .status-accent {
   background-color: var(--color-accent);
   color: var(--color-accent-content);

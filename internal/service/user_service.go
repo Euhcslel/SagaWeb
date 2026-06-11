@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/Euhcslel/SagaWeb/internal/docgen"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_contract"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
@@ -113,6 +114,9 @@ type UserInfo struct {
 type DealerInfo struct {
 	CompanyName string
 	Address     string
+	INN         string
+	KPP         string
+	OGRN        string
 }
 
 func GetUserInfo(user *users.User) (*UserInfo, error) {
@@ -131,18 +135,49 @@ func GetUserInfo(user *users.User) (*UserInfo, error) {
 			return nil, err
 		}
 
-		address := ""
-		if dealer.Address != nil {
-			address = *dealer.Address
-		}
-
 		userInfo.Dealer = &DealerInfo{
 			CompanyName: dealer.Company.Name,
-			Address:     address,
+			Address:     ptrVal(dealer.Address),
+			INN:         ptrVal(dealer.Company.INN),
+			KPP:         ptrVal(dealer.Company.KPP),
+			OGRN:        ptrVal(dealer.Company.OGRN),
 		}
 	}
 
 	return userInfo, nil
+}
+
+func ptrVal(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func UpdateCompanyDetails(user *users.User, inn, kpp, ogrn string) error {
+	if user.Role != enums.DealerRole {
+		return errs.ErrForbidden
+	}
+	dealer, err := repository.GetDealerByID(database.DB, user.ID)
+	if err != nil {
+		return err
+	}
+	return repository.UpdateCompanyDetails(database.DB, dealer.CompanyID, inn, kpp, ogrn)
+}
+
+func GenerateDealerContract(manager *users.User, dealerID int64) ([]byte, error) {
+	if manager.Role != enums.ManagerRole && manager.Role != enums.AdminRole {
+		return nil, errs.ErrForbidden
+	}
+	dealer, err := repository.GetDealerWithUser(database.DB, dealerID)
+	if err != nil {
+		return nil, err
+	}
+	contractNumber, err := repository.GetNextContractNumber(database.DB)
+	if err != nil {
+		return nil, err
+	}
+	return docgen.GenerateContract(dealer, &dealer.User, contractNumber, time.Now())
 }
 
 func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
@@ -179,6 +214,10 @@ func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
 }
 
 func ConfirmDealerRegistrationRequest(manager *users.User, requestID int64) error {
+	if manager.Role != enums.ManagerRole && manager.Role != enums.AdminRole {
+		return errs.ErrForbidden
+	}
+
 	password, err := generatePassword(18)
 	if err != nil {
 		return err
@@ -190,6 +229,10 @@ func ConfirmDealerRegistrationRequest(manager *users.User, requestID int64) erro
 	}
 
 	tx := database.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+	defer tx.Rollback()
 
 	request, err := repository.GetRegistrationRequestByID(tx, requestID)
 	if err != nil {
@@ -228,11 +271,12 @@ func ConfirmDealerRegistrationRequest(manager *users.User, requestID int64) erro
 		return err
 	}
 
-	if err := sendPasswordEmail(newUser.Email, newUser.Fullname, password); err != nil {
+
+	if err := tx.Commit().Error; err != nil {
 		return err
 	}
 
-	if err := tx.Commit().Error; err != nil {
+	if err := sendPasswordEmail(newUser.Email, newUser.Fullname, password); err != nil {
 		return err
 	}
 

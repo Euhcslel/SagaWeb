@@ -220,12 +220,16 @@ window.updateGateSizePrice = async (input) => {
 
   updateGatePreview(gate);
 
-  const price = await fetchSizePrice(width.value, height.value, gateType.value);
+  try {
+    const price = await fetchSizePrice(width.value, height.value, gateType.value);
 
-  sizes.dataset.retailPrice = price.retail;
-  sizes.dataset.wholesalePrice = price.wholesale;
+    sizes.dataset.retailPrice = price.retail;
+    sizes.dataset.wholesalePrice = price.wholesale;
 
-  updateGatePrice(gate);
+    updateGatePrice(gate);
+  } catch (error) {
+    Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
+  }
 };
 
 function getSelectedGateColor(gate) {
@@ -321,40 +325,50 @@ window.updateGatePreview = updateGatePreview;
 // Собирает все данные с формы, кодирует для protobuf и отправляет на сервер
 // Получает pdf-файл и скачивает его
 window.downloadOffer = async () => {
-  const payload = {
-    orderGates: buildGatePayload(),
-    products: buildProductsList(),
-  };
+  try {
+    const payload = {
+      orderGates: buildGatePayload(),
+      products: buildProductsList(),
+    };
 
-  const msg = create(OrderRequestSchema, payload);
-  const buf = toBinary(OrderRequestSchema, msg);
+    const msg = create(OrderRequestSchema, payload);
+    const buf = toBinary(OrderRequestSchema, msg);
 
-  const res = await fetch("/offer", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-protobuf" },
-    body: buf,
-  });
+    const res = await fetch("/offer", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-protobuf" },
+      body: buf,
+    });
 
-  if (!res.ok) {
-    throw new Error("Не удалось сформировать КП");
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || "Не удалось сформировать КП");
+    }
+
+    const blob = await res.blob();
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "commercial-offer.pdf";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
   }
-
-  const blob = await res.blob();
-
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "commercial-offer.pdf";
-  a.click();
-
-  URL.revokeObjectURL(url);
 };
 
 // Функция, запрашивающая цену за размер ворот
 // принимает параметры: w - ширина, h - высота, t - тип ворот
 async function fetchSizePrice(w, h, t) {
   const res = await fetch(`/sizes?width=${w}&height=${h}&gateType=${t}`);
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || "Не удалось получить цену для указанных размеров");
+  }
 
   const buf = await res.arrayBuffer();
 
@@ -557,23 +571,30 @@ window.placeOrder = async () => {
   });
 
   if (result.isConfirmed) {
-    const payload = {
-      orderGates: buildGatePayload(),
-      products: buildProductsList(),
-    };
+    try {
+      const payload = {
+        orderGates: buildGatePayload(),
+        products: buildProductsList(),
+      };
 
-    const msg = create(OrderRequestSchema, payload);
-    const buf = toBinary(OrderRequestSchema, msg);
+      const msg = create(OrderRequestSchema, payload);
+      const buf = toBinary(OrderRequestSchema, msg);
 
-    const res = await fetch("/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-protobuf" },
-      body: buf,
-    });
+      const res = await fetch("/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-protobuf" },
+        body: buf,
+      });
 
-    if (!res.ok) throw new Error("Order request failed");
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Не удалось оформить заказ");
+      }
 
-    window.location.href = "/orders";
+      window.location.href = "/orders";
+    } catch (error) {
+      Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
+    }
   }
 };
 

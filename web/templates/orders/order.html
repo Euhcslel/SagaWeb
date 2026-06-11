@@ -38,10 +38,15 @@
         <button class="btn secondary" onclick="window.loadDocuments()">
           Список документов
         </button>
-        <!--Скачать приложение к договору-->
-        <button class="btn secondary" onclick="document.getElementById('appendix-modal').showModal()">
+        <!--Приложение к договору и КП — только для дилера-->
+        {{if eq .user.Role "dealer"}}
+        <button class="btn secondary" onclick="document.getElementById('appendice-modal').showModal()">
           Приложение к договору
         </button>
+        <button class="btn secondary" onclick="document.getElementById('offer-modal').showModal()">
+          Коммерческое предложение
+        </button>
+        {{end}}
         <!--Статус-->
         {{if ne .user.Role "dealer"}}
         <select
@@ -59,6 +64,7 @@
         {{else}}
         <p>Статус: {{.order.Status.Label}}</p>
         {{end}}
+        <p>Дата готовности: {{if .order.ManufactureDate}}{{fmtDateDisplay .order.ManufactureDate}}{{else}}не указана{{end}}</p>
       </div>
       <!--Содержимое заказа-->
       <div class="order-content">
@@ -271,66 +277,66 @@
       <!--Модальное окно для добавления документов-->
       <dialog id="add-documents-modal" class="modal">
         <div class="modal-box">
-          <h3>Добавление докуменов</h3>
+          <h3>Добавление документов</h3>
           <div class="file-inputs">
-            <!--Загрузка КП на сервевр-->
-            <form
-              id="uploadOfferForm"
-              action="/orders/{{.orderId}}/offer"
-              method="POST"
-              enctype="multipart/form-data"
-            >
-              <input type="file" name="file" class="file-input" />
-              <button type="submit" class="btn secondary">Загрузить КП</button>
-            </form>
-
-            <!--Загрузка договора на сервевр-->
-            <form
-              id="uploadContractForm"
-              action="/orders/{{.orderId}}/contract"
-              method="POST"
-              enctype="multipart/form-data"
-            >
-              <input type="file" name="file" class="file-input" />
-              <button type="submit" class="btn secondary">
-                Загрузить договор
-              </button>
-            </form>
-            <!--Загрузка счета на сервевр-->
-            <form
-              action="/orders/{{.orderId}}/bill"
-              method="POST"
-              enctype="multipart/form-data"
-            >
-              <input type="file" name="file" class="file-input" />
-              <button type="submit" class="btn secondary">
-                Загрузить счет
-              </button>
-            </form>
+            <label>
+              КП
+              <input id="upload-offer" type="file" class="file-input" onchange="window.updateUploadButton()" />
+            </label>
+            <label>
+              Договор
+              <input id="upload-contract" type="file" class="file-input" onchange="window.updateUploadButton()" />
+            </label>
+            <label>
+              Счёт
+              <input id="upload-bill" type="file" class="file-input" onchange="window.updateUploadButton()" />
+            </label>
+          </div>
+          <div class="modal-action">
+            <button id="upload-docs-btn" class="btn primary" disabled onclick="window.uploadDocuments()">
+              Загрузить
+            </button>
           </div>
         </div>
       </dialog>
       <!--Модальное окно для генерации приложения к договору-->
-      <dialog id="appendix-modal" class="modal">
+      <dialog id="appendice-modal" class="modal">
         <div class="modal-box">
           <h3>Приложение к договору</h3>
           <div class="file-inputs">
             <label>
               Номер договора *
-              <input id="appendix-contract-number" type="text" class="input" placeholder="например: 48" required />
+              <input id="appendice-contract-number" type="text" class="input" placeholder="например: 48" required />
             </label>
             <label>
               Номер приложения
-              <input id="appendix-number" type="number" class="input" min="1" value="1" />
+              <input id="appendice-number" type="number" class="input" min="1" value="1" />
             </label>
             <label>
               Дата договора
-              <input id="appendix-contract-date" type="date" class="input" />
+              <input id="appendice-contract-date" type="date" class="input" />
             </label>
           </div>
           <div class="modal-action">
-            <button class="btn secondary" onclick="document.getElementById('appendix-modal').close()">Отмена</button>
-            <button class="btn primary" onclick="window.downloadAppendix()">Скачать PDF</button>
+            <button class="btn secondary" onclick="document.getElementById('appendice-modal').close()">Отмена</button>
+            <button class="btn primary" onclick="window.downloadAppendice()">Скачать PDF</button>
+          </div>
+        </div>
+      </dialog>
+      <!--Модальное окно для генерации КП (только для дилера)-->
+      <dialog id="offer-modal" class="modal">
+        <div class="modal-box">
+          <h3>Коммерческое предложение</h3>
+          <div class="file-inputs">
+            <label>
+              ФИО покупателя *
+              <input id="offer-client-name" type="text" class="input" placeholder="Иванов Иван Иванович" />
+            </label>
+          </div>
+          <div class="modal-action">
+            <button class="btn secondary" onclick="document.getElementById('offer-modal').close()">Отмена</button>
+            <button class="btn secondary" onclick="window.downloadOffer('client')">КП для покупателя</button>
+            <button class="btn secondary" onclick="window.downloadOffer('self')">КП для себя</button>
           </div>
         </div>
       </dialog>

@@ -394,6 +394,8 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 // Route: /tables/{table_name}/{row_id}

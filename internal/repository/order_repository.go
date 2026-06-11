@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"log"
 	"time"
 
@@ -296,6 +297,18 @@ func GetOrderFinalizedAt(db *gorm.DB, orderID int64) (*time.Time, error) {
 	var t *time.Time
 	err := db.Model(&orders.Order{}).Where("id = ?", orderID).Pluck("finalized_at", &t).Error
 	return t, err
+}
+
+func GetOrderManufactureDate(db *gorm.DB, orderID int64) (*time.Time, error) {
+	var nt sql.NullTime
+	err := db.Model(&orders.Order{}).Where("id = ?", orderID).Pluck("manufacture_date", &nt).Error
+	if err != nil {
+		return nil, err
+	}
+	if !nt.Valid {
+		return nil, nil
+	}
+	return &nt.Time, nil
 }
 
 func GetOrderStatus(orderID int64) (*string, error) {

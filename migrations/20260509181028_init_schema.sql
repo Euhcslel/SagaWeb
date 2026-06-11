@@ -19,7 +19,9 @@ CREATE TYPE order_status AS ENUM (
     'paid',
     'cancelled',
     'confirmed',
-    'done'
+    'done',
+    'in_production',
+    'ready'
 );
 
 CREATE TYPE registration_request_status AS ENUM (
@@ -70,7 +72,10 @@ CREATE TABLE sessions (
 
 CREATE TABLE companies (
     id BIGSERIAL PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    inn  TEXT,
+    kpp  TEXT,
+    ogrn TEXT
 );
 
 CREATE TABLE dealers (
@@ -411,12 +416,12 @@ CREATE TABLE order_bills (
 
 CREATE TABLE order_appendices (
     order_id         BIGINT NOT NULL,
-    appendix_number  TEXT NOT NULL,
+    appendice_number  TEXT NOT NULL,
     path             TEXT NOT NULL,
     created_at       TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT order_appendices_pkey
-        PRIMARY KEY (order_id, appendix_number),
+        PRIMARY KEY (order_id, appendice_number),
 
     CONSTRAINT fk_order_appendices_order
         FOREIGN KEY (order_id)

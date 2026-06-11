@@ -69,6 +69,9 @@ func uploadDocument(user *users.User, orderID int64,
 	path := filepath.Join(dir, handler.Filename)
 	dst, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
+		if os.IsExist(err) {
+			return fmt.Errorf("файл с именем %q уже существует", handler.Filename)
+		}
 		return err
 	}
 	defer dst.Close()
@@ -187,28 +190,28 @@ func DeleteOrderDocument(user *users.User, orderID int64, docType string, docNam
 
 	switch enums.DocumentType(docType) {
 	case enums.BillDocumentType:
-		if err := repository.DeleteOrderBill(tx, docName); err != nil {
+		if err := repository.DeleteOrderBill(tx, orderID, docName); err != nil {
 			return err
 		}
 	case enums.ContractDocumentType:
-		if err := repository.DeleteOrderAppendix(tx, docName); err != nil {
+		if err := repository.DeleteOrderAppendice(tx, orderID, docName); err != nil {
 			return err
 		}
 	case enums.OfferDocumentType:
-		if err := repository.DeleteOrderOffer(tx, docName); err != nil {
+		if err := repository.DeleteOrderOffer(tx, orderID, docName); err != nil {
 			return err
 		}
 	case enums.OtherDocumentType:
-		if err := repository.DeleteOrderDocument(tx, docName); err != nil {
+		if err := repository.DeleteOrderDocument(tx, orderID, docName); err != nil {
 			return err
 		}
 	}
 
-	if err := tx.Commit().Error; err != nil {
+	if err := os.Remove(filePath); err != nil {
 		return err
 	}
 
-	return os.Remove(filePath)
+	return tx.Commit().Error
 }
 
 func resolveDocumentPath(orderID int64, docType string, docName string) (filePath string, fileName string, err error) {
@@ -362,19 +365,130 @@ func GetOfferForOrder(
 	}
 	order.Products = products
 
-	if user.Role == enums.DealerRole {
-		dealer, err := repository.GetDealerInfo(database.DB, user.ID)
-		if err != nil {
-			return nil, err
-		}
-		address := ""
-		if dealer.Address != nil {
-			address = *dealer.Address
-		}
-		return docgen.GenerateOfferForDealer(&order, dealer.Company.Name, address)
+	return docgen.GenerateClientOffer(&order, docgen.CompanyInfoFromEnv())
+}
+
+// buildOrderForDoc загружает ворота, приводы, опции и товары заказа для генерации документов.
+func buildOrderForDoc(orderID int64) (types.Order, error) {
+	orderGates, err := repository.GetOrderGatesByOrderID(database.DB, orderID)
+	if err != nil {
+		return types.Order{}, err
 	}
 
-	return docgen.GenerateOfferForClient(&order)
+	var gateIDs []int64
+	for _, g := range orderGates {
+		gateIDs = append(gateIDs, g.RowNumber)
+	}
+
+	gateOptionsRows, err := repository.GetAllOptionsForOrder(database.DB, orderID, gateIDs)
+	if err != nil {
+		return types.Order{}, err
+	}
+	optionsMap := make(map[int64][]options.Option)
+	for _, opt := range gateOptionsRows {
+		optionsMap[opt.RowNumber] = append(optionsMap[opt.RowNumber], opt.Option)
+	}
+
+	var order types.Order
+	for _, og := range orderGates {
+		drive, err := loadDriveForGate(og)
+		if err != nil {
+			return types.Order{}, err
+		}
+		order.Gates = append(order.Gates, types.Gate{
+			Gate:    og,
+			Drive:   drive,
+			Options: optionsMap[og.RowNumber],
+		})
+	}
+
+	order.Products, err = repository.GetAllOrderProducts(database.DB, orderID)
+	if err != nil {
+		return types.Order{}, err
+	}
+
+	orderStatus, err := repository.GetOrderStatus(orderID)
+	if err != nil {
+		return types.Order{}, err
+	}
+	if enums.OrderStatus(*orderStatus) != enums.OrderStatusPending {
+		finalizedAt, err := repository.GetOrderFinalizedAt(database.DB, orderID)
+		if err != nil {
+			return types.Order{}, err
+		}
+		if finalizedAt != nil && len(order.Products) > 0 {
+			productIDs := make([]int64, len(order.Products))
+			for i, p := range order.Products {
+				productIDs[i] = p.ProductID
+			}
+			historicalPrices, err := repository.GetProductHistoricalPrices(database.DB, productIDs, *finalizedAt)
+			if err != nil {
+				return types.Order{}, err
+			}
+			for i, p := range order.Products {
+				if prices, ok := historicalPrices[p.ProductID]; ok {
+					order.Products[i].Product.RetailPrice = prices.RetailPrice
+					order.Products[i].Product.WholesalePrice = prices.WholesalePrice
+				}
+			}
+		}
+	}
+
+	return order, nil
+}
+
+// GetDealerOfferForClient генерирует КП дилера для покупателя (только розничные цены).
+func GetDealerOfferForClient(user *users.User, orderID int64, clientName string) ([]byte, error) {
+	if user.Role != enums.DealerRole {
+		return nil, errs.ErrForbidden
+	}
+	if err := checkOrderAccess(user, orderID); err != nil {
+		return nil, err
+	}
+
+	order, err := buildOrderForDoc(orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	dealer, err := repository.GetDealerInfo(database.DB, user.ID)
+	if err != nil {
+		return nil, err
+	}
+	supplier := docgen.SupplierInfo{
+		Name:  dealer.Company.Name,
+		Phone: user.PhoneNumber,
+		Email: user.Email,
+	}
+
+	return docgen.GenerateDealerOfferForClient(&order, &orderID, supplier, clientName, docgen.CompanyInfoFromEnv())
+}
+
+// GetDealerOfferForSelf генерирует КП дилера для себя (розничные + дилерские цены).
+func GetDealerOfferForSelf(user *users.User, orderID int64, clientName string) ([]byte, error) {
+	if user.Role != enums.DealerRole {
+		return nil, errs.ErrForbidden
+	}
+	if err := checkOrderAccess(user, orderID); err != nil {
+		return nil, err
+	}
+
+	order, err := buildOrderForDoc(orderID)
+	if err != nil {
+		return nil, err
+	}
+
+	dealer, err := repository.GetDealerInfo(database.DB, user.ID)
+	if err != nil {
+		return nil, err
+	}
+	supplier := docgen.SupplierInfo{
+		Name:  dealer.Company.Name,
+		Phone: user.PhoneNumber,
+		Email: user.Email,
+	}
+
+	return docgen.GenerateDealerOfferForSelf(&order, &orderID, supplier, clientName, docgen.CompanyInfoFromEnv())
 }
 
 // loadOptions грузит опции по id и возвращает их + сумму.
@@ -442,11 +556,11 @@ func loadProducts(in []*generated.Product) ([]order_products.OrderProduct, error
 	return result, nil
 }
 
-// GetAppendixForOrder загружает заказ из БД и генерирует PDF приложения к договору.
-func GetAppendixForOrder(
+// GetAppendiceForOrder загружает заказ из БД и генерирует PDF приложения к договору.
+func GetAppendiceForOrder(
 	user *users.User,
 	orderID int64,
-	appendixNumber int,
+	appendiceNumber int,
 	contractNumber string,
 	contractDate time.Time,
 ) ([]byte, error) {
@@ -454,77 +568,26 @@ func GetAppendixForOrder(
 		return nil, err
 	}
 
-	// Заказ с данными клиента
 	orderRecord, err := repository.GetOrderWithCustomer(database.DB, orderID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Ворота с лифтом, цветом, циклами
-	orderGates, err := repository.GetOrderGatesByOrderID(database.DB, orderID)
-	if err != nil {
-		return nil, err
-	}
-
-	var gateIDs []int64
-	for _, g := range orderGates {
-		gateIDs = append(gateIDs, g.RowNumber)
-	}
-
-	// Опции для всех ворот
-	gateOptionsRows, err := repository.GetAllOptionsForOrder(database.DB, orderID, gateIDs)
-	if err != nil {
-		return nil, err
-	}
-	optionsMap := make(map[int64][]options.Option)
-	for _, opt := range gateOptionsRows {
-		optionsMap[opt.RowNumber] = append(optionsMap[opt.RowNumber], opt.Option)
-	}
-
-	// Собираем заказ с приводами
-	order := types.Order{}
-	for _, og := range orderGates {
-		drive, _ := loadDriveForGate(og)
-		order.Gates = append(order.Gates, types.Gate{
-			Gate:    og,
-			Drive:   drive,
-			Options: optionsMap[og.RowNumber],
-		})
-	}
-
-	// Товары с историческими ценами для завершённых заказов
-	order.Products, err = repository.GetAllOrderProducts(database.DB, orderID)
-	if err != nil {
-		return nil, err
-	}
-	orderStatus, err := repository.GetOrderStatus(orderID)
-	if err != nil {
-		return nil, err
-	}
-	if enums.OrderStatus(*orderStatus) != enums.OrderStatusPending {
-		finalizedAt, err := repository.GetOrderFinalizedAt(database.DB, orderID)
+	if orderRecord.DealerID != nil {
+		contract, err := repository.GetDealerContract(database.DB, *orderRecord.DealerID)
 		if err != nil {
 			return nil, err
 		}
-		if finalizedAt != nil && len(order.Products) > 0 {
-			productIDs := make([]int64, len(order.Products))
-			for i, p := range order.Products {
-				productIDs[i] = p.ProductID
-			}
-			historicalPrices, err := repository.GetProductHistoricalPrices(database.DB, productIDs, *finalizedAt)
-			if err != nil {
-				return nil, err
-			}
-			for i, p := range order.Products {
-				if prices, ok := historicalPrices[p.ProductID]; ok {
-					order.Products[i].Product.RetailPrice = prices.RetailPrice
-					order.Products[i].Product.WholesalePrice = prices.WholesalePrice
-				}
-			}
+		if contract == nil {
+			return nil, errs.ErrNoDealerContract
 		}
 	}
 
-	// Данные клиента
+	order, err := buildOrderForDoc(orderID)
+	if err != nil {
+		return nil, err
+	}
+
 	var customer docgen.CustomerInfo
 	if orderRecord.DealerID != nil && orderRecord.Dealer != nil {
 		customer.OrganizationName = orderRecord.Dealer.Company.Name
@@ -535,7 +598,7 @@ func GetAppendixForOrder(
 		customer.Phone = orderRecord.Manager.PhoneNumber
 	}
 
-	return docgen.GenerateAppendix(&order, customer, appendixNumber, contractNumber, contractDate)
+	return docgen.GenerateAppendice(&order, docgen.CompanyInfoFromEnv(), customer, appendiceNumber, contractNumber, contractDate)
 }
 
 // loadDriveForGate загружает привод для конкретных ворот в зависимости от типа

@@ -18,10 +18,10 @@ func AttachOfferToOrder(db *gorm.DB, orderID int64, offerNumber string, path str
 	}).Error
 }
 
-func AttachAppendiceToOrder(db *gorm.DB, orderID int64, appendixNumber string, path string) error {
+func AttachAppendiceToOrder(db *gorm.DB, orderID int64, appendiceNumber string, path string) error {
 	return db.Create(&order_appendices.OrderAppendix{
 		OrderID:        orderID,
-		AppendiceNumber: appendixNumber,
+		AppendiceNumber: appendiceNumber,
 		Path:           path,
 	}).Error
 }
@@ -56,10 +56,10 @@ func GetOfferFileName(orderID int64, offerNumber string) (string, error) {
 	return fileName, nil
 }
 
-func GetAppendiceFileName(orderID int64, appendixNumber string) (string, error) {
+func GetAppendiceFileName(orderID int64, appendiceNumber string) (string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_appendices.OrderAppendix{}).
-		Where("appendix_number = ? AND order_id = ?", appendixNumber, orderID).
+		Where("appendice_number = ? AND order_id = ?", appendiceNumber, orderID).
 		Pluck("path", &fileName).Error; err != nil {
 		return "", err
 	}
@@ -78,30 +78,30 @@ func GetDocumentFileName(orderID int64, documentName string) (string, error) {
 	return fileName, nil
 }
 
-func DeleteOrderBill(db *gorm.DB, billNumber string) error {
+func DeleteOrderBill(db *gorm.DB, orderID int64, billNumber string) error {
 	return db.
-		Where("bill_number = ?", billNumber).
+		Where("bill_number = ? AND order_id = ?", billNumber, orderID).
 		Delete(&order_bills.OrderBill{}).
 		Error
 }
 
-func DeleteOrderOffer(db *gorm.DB, offerNumber string) error {
+func DeleteOrderOffer(db *gorm.DB, orderID int64, offerNumber string) error {
 	return db.
-		Where("offer_number = ?", offerNumber).
+		Where("offer_number = ? AND order_id = ?", offerNumber, orderID).
 		Delete(&order_offers.OrderOffer{}).
 		Error
 }
 
-func DeleteOrderAppendix(db *gorm.DB, appendixNumber string) error {
+func DeleteOrderAppendice(db *gorm.DB, orderID int64, appendiceNumber string) error {
 	return db.
-		Where("appendix_number = ?", appendixNumber).
+		Where("appendice_number = ? AND order_id = ?", appendiceNumber, orderID).
 		Delete(&order_appendices.OrderAppendix{}).
 		Error
 }
 
-func DeleteOrderDocument(db *gorm.DB, documentName string) error {
+func DeleteOrderDocument(db *gorm.DB, orderID int64, documentName string) error {
 	return db.
-		Where("name = ?", documentName).
+		Where("name = ? AND order_id = ?", documentName, orderID).
 		Delete(&order_documents.OrderDocument{}).
 		Error
 }
@@ -132,7 +132,7 @@ func GetAppendicesNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	var appendicesNumberList []string
 	if err := db.Model(&order_appendices.OrderAppendix{}).
 		Where("order_id = ?", orderID).
-		Pluck("appendix_number", &appendicesNumberList).Error; err != nil {
+		Pluck("appendice_number", &appendicesNumberList).Error; err != nil {
 		return nil, err
 	}
 

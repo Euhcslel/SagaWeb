@@ -53,6 +53,12 @@
   --color-done: oklch(90% 0.04 260);
   --color-done-content: oklch(34% 0.04 260);
 
+  --color-in-production: oklch(88% 0.12 55);
+  --color-in-production-content: oklch(28% 0.14 55);
+
+  --color-ready: oklch(88% 0.12 175);
+  --color-ready-content: oklch(28% 0.14 175);
+
   --radius-selector: 0.5rem;
   --radius-field: 0.25rem;
   --radius-box: 0.5rem;

@@ -7,6 +7,13 @@ h1 {
   margin: var(--spacing-xl);
 }
 
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-m);
+  margin-bottom: var(--spacing-m);
+}
+
 .table-scroll {
   overflow-x: auto;
   overflow-y: auto;

@@ -22,13 +22,10 @@ func GetAllOrders() ([]orders.Order, error) {
 	return result, nil
 }
 
-func UpdateOrderByLogistician(orderID int64, status enums.OrderStatus, manufactureDate *time.Time) error {
+func UpdateOrderManufactureDate(orderID int64, manufactureDate *time.Time) error {
 	return database.DB.Model(&orders.Order{}).
 		Where("id = ?", orderID).
-		Updates(map[string]any{
-			"status":           status,
-			"manufacture_date": manufactureDate,
-		}).Error
+		Updates(map[string]any{"manufacture_date": manufactureDate}).Error
 }
 
 func UpdateGateSizePrice(width, height int64, gateType enums.GateType, wholesalePrice, retailPrice decimal.Decimal) error {

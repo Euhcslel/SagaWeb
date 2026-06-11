@@ -10,11 +10,13 @@ import (
 type OrderStatus string
 
 const (
-	OrderStatusPending   OrderStatus = "pending"
-	OrderStatusPaid      OrderStatus = "paid"
-	OrderStatusCancelled OrderStatus = "cancelled"
-	OrderStatusConfirmed OrderStatus = "confirmed"
-	OrderStatusDone      OrderStatus = "done"
+	OrderStatusPending      OrderStatus = "pending"
+	OrderStatusPaid         OrderStatus = "paid"
+	OrderStatusCancelled    OrderStatus = "cancelled"
+	OrderStatusConfirmed    OrderStatus = "confirmed"
+	OrderStatusDone         OrderStatus = "done"
+	OrderStatusInProduction OrderStatus = "in_production"
+	OrderStatusReady        OrderStatus = "ready"
 )
 
 // Функция для получения статуса заказа из proto-типа
@@ -30,6 +32,10 @@ func GetOrderStatusFromProto(status *generated.OrderStatus) (OrderStatus, error)
 		return OrderStatusPaid, nil
 	case generated.OrderStatus_ORDER_STATUS_CONFIRMED:
 		return OrderStatusConfirmed, nil
+	case generated.OrderStatus_ORDER_STATUS_IN_PRODUCTION:
+		return OrderStatusInProduction, nil
+	case generated.OrderStatus_ORDER_STATUS_READY:
+		return OrderStatusReady, nil
 	}
 
 	return "", errs.ErrInvalidOrderStatus
@@ -39,10 +45,12 @@ func GetOrderStatusFromProto(status *generated.OrderStatus) (OrderStatus, error)
 func GetAllOrderStatuses() []OrderStatus {
 	return []OrderStatus{
 		OrderStatusPending,
-		OrderStatusPaid,
-		OrderStatusCancelled,
 		OrderStatusConfirmed,
+		OrderStatusPaid,
+		OrderStatusInProduction,
+		OrderStatusReady,
 		OrderStatusDone,
+		OrderStatusCancelled,
 	}
 }
 
@@ -56,9 +64,13 @@ func (s OrderStatus) Label() string {
 	case OrderStatusCancelled:
 		return "Отменён"
 	case OrderStatusDone:
-		return "Завершен"
+		return "Завершён"
 	case OrderStatusConfirmed:
-		return "Подтвержден"
+		return "Подтверждён"
+	case OrderStatusInProduction:
+		return "В производстве"
+	case OrderStatusReady:
+		return "Готов"
 	default:
 		return "Неизвестно"
 	}

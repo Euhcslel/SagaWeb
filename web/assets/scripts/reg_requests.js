@@ -22,7 +22,7 @@ async function confirmRegRequest(requestId) {
 
       window.location.reload();
     } catch (error) {
-      console.error(error);
+      Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
     }
   }
 }
@@ -51,7 +51,7 @@ async function rejectRegRequest(requestId) {
 
       window.location.reload();
     } catch (error) {
-      console.error(error);
+      Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
     }
   }
 }

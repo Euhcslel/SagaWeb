@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/Euhcslel/SagaWeb/internal/domain/companies"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_contract"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
@@ -17,6 +19,7 @@ func GetUserDealers(db *gorm.DB, userID int64) ([]dealer_manager_assignments.Dea
 	err := db.Model(dealer_manager_assignments.DealerManagerAssignment{}).
 		Preload("Dealer").
 		Preload("Dealer.User").
+		Preload("Dealer.Company").
 		Where("manager_id = ?", userID).
 		Find(&result).Error
 	if err != nil {
@@ -26,7 +29,7 @@ func GetUserDealers(db *gorm.DB, userID int64) ([]dealer_manager_assignments.Dea
 }
 
 func UpsertDealerContract(db *gorm.DB, contract dealer_contract.DealerContract) error {
-	return db.Save(&contract).Error
+	return db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&contract).Error
 }
 
 func GetDealerContract(db *gorm.DB, dealerID int64) (*dealer_contract.DealerContract, error) {
@@ -97,6 +100,46 @@ func UpdateCompanyInfo(db *gorm.DB, companyID int64, userInfo types.UpdatedUserI
 		Updates(map[string]any{
 			"name": userInfo.Company,
 		}).Error
+}
+
+func UpdateCompanyDetails(db *gorm.DB, companyID int64, inn, kpp, ogrn string) error {
+	return db.Model(&companies.Company{}).
+		Where("id = ?", companyID).
+		Updates(map[string]any{
+			"inn":  inn,
+			"kpp":  kpp,
+			"ogrn": ogrn,
+		}).Error
+}
+
+func GetDealerWithUser(db *gorm.DB, dealerID int64) (*dealers.Dealer, error) {
+	var dealer dealers.Dealer
+	if err := db.Preload("Company").Preload("User").Where("user_id = ?", dealerID).First(&dealer).Error; err != nil {
+		return nil, err
+	}
+	return &dealer, nil
+}
+
+// GetNextContractNumber возвращает MAX числового суффикса из contract_number
+// вида "contractN" + 1. Если таких записей нет — возвращает 1.
+func GetNextContractNumber(db *gorm.DB) (int, error) {
+	var numbers []string
+	err := db.Model(&dealer_contract.DealerContract{}).
+		Where("contract_number ~ '^contract[0-9]+$'").
+		Pluck("contract_number", &numbers).Error
+	if err != nil {
+		return 1, err
+	}
+
+	max := 0
+	for _, n := range numbers {
+		v := 0
+		fmt.Sscanf(n, "contract%d", &v)
+		if v > max {
+			max = v
+		}
+	}
+	return max + 1, nil
 }
 
 func GetRegistrationRequestByID(db *gorm.DB, requestID int64) (*dealer_registration_requests.DealerRegistrationRequest, error) {

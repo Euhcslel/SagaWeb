@@ -20,6 +20,7 @@
             <th>ФИО дилера</th>
             <th>Email</th>
             <th>Номер телефона</th>
+            <th>Компания</th>
             <th></th>
           </tr>
         </thead>
@@ -29,6 +30,12 @@
             <td>{{.Dealer.User.Fullname}}</td>
             <td>{{.Dealer.User.Email}}</td>
             <td>{{.Dealer.User.PhoneNumber}}</td>
+            <td>
+              {{.Dealer.Company.Name}}
+              {{if not .Dealer.Company.INN}}<span style="color:var(--color-warning);font-size:0.8em" title="ИНН не заполнен">ИНН —</span>{{end}}
+              {{if not .Dealer.Company.KPP}}<span style="color:var(--color-warning);font-size:0.8em" title="КПП не заполнен">КПП —</span>{{end}}
+              {{if not .Dealer.Company.OGRN}}<span style="color:var(--color-warning);font-size:0.8em" title="ОГРН не заполнен">ОГРН —</span>{{end}}
+            </td>
             <td style="display:flex;align-items:center;gap:0.5rem">
               {{if .Contract}}
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" title="Договор №{{.Contract.ContractNumber}}">
@@ -38,6 +45,7 @@
               <button class="btn secondary" onclick="openContractModal({{.DealerID}})">
                 {{if .Contract}}Заменить договор{{else}}Прикрепить договор{{end}}
               </button>
+              <a class="btn secondary" href="/user/dealers/{{.DealerID}}/contract/generate">Сгенерировать договор</a>
             </td>
           </tr>
           {{else}}

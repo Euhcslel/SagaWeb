@@ -13,34 +13,6 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/utils"
 )
 
-// Route: /logistician/orders
-// Method: GET
-func GetLogisticianOrders(w http.ResponseWriter, r *http.Request) {
-	user := utils.UserFromContext(r.Context())
-
-	if user.Role != enums.LogisticianRole {
-		helpers.WriteError(w, errs.ErrForbidden, http.StatusForbidden)
-		return
-	}
-
-	orders, err := service.GetAllOrdersForLogistician(user)
-	if err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-		return
-	}
-
-	data := map[string]any{
-		"css":      "logistician.css",
-		"user":     user,
-		"orders":   orders,
-		"statuses": enums.GetAllOrderStatuses(),
-	}
-
-	if err := templates.ExecuteTemplate(w, "logistician_orders.html", data); err != nil {
-		helpers.WriteError(w, err, http.StatusInternalServerError)
-	}
-}
-
 // Route: /logistician/orders/{order_id}
 // Method: PUT
 func UpdateLogisticianOrder(w http.ResponseWriter, r *http.Request) {
@@ -58,19 +30,9 @@ func UpdateLogisticianOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var body struct {
-		Status          string `json:"status"`
 		ManufactureDate string `json:"manufacture_date"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		helpers.WriteError(w, errs.ErrBadRequest, http.StatusBadRequest)
-		return
-	}
-
-	status := enums.OrderStatus(body.Status)
-	switch status {
-	case enums.OrderStatusPending, enums.OrderStatusPaid, enums.OrderStatusCancelled,
-		enums.OrderStatusConfirmed, enums.OrderStatusDone:
-	default:
 		helpers.WriteError(w, errs.ErrBadRequest, http.StatusBadRequest)
 		return
 	}
@@ -85,7 +47,7 @@ func UpdateLogisticianOrder(w http.ResponseWriter, r *http.Request) {
 		manufactureDate = &t
 	}
 
-	if err := service.UpdateOrderByLogistician(user, orderID, status, manufactureDate); err != nil {
+	if err := service.UpdateOrderByLogistician(user, orderID, manufactureDate); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
@@ -161,5 +123,5 @@ func ImportSizes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/logistician/size-import?success=1", http.StatusSeeOther)
+	w.WriteHeader(http.StatusOK)
 }

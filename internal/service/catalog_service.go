@@ -10,7 +10,6 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
 	"github.com/Euhcslel/SagaWeb/internal/utils"
-	"github.com/shopspring/decimal"
 )
 
 type CatalogPageData struct {
@@ -52,25 +51,6 @@ func GetCatalogPageData(user *users.User) (*CatalogPageData, error) {
 	railsList, err := repository.GetRails()
 	if err != nil {
 		return nil, err
-	}
-
-	if !isDealer {
-		zero := decimal.Zero
-		for i := range prods {
-			prods[i].WholesalePrice = zero
-		}
-		for i := range opts {
-			opts[i].WholesalePrice = zero
-		}
-		for i := range indDrives {
-			indDrives[i].WholesalePrice = zero
-		}
-		for i := range resDrives {
-			resDrives[i].WholesalePrice = zero
-		}
-		for i := range railsList {
-			railsList[i].WholesalePrice = zero
-		}
 	}
 
 	return &CatalogPageData{
