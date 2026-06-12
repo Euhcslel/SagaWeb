@@ -22,7 +22,7 @@ func main() {
 		log.Fatal("error loading .env file")
 	}
 
-	docgen.InitCompany()
+	docgen.Init()
 
 	logFile, err := os.OpenFile("logs/error.log",
 		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
@@ -150,6 +150,6 @@ func main() {
 
 	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 
-	err = http.ListenAndServe(":80", http.NewCrossOriginProtection().Handler(handlers.SecurityHeaders(mux)))
+	err = http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(handlers.SecurityHeaders(mux)))
 	log.Fatal(err)
 }

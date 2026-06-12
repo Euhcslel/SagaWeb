@@ -5,51 +5,45 @@ import (
 	"strconv"
 )
 
-// CompanyInfo хранит реквизиты компании-производителя для приложений к договорам.
-type CompanyInfo struct {
-	Name               string
-	INN                string
-	KPP                string
-	WarrantyEquipment  string
-	WarrantyAutomation string
-}
-
 // SupplierInfo содержит данные поставщика (дилера) для шапки КП.
 type SupplierInfo struct {
-	Name              string
-	Phone             string
-	Email             string
-	OfferValidityDays int
+	Name  string
+	Phone string
+	Email string
+}
+
+// CustomerInfo содержит данные заказчика для приложения к договору.
+type CustomerInfo struct {
+	OrganizationName string
+	ContactPerson    string
+	Phone            string
 }
 
 var (
-	defaultCompany        CompanyInfo
-	defaultOfferValidity  int
+	defaultOfferValidity   int
+	defaultWarrantyEquip   string
+	defaultWarrantyAuto    string
+	defaultCompanyName     string
+	defaultCompanyINN      string
+	defaultCompanyKPP      string
+	defaultRepresentative  string
 )
 
-// InitCompany читает реквизиты из переменных окружения и сохраняет их.
+// Init читает настройки из переменных окружения.
 // Вызывать один раз при старте приложения после godotenv.Load().
-func InitCompany() {
+func Init() {
 	days, _ := strconv.Atoi(os.Getenv("OFFER_VALIDITY_DAYS"))
 	if days <= 0 {
 		days = 14
 	}
-	defaultOfferValidity = days
-	defaultCompany = CompanyInfo{
-		Name:               os.Getenv("COMPANY_NAME"),
-		INN:                os.Getenv("COMPANY_INN"),
-		KPP:                os.Getenv("COMPANY_KPP"),
-		WarrantyEquipment:  os.Getenv("WARRANTY_EQUIPMENT"),
-		WarrantyAutomation: os.Getenv("WARRANTY_AUTOMATION"),
-	}
+	defaultOfferValidity  = days
+	defaultWarrantyEquip  = os.Getenv("WARRANTY_EQUIPMENT")
+	defaultWarrantyAuto   = os.Getenv("WARRANTY_AUTOMATION")
+	defaultCompanyName    = os.Getenv("COMPANY_NAME")
+	defaultCompanyINN     = os.Getenv("COMPANY_INN")
+	defaultCompanyKPP     = os.Getenv("COMPANY_KPP")
+	defaultRepresentative = os.Getenv("COMPANY_REPRESENTATIVE")
 }
 
-// CompanyInfoFromEnv возвращает реквизиты производителя, инициализированные при старте.
-func CompanyInfoFromEnv() CompanyInfo {
-	return defaultCompany
-}
-
-// OfferValidityDaysFromEnv возвращает срок действия КП по умолчанию.
-func OfferValidityDaysFromEnv() int {
-	return defaultOfferValidity
-}
+// offerValidityDays возвращает срок действия КП по умолчанию.
+func offerValidityDays() int { return defaultOfferValidity }

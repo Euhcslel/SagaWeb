@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
@@ -41,12 +42,12 @@ var colDual = struct {
 	No: 8, Name: 58, Unit: 10, Retail: 22, Dealer: 22, Amount: 12, SumRetail: 21, SumDealer: 21,
 }
 
-// Doc — обёртка над fpdf для генерации документа.
+// Doc — обёртка над fpdf для генерации документа
 type Doc struct {
 	pdf *fpdf.Fpdf
 }
 
-// newDoc создаёт новый PDF-документ и настраивает шрифты, поля и страницу.
+// Функция, создающая новый PDF-документ. Настраивает шрифты, поля и страницу
 func newDoc() *Doc {
 	pdf := fpdf.New("P", "mm", "A4", "")
 	pdf.SetMargins(marginX, 14, marginX)
@@ -67,7 +68,7 @@ func (d *Doc) addTitle(s string, size float64) {
 	d.pdf.CellFormat(0, 8, s, "", 1, "C", false, 0, "")
 }
 
-// money форматирует decimal в строку вида «12 345,67».
+// Функция, форматирующая decimal в строку вида «12 345,67»
 func money(v decimal.Decimal) string {
 	s := v.StringFixed(2)
 	parts := strings.SplitN(s, ".", 2)
@@ -234,7 +235,7 @@ func (d *Doc) drawTextRowDual(no, name string) {
 
 // ─── Секция ворот ─────────────────────────────────────────────────────────────
 
-// drawGateSectionSingle рисует секцию ворот для КП с одной колонкой цен.
+// Функция, рисующая секцию ворот для КП с одной колонкой цен
 func (d *Doc) drawGateSectionSingle(itemNo int, g types.Gate) {
 	d.pdf.SetFont("DejaVu", "B", 10)
 	d.pdf.SetFillColor(235, 235, 235)
@@ -464,4 +465,22 @@ func (d *Doc) drawGrandTotalDual(order *types.Order) {
 	d.pdf.CellFormat(labelW, 8, "ИТОГО К ОПЛАТЕ:", "1", 0, "R", false, 0, "")
 	d.pdf.CellFormat(colDual.SumRetail, 8, money(totalRetail), "1", 0, "R", false, 0, "")
 	d.pdf.CellFormat(colDual.SumDealer, 8, money(totalDealer), "1", 1, "R", false, 0, "")
+}
+
+// ─── Общие утилиты ────────────────────────────────────────────────────────────
+
+var ruMonths = [...]string{
+	"января", "февраля", "марта", "апреля", "мая", "июня",
+	"июля", "августа", "сентября", "октября", "ноября", "декабря",
+}
+
+func formatDateRu(t time.Time) string {
+	return fmt.Sprintf("«%d» %s %d г.", t.Day(), ruMonths[t.Month()-1], t.Year())
+}
+
+func ptrOrEmpty(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

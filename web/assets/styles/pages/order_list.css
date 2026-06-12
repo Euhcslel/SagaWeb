@@ -10,8 +10,16 @@ h1 {
 .filter-bar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--spacing-m);
   margin-bottom: var(--spacing-m);
+  padding: 1rem 1rem 0;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-s);
+  }
 }
 
 .table-scroll {

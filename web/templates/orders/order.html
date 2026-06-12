@@ -38,13 +38,10 @@
         <button class="btn secondary" onclick="window.loadDocuments()">
           Список документов
         </button>
-        <!--Приложение к договору и КП — только для дилера-->
+        <!--Генерация документов — только для дилера-->
         {{if eq .user.Role "dealer"}}
-        <button class="btn secondary" onclick="document.getElementById('appendice-modal').showModal()">
-          Приложение к договору
-        </button>
-        <button class="btn secondary" onclick="document.getElementById('offer-modal').showModal()">
-          Коммерческое предложение
+        <button class="btn secondary" onclick="document.getElementById('generate-modal').showModal()">
+          Генерация документов
         </button>
         {{end}}
         <!--Статус-->
@@ -296,6 +293,16 @@
             <button id="upload-docs-btn" class="btn primary" disabled onclick="window.uploadDocuments()">
               Загрузить
             </button>
+          </div>
+        </div>
+      </dialog>
+      <!--Модальное окно выбора типа генерируемого документа-->
+      <dialog id="generate-modal" class="modal">
+        <div class="modal-box">
+          <h3>Генерация документов</h3>
+          <div class="modal-action">
+            <button class="btn secondary" onclick="window.openDocumentModal('appendice')">Приложение к договору</button>
+            <button class="btn secondary" onclick="window.openDocumentModal('offer')">Коммерческое предложение</button>
           </div>
         </div>
       </dialog>

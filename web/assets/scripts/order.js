@@ -505,6 +505,12 @@ window.downloadAppendice = async () => {
   }
 };
 
+window.openDocumentModal = (type) => {
+  document.getElementById("generate-modal").close();
+  const id = type === "offer" ? "offer-modal" : "appendice-modal";
+  document.getElementById(id).showModal();
+};
+
 window.downloadOffer = async (type) => {
   const clientName = document.getElementById("offer-client-name").value.trim();
   if (!clientName) {

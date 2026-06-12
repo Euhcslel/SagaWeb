@@ -15,6 +15,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
 
+// Функция, генерирующая договор на основе DOCX шаблона и данных дилера
 func GenerateContract(dealer *dealers.Dealer, dealerUser *users.User, contractNumber int, date time.Time) ([]byte, error) {
 	templateData, err := os.ReadFile("data/contract_template/contract_template.docx")
 	if err != nil {
@@ -24,7 +25,7 @@ func GenerateContract(dealer *dealers.Dealer, dealerUser *users.User, contractNu
 	replacements := map[string]string{
 		"{{CONTRACT_NUMBER}}": strconv.Itoa(contractNumber),
 		"{{DAY}}":             fmt.Sprintf("%02d", date.Day()),
-		"{{MONTH}}":           russianMonth(date.Month()),
+		"{{MONTH}}":           ruMonths[date.Month()-1],
 		"{{YEAR}}":            fmt.Sprintf("%d", date.Year()),
 		"{{DEALER_COMPANY}}":  dealer.Company.Name,
 		"{{DEALER_ADDRESS}}":  ptrOrEmpty(dealer.Address),
@@ -119,17 +120,3 @@ func xmlEscape(s string) string {
 	return s
 }
 
-func ptrOrEmpty(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
-
-func russianMonth(m time.Month) string {
-	months := [12]string{
-		"января", "февраля", "марта", "апреля", "мая", "июня",
-		"июля", "августа", "сентября", "октября", "ноября", "декабря",
-	}
-	return months[m-1]
-}

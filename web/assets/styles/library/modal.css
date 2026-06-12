@@ -70,8 +70,21 @@
 .modal-action {
   margin-top: 1.5rem;
   display: flex;
+  flex-wrap: wrap;
   justify-content: end;
   gap: 0.5rem;
+
+  .btn {
+    flex-shrink: 1;
+  }
+
+  &:has(.btn ~ .btn) {
+    justify-content: center;
+
+    .btn {
+      flex: 1;
+    }
+  }
 }
 
 .modal-toggle {

@@ -365,7 +365,7 @@ func GetOfferForOrder(
 	}
 	order.Products = products
 
-	return docgen.GenerateClientOffer(&order, docgen.OfferValidityDaysFromEnv())
+	return docgen.GenerateClientOffer(&order)
 }
 
 // buildOrderForDoc загружает ворота, приводы, опции и товары заказа для генерации документов.
@@ -456,10 +456,9 @@ func GetDealerOfferForClient(user *users.User, orderID int64, clientName string)
 		return nil, err
 	}
 	supplier := docgen.SupplierInfo{
-		Name:              dealer.Company.Name,
-		Phone:             user.PhoneNumber,
-		Email:             user.Email,
-		OfferValidityDays: docgen.OfferValidityDaysFromEnv(),
+		Name:  dealer.Company.Name,
+		Phone: user.PhoneNumber,
+		Email: user.Email,
 	}
 
 	return docgen.GenerateDealerOfferForClient(&order, &orderID, supplier, clientName)
@@ -484,10 +483,9 @@ func GetDealerOfferForSelf(user *users.User, orderID int64, clientName string) (
 		return nil, err
 	}
 	supplier := docgen.SupplierInfo{
-		Name:              dealer.Company.Name,
-		Phone:             user.PhoneNumber,
-		Email:             user.Email,
-		OfferValidityDays: docgen.OfferValidityDaysFromEnv(),
+		Name:  dealer.Company.Name,
+		Phone: user.PhoneNumber,
+		Email: user.Email,
 	}
 
 	return docgen.GenerateDealerOfferForSelf(&order, &orderID, supplier, clientName)
@@ -600,7 +598,7 @@ func GetAppendiceForOrder(
 		customer.Phone = orderRecord.Manager.PhoneNumber
 	}
 
-	return docgen.GenerateAppendice(&order, docgen.CompanyInfoFromEnv(), customer, appendiceNumber, contractNumber, contractDate)
+	return docgen.GenerateAppendice(&order, customer, appendiceNumber, contractNumber, contractDate)
 }
 
 // loadDriveForGate загружает привод для конкретных ворот в зависимости от типа

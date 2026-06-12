@@ -30,6 +30,7 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 		"isDealer":                 pageData.IsDealer,
 	}
 
+	w.Header().Set("Vary", "Cookie")
 	if err := templates.ExecuteTemplate(w, "calc.html", data); err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 	}

@@ -40,12 +40,6 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Route: /api/orders
-// Method: GET
-func GetAllUserOrdersAPI(w http.ResponseWriter, r *http.Request) {
-	//To do
-}
-
 // Route: /orders/{order_id}
 // Method: GET
 func GetUserOrderById(w http.ResponseWriter, r *http.Request) {

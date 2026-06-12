@@ -100,6 +100,11 @@ form .gate-item {
   gap: var(--spacing-s);
 }
 
+.select {
+  width: 60%;
+}
+
+
 @media (max-width: 767px) {
   main {
     padding-bottom: 8rem;
