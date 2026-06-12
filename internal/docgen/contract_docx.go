@@ -80,8 +80,6 @@ func fillDocxTemplate(docxData []byte, replacements map[string]string) ([]byte, 
 
 // replaceSplitPlaceholder заменяет {{KEY}} даже когда Word разбил его на
 // несколько <w:r> runs из-за автоопределения языка или проверки орфографии.
-// Между любыми двумя символами плейсхолдера допускается граница run:
-// </w:t></w:r>...<w:rPr>...</w:rPr>...<w:t>.
 func replaceSplitPlaceholder(xmlContent, placeholder, replacement string) string {
 	const runBoundary = `(?:</w:t></w:r>(?:<w:r[^>]*>)(?s:(?:<w:rPr>.*?</w:rPr>)?)<w:t[^>]*>)?`
 

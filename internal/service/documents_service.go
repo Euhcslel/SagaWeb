@@ -365,7 +365,7 @@ func GetOfferForOrder(
 	}
 	order.Products = products
 
-	return docgen.GenerateClientOffer(&order, docgen.CompanyInfoFromEnv())
+	return docgen.GenerateClientOffer(&order, docgen.OfferValidityDaysFromEnv())
 }
 
 // buildOrderForDoc загружает ворота, приводы, опции и товары заказа для генерации документов.
@@ -456,12 +456,13 @@ func GetDealerOfferForClient(user *users.User, orderID int64, clientName string)
 		return nil, err
 	}
 	supplier := docgen.SupplierInfo{
-		Name:  dealer.Company.Name,
-		Phone: user.PhoneNumber,
-		Email: user.Email,
+		Name:              dealer.Company.Name,
+		Phone:             user.PhoneNumber,
+		Email:             user.Email,
+		OfferValidityDays: docgen.OfferValidityDaysFromEnv(),
 	}
 
-	return docgen.GenerateDealerOfferForClient(&order, &orderID, supplier, clientName, docgen.CompanyInfoFromEnv())
+	return docgen.GenerateDealerOfferForClient(&order, &orderID, supplier, clientName)
 }
 
 // GetDealerOfferForSelf генерирует КП дилера для себя (розничные + дилерские цены).
@@ -483,12 +484,13 @@ func GetDealerOfferForSelf(user *users.User, orderID int64, clientName string) (
 		return nil, err
 	}
 	supplier := docgen.SupplierInfo{
-		Name:  dealer.Company.Name,
-		Phone: user.PhoneNumber,
-		Email: user.Email,
+		Name:              dealer.Company.Name,
+		Phone:             user.PhoneNumber,
+		Email:             user.Email,
+		OfferValidityDays: docgen.OfferValidityDaysFromEnv(),
 	}
 
-	return docgen.GenerateDealerOfferForSelf(&order, &orderID, supplier, clientName, docgen.CompanyInfoFromEnv())
+	return docgen.GenerateDealerOfferForSelf(&order, &orderID, supplier, clientName)
 }
 
 // loadOptions грузит опции по id и возвращает их + сумму.

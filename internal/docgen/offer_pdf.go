@@ -9,7 +9,7 @@ import (
 )
 
 // GenerateClientOffer генерирует КП для неавторизованного клиента (без поставщика и покупателя).
-func GenerateClientOffer(order *types.Order, company CompanyInfo) ([]byte, error) {
+func GenerateClientOffer(order *types.Order, offerValidityDays int) ([]byte, error) {
 	d := newDoc()
 
 	d.addTitle("КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ", 14)
@@ -27,7 +27,7 @@ func GenerateClientOffer(order *types.Order, company CompanyInfo) ([]byte, error
 
 	d.drawGrandTotalSingle(order)
 	d.pdf.Ln(6)
-	d.addLine(fmt.Sprintf("КП действительно %d дней", company.OfferValidityDays))
+	d.addLine(fmt.Sprintf("КП действительно %d дней", offerValidityDays))
 
 	return renderPDF(d)
 }
@@ -39,7 +39,6 @@ func GenerateDealerOfferForClient(
 	orderID *int64,
 	supplier SupplierInfo,
 	clientName string,
-	company CompanyInfo,
 ) ([]byte, error) {
 	d := newDoc()
 
@@ -58,7 +57,7 @@ func GenerateDealerOfferForClient(
 
 	d.drawGrandTotalSingle(order)
 	d.pdf.Ln(6)
-	d.addLine(fmt.Sprintf("КП действительно %d дней", company.OfferValidityDays))
+	d.addLine(fmt.Sprintf("КП действительно %d дней", supplier.OfferValidityDays))
 
 	return renderPDF(d)
 }
@@ -70,7 +69,6 @@ func GenerateDealerOfferForSelf(
 	orderID *int64,
 	supplier SupplierInfo,
 	clientName string,
-	company CompanyInfo,
 ) ([]byte, error) {
 	d := newDoc()
 
@@ -89,7 +87,7 @@ func GenerateDealerOfferForSelf(
 
 	d.drawGrandTotalDual(order)
 	d.pdf.Ln(6)
-	d.addLine(fmt.Sprintf("КП действительно %d дней", company.OfferValidityDays))
+	d.addLine(fmt.Sprintf("КП действительно %d дней", supplier.OfferValidityDays))
 
 	return renderPDF(d)
 }
