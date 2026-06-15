@@ -96,31 +96,25 @@
       <div class="modal-box">
         <h2>Заказ #<span id="modal-order-id"></span></h2>
 
-        <form id="status-form" onsubmit="submitStatusChange(event)">
-          <label>
-            Статус
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Статус</legend>
+          <form id="status-form" onsubmit="submitStatusChange(event)">
             <select class="select" name="status" id="modal-status">
               {{range .statuses}}
               <option value="{{.}}">{{.Label}}</option>
               {{end}}
             </select>
-          </label>
-          <div>
             <button class="btn primary" type="submit">Изменить статус</button>
-          </div>
-        </form>
+          </form>
+        </fieldset>
 
-        <hr />
-
-        <form id="date-form" onsubmit="submitDateChange(event)">
-          <label>
-            Дата готовности
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Дата готовности</legend>
+          <form id="date-form" onsubmit="submitDateChange(event)">
             <input class="input" type="date" name="manufacture_date" id="modal-manufacture-date" />
-          </label>
-          <div>
             <button class="btn primary" type="submit">Сохранить дату</button>
-          </div>
-        </form>
+          </form>
+        </fieldset>
 
         <div>
           <button class="btn secondary" type="button" onclick="document.getElementById('edit-modal').close()">Закрыть</button>

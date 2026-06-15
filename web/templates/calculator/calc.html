@@ -172,7 +172,9 @@
             </select>
           </label>
 
-          <div class="sizes">
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Размеры</legend>
+            <div class="sizes">
             <!--Ширина-->
             <label>
               Ширина (B)
@@ -217,7 +219,10 @@
               </p>
             </label>
           </div>
+          </fieldset>
 
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Тип подъема</legend>
           <!--Высота притолки-->
           <label>
             Высота притолки
@@ -255,46 +260,50 @@
             </select>
           </label>
 
-          <!--Количество циклов-->
-          <label
-            >Количество циклов
-            <select
-              name="cycle-amount"
-              class="cycle-amount select"
-              onchange="window.updateGatePrice(this.closest('.gate-item'))"
-            >
-              {{range .ResidentialConfiguration.CycleAmounts}}
-              <option
-                value="{{.ID}}"
-                data-retail-markup="{{.RetailMarkup}}"
-                {{if
-                $.isDealer}}
-                data-wholesale-markup="{{.WholesaleMarkup}}"
-                {{else}}
-                data-wholesale-markup="0"
-                {{end}}
-              >
-                {{.Amount}}
-              </option>
-              {{end}}
-            </select>
-          </label>
+          </fieldset>
 
-          <!--Цвет ворот снаружи-->
-          <label
-            >Цвет ворот снаружи
-            <select
-              name="color-out"
-              class="color-out select"
-              onchange="window.updateGatePreview(this.closest('.gate-item'))"
-            >
-              {{range .ResidentialConfiguration.Colors}}
-              <option value="{{.ID}}" data-hex="{{.Hex}}">{{.Code}}</option>
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Количество циклов</legend>
+          <select
+            name="cycle-amount"
+            class="cycle-amount select"
+            onchange="window.updateGatePrice(this.closest('.gate-item'))"
+          >
+            {{range .ResidentialConfiguration.CycleAmounts}}
+            <option
+              value="{{.ID}}"
+              data-retail-markup="{{.RetailMarkup}}"
+              {{if
+              $.isDealer}}
+              data-wholesale-markup="{{.WholesaleMarkup}}"
+              {{else}}
+              data-wholesale-markup="0"
               {{end}}
-            </select>
-          </label>
+            >
+              {{.Amount}}
+            </option>
+            {{end}}
+          </select>
+
+          </fieldset>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Цвет ворот снаружи</legend>
+          <select
+            name="color-out"
+            class="color-out select"
+            onchange="window.updateGatePreview(this.closest('.gate-item'))"
+          >
+            {{range .ResidentialConfiguration.Colors}}
+            <option value="{{.ID}}" data-hex="{{.Hex}}">{{.Code}}</option>
+            {{end}}
+          </select>
+
+          </fieldset>
 
           <!--Привод-->
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Привод</legend>
           <div class="drive-block">
             <!--Тип привода-->
             <label
@@ -350,6 +359,7 @@
               </label>
             </div>
           </div>
+          </fieldset>
         </div>
         <div class="gate-preview-container">
           <label

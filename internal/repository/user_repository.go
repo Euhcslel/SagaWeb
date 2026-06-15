@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"fmt"
+	"strconv"
+	"strings"
 
-	"github.com/Euhcslel/SagaWeb/internal/domain/companies"
+"github.com/Euhcslel/SagaWeb/internal/domain/companies"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_contract"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_registration_requests"
@@ -120,26 +121,35 @@ func GetDealerWithUser(db *gorm.DB, dealerID int64) (*dealers.Dealer, error) {
 	return &dealer, nil
 }
 
-// GetNextContractNumber возвращает MAX числового суффикса из contract_number
-// вида "contractN" + 1. Если таких записей нет — возвращает 1.
+// GetNextContractNumber возвращает MAX числового значения среди всех contract_number + 1.
+// Поддерживает форматы: "57", "contract57", "contract_57".
 func GetNextContractNumber(db *gorm.DB) (int, error) {
 	var numbers []string
-	err := db.Model(&dealer_contract.DealerContract{}).
-		Where("contract_number ~ '^contract[0-9]+$'").
-		Pluck("contract_number", &numbers).Error
-	if err != nil {
+	if err := db.Model(&dealer_contract.DealerContract{}).
+		Pluck("contract_number", &numbers).Error; err != nil {
 		return 1, err
 	}
 
 	max := 0
 	for _, n := range numbers {
-		v := 0
-		fmt.Sscanf(n, "contract%d", &v)
+		v := extractNumber(n)
 		if v > max {
 			max = v
 		}
 	}
 	return max + 1, nil
+}
+
+func extractNumber(s string) int {
+	// plain integer
+	if v, err := strconv.Atoi(s); err == nil {
+		return v
+	}
+	// "contract_N" or "contractN"
+	s = strings.TrimPrefix(s, "contract_")
+	s = strings.TrimPrefix(s, "contract")
+	v, _ := strconv.Atoi(s)
+	return v
 }
 
 func GetRegistrationRequestByID(db *gorm.DB, requestID int64) (*dealer_registration_requests.DealerRegistrationRequest, error) {

@@ -81,7 +81,9 @@
                     Количество должно быть не меньше 1
                   </p>
                 </label>
-                <div class="sizes">
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Размеры</legend>
+                  <div class="sizes">
                   <!--Ширина-->
                   <label for="width">
                     Ширина
@@ -135,6 +137,10 @@
                   <span>Цена за размер (клиент): <b id="size-retail-price">—</b></span>
                   <span>Цена за размер (дилер): <b id="size-wholesale-price">—</b></span>
                 </div>
+                </fieldset>
+
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Тип подъема</legend>
                 <!--Высота притолки-->
                 <label for="headroom"
                   >Высота притолки
@@ -188,6 +194,10 @@
                   <span class="lift-markup-display config-hint"></span>
                 </label>
 
+                </fieldset>
+
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Количество циклов</legend>
                 <!--Количество циклов-->
                 <label for="cycle-amount"
                   >Количество циклов
@@ -222,6 +232,10 @@
                   <span class="cycle-markup-display config-hint"></span>
                 </label>
 
+                </fieldset>
+
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Цвет ворот снаружи</legend>
                 <!--Цвет ворот снаружи-->
                 <label for="color-out"
                   >Цвет ворот снаружи
@@ -248,7 +262,11 @@
                   </select>
                 </label>
 
+                </fieldset>
+
                 <!--Привод-->
+                <fieldset class="fieldset">
+                  <legend class="fieldset-legend">Привод</legend>
                 <div class="drive-block">
                   <!--Тип привода-->
                   <label
@@ -410,11 +428,12 @@
                     >
                   </div>
                 </div>
+                </fieldset>
               </div>
             </div>
             <div>
               <h2>Дополнительные опции</h2>
-              <div class="additional-options">
+              <fieldset class="fieldset additional-options">
                 <ul
                   class="option-list"
                   data-retail-price="0"
@@ -423,54 +442,61 @@
                   {{range .options}} {{$gateOption := .}}
 
                   <li class="option-item">
-                    <select
-                      name="option"
-                      class="option select"
-                      onchange="window.updateOptionsPrice(this)"
-                      {{if
-                      ne
-                      $.orderStatus
-                      `pending`}}disabled{{end}}
-                    >
-                      {{range $.cfg.Options}}
-                      <option
-                        value="{{.ID}}"
-                        data-retail-price="{{.RetailPrice}}"
-                        data-wholesale-price="{{.WholesalePrice}}"
-                        {{if
-                        eq
-                        .ID
-                        $gateOption.OptionID}}selected{{end}}
-                      >
-                        {{.Name}}
-                      </option>
-                      {{end}}
-                    </select>
-
-                    <div class="controls">
-                      <input
-                        type="number"
-                        name="amount"
-                        class="amount input"
-                        min="1"
-                        value="{{$gateOption.Amount}}"
-                        oninput="window.updateOptionsPrice(this)"
+                    <div class="option-row">
+                      <select
+                        name="option"
+                        class="option select"
+                        onchange="window.updateOptionsPrice(this)"
                         {{if
                         ne
                         $.orderStatus
                         `pending`}}disabled{{end}}
-                      />
-                      <span class="option-price-display"></span>
-                      {{if eq $.orderStatus `pending`}}
-                      <button
-                        type="button"
-                        class="btn secondary"
-                        onclick="removeItem(this, '.option-item')"
                       >
-                        Удалить
-                      </button>
-                      {{end}}
+                        {{range $.cfg.Options}}
+                        <option
+                          value="{{.ID}}"
+                          data-retail-price="{{.RetailPrice}}"
+                          data-wholesale-price="{{.WholesalePrice}}"
+                          {{if
+                          eq
+                          .ID
+                          $gateOption.OptionID}}selected{{end}}
+                        >
+                          {{.Name}}
+                        </option>
+                        {{end}}
+                      </select>
+                      <div class="controls">
+                        <label>Количество:
+                          <input
+                            type="number"
+                            name="amount"
+                            class="amount input"
+                            min="1"
+                            value="{{$gateOption.Amount}}"
+                            oninput="window.updateOptionsPrice(this)"
+                            {{if
+                            ne
+                            $.orderStatus
+                            `pending`}}disabled{{end}}
+                          />
+                        </label>
+                        {{if eq $.orderStatus `pending`}}
+                        <button
+                          type="button"
+                          class="btn secondary"
+                          onclick="removeItem(this, '.option-item')"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                            <path d="M3 6h18" />
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                        {{end}}
+                      </div>
                     </div>
+                    <span class="option-price-display"></span>
                   </li>
 
                   {{else}}
@@ -491,7 +517,7 @@
                   </button>
                 </div>
                 {{end}}
-              </div>
+              </fieldset>
             </div>
           </div>
         </form>
@@ -523,39 +549,47 @@
     <!--Блок для выбора дополнительных опций к воротам-->
     <template id="option-template">
       <li class="option-item">
-        <select
-          name="option"
-          class="option select"
-          onchange="window.updateOptionsPrice(this)"
-        >
-          {{range .cfg.Options}}
-          <option
-            value="{{.ID}}"
-            data-retail-price="{{.RetailPrice}}"
-            data-wholesale-price="{{.WholesalePrice}}"
+        <div class="option-row">
+          <select
+            name="option"
+            class="option select"
+            onchange="window.updateOptionsPrice(this)"
           >
-            {{.Name}}
-          </option>
-          {{end}}
-        </select>
-        <div class="controls">
-          <input
-            type="number"
-            name="amount"
-            class="amount input"
-            min="1"
-            value="1"
-            oninput="window.updateOptionsPrice(this)"
-          />
-          <span class="option-price-display"></span>
-          <button
-            type="button"
-            class="btn secondary"
-            onclick="removeItem(this, '.option-item')"
-          >
-            Удалить
-          </button>
+            {{range .cfg.Options}}
+            <option
+              value="{{.ID}}"
+              data-retail-price="{{.RetailPrice}}"
+              data-wholesale-price="{{.WholesalePrice}}"
+            >
+              {{.Name}}
+            </option>
+            {{end}}
+          </select>
+          <div class="controls">
+            <label>Количество:
+              <input
+                type="number"
+                name="amount"
+                class="amount input"
+                min="1"
+                value="1"
+                oninput="window.updateOptionsPrice(this)"
+              />
+            </label>
+            <button
+              type="button"
+              class="btn secondary"
+              onclick="removeItem(this, '.option-item')"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                <path d="M3 6h18" />
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            </button>
+          </div>
         </div>
+        <span class="option-price-display"></span>
       </li>
     </template>
     <script src="/web/assets/scripts/sweetalert2.all.min.js"></script>

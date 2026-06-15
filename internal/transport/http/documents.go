@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"time"
 
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/generated"
@@ -214,7 +213,6 @@ func DeleteOrderDocument(w http.ResponseWriter, r *http.Request) {
 
 // Route: /orders/{order_id}/appendice
 // Method: GET
-// Query params: contract_number (string), appendice_number (int, default 1), contract_date (YYYY-MM-DD, default today)
 func GetAppendiceForOrder(w http.ResponseWriter, r *http.Request) {
 	user := utils.UserFromContext(r.Context())
 
@@ -224,31 +222,7 @@ func GetAppendiceForOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contractNumber := r.URL.Query().Get("contract_number")
-	if contractNumber == "" {
-		helpers.WriteError(w, fmt.Errorf("contract_number обязателен"), http.StatusBadRequest)
-		return
-	}
-
-	appendiceNumber := 1
-	if v := r.URL.Query().Get("appendice_number"); v != "" {
-		appendiceNumber, err = strconv.Atoi(v)
-		if err != nil || appendiceNumber < 1 {
-			helpers.WriteError(w, fmt.Errorf("некорректный appendice_number"), http.StatusBadRequest)
-			return
-		}
-	}
-
-	contractDate := time.Now()
-	if v := r.URL.Query().Get("contract_date"); v != "" {
-		contractDate, err = time.Parse("2006-01-02", v)
-		if err != nil {
-			helpers.WriteError(w, fmt.Errorf("некорректный contract_date, ожидается YYYY-MM-DD"), http.StatusBadRequest)
-			return
-		}
-	}
-
-	file, err := service.GetAppendiceForOrder(user, orderID, appendiceNumber, contractNumber, contractDate)
+	file, appendiceNumber, err := service.GetAppendiceForOrder(user, orderID)
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return

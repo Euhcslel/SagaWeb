@@ -54,42 +54,67 @@ form .gate-item {
   width: 100%;
   overflow-y: auto;
   max-height: 50svh;
+  padding: 0;
+}
 
-  li {
-    .controls {
-      display: flex;
-      flex-direction: row;
-      gap: var(--spacing-l);
-      position: relative;
-      min-width: 2rem;
+.option-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) 0;
+}
 
-      label {
-        align-items: center;
-        display: flex;
-        flex-direction: row;
-        gap: var(--spacing-l);
-      }
+.option-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-l);
+  width: 100%;
+  min-width: 0;
+}
 
-      .amount {
-        width: 5rem;
-      }
-    }
+.option-row .option {
+  flex: 1;
+  min-width: 0;
+}
 
-    .controls button {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transform: scale(0.95);
-      transition: all 0.2s ease-in-out;
-    }
+.option-row .controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-l);
 
-    &:hover .controls button {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transform: scale(1);
-    }
+  label {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-s);
   }
+
+  .amount {
+    width: 5rem;
+  }
+
+  button {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: scale(0.95);
+    transition: all 0.2s ease-in-out;
+  }
+}
+
+.option-item:hover .option-row .controls button {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.option-price-display {
+  font-size: var(--font-size-s);
+  color: color-mix(in oklab, var(--color-base-content), transparent 35%);
+  padding-left: var(--spacing-xs);
 }
 
 .configuration {
@@ -97,13 +122,33 @@ form .gate-item {
   max-height: 60svh;
   display: flex;
   flex-direction: column;
+  padding: var(--spacing-s) var(--spacing-l);
   gap: var(--spacing-s);
 }
 
 .select {
-  width: 60%;
+  width: 75%;
 }
 
+
+fieldset.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  padding: var(--spacing-m) var(--spacing-l);
+  border-radius: var(--radius-box);
+  background-color: light-dark(var(--color-base-200), var(--color-base-800));
+  border: 1px solid light-dark(var(--color-base-300), var(--color-base-700));
+  font-size: inherit;
+}
+
+fieldset.fieldset .fieldset-legend {
+  justify-content: flex-start;
+  font-size: var(--font-size-s);
+  font-weight: var(--font-weight-medium);
+  padding: 0;
+  margin-bottom: 0;
+}
 
 @media (max-width: 767px) {
   main {
@@ -163,33 +208,29 @@ form .gate-item {
 
   .option-list {
     max-height: 35svh;
-
-    li {
-      .controls button {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        transform: none;
-      }
-    }
   }
 
-  .option-item {
-    flex-direction: column;
-    align-items: flex-start;
+  .option-row {
+    flex-wrap: wrap;
     gap: var(--spacing-s);
 
-    .select {
+    .option {
       width: 100%;
     }
 
     .controls {
-      flex-direction: row;
       flex-wrap: wrap;
       gap: var(--spacing-s);
 
       .amount {
         width: 5rem;
+      }
+
+      button {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
       }
     }
   }

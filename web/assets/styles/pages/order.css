@@ -5,6 +5,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-l);
+  padding: var(--spacing-s);
 }
 
 .gate {
@@ -32,6 +33,11 @@ h2 {
   text-align: center;
   font-size: var(--font-size-l);
   margin-bottom: 1rem;
+}
+
+.modal-box h3 {
+  font-size: var(--font-size-l);
+  margin-bottom: var(--spacing-l);
 }
 
 .order-content {
@@ -94,6 +100,25 @@ h2 {
   text-align: center;
 }
 
+fieldset.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  padding: var(--spacing-m) var(--spacing-l);
+  border-radius: var(--radius-box);
+  background-color: light-dark(var(--color-base-200), var(--color-base-800));
+  border: 1px solid light-dark(var(--color-base-300), var(--color-base-700));
+  font-size: inherit;
+}
+
+fieldset.fieldset .fieldset-legend {
+  justify-content: flex-start;
+  font-size: var(--font-size-s);
+  font-weight: var(--font-weight-medium);
+  padding: 0;
+  margin-bottom: 0;
+}
+
 .order-products {
   flex: 1;
   min-width: 0;
@@ -107,7 +132,6 @@ h2 {
   overflow-y: auto;
   overflow-x: hidden;
   max-height: 50svh;
-  margin-bottom: 1rem;
   padding: 0;
 }
 

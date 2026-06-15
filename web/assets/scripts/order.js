@@ -126,7 +126,7 @@ window.loadDocuments = async () => {
 
     const template = document.getElementById("document-info-template");
 
-    if (docsList.offers != undefined) {
+    if (docsList.offers != undefined && docsList.offers.length > 0) {
       const offerDiv = document.createElement("tbody");
       offerDiv.dataset.documentType = "offer";
       offerDiv.appendChild(createHeaderRow("Коммерческие предложения"));
@@ -140,7 +140,7 @@ window.loadDocuments = async () => {
       docsTable.appendChild(offerDiv);
     }
 
-    if (docsList.contracts != undefined) {
+    if (docsList.contracts != undefined && docsList.contracts.length > 0) {
       const contractDiv = document.createElement("tbody");
       contractDiv.dataset.documentType = "contract";
       contractDiv.appendChild(createHeaderRow("Договоры"));
@@ -154,7 +154,7 @@ window.loadDocuments = async () => {
       docsTable.appendChild(contractDiv);
     }
 
-    if (docsList.bills != undefined) {
+    if (docsList.bills != undefined && docsList.bills.length > 0) {
       const billDiv = document.createElement("tbody");
       billDiv.dataset.documentType = "bill";
       billDiv.appendChild(createHeaderRow("Счета"));
@@ -168,7 +168,7 @@ window.loadDocuments = async () => {
       docsTable.appendChild(billDiv);
     }
 
-    if (docsList.documents != undefined) {
+    if (docsList.documents != undefined && docsList.documents.length > 0) {
       const documentDiv = document.createElement("tbody");
       documentDiv.dataset.documentType = "document";
       documentDiv.appendChild(createHeaderRow("Прочие документы"));
@@ -180,6 +180,17 @@ window.loadDocuments = async () => {
       });
 
       docsTable.appendChild(documentDiv);
+    }
+
+    if (docsTable.children.length === 0) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.textContent = "Документов нет";
+      cell.style.padding = "1rem";
+      cell.style.textAlign = "center";
+      cell.style.opacity = "0.6";
+      row.appendChild(cell);
+      docsTable.appendChild(row);
     }
 
     document.getElementById("documents-modal").showModal();
@@ -462,27 +473,10 @@ window.updateOrderPrice = () => {
 };
 
 window.downloadAppendice = async () => {
-  const contractNumber = document.getElementById("appendice-contract-number").value.trim();
-  if (!contractNumber) {
-    Swal.fire({ title: "Ошибка", text: "Укажите номер договора", icon: "error" });
-    return;
-  }
-
   try {
-    const appendiceNumber = document.getElementById("appendice-number").value || "1";
-    const contractDate = document.getElementById("appendice-contract-date").value;
+    const orderId = window.location.pathname.split("/")[2];
 
-    const path = window.location.pathname;
-    const parts = path.split("/");
-    const orderId = parts[2];
-
-    const params = new URLSearchParams({
-      contract_number: contractNumber,
-      appendice_number: appendiceNumber,
-    });
-    if (contractDate) params.set("contract_date", contractDate);
-
-    const response = await fetch(`/orders/${orderId}/appendice?${params}`, { method: "GET" });
+    const response = await fetch(`/orders/${orderId}/appendice`, { method: "GET" });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -490,16 +484,20 @@ window.downloadAppendice = async () => {
     }
 
     const blob = await response.blob();
+    const disposition = response.headers.get("Content-Disposition") || "";
+    const match = disposition.match(/filename="([^"]+)"/);
+    const filename = match ? match[1] : `appendice_${orderId}.pdf`;
+
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `appendice_${orderId}_${appendiceNumber}.pdf`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
 
-    document.getElementById("appendice-modal").close();
+    document.getElementById("generate-modal").close();
   } catch (error) {
     Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
   }
@@ -507,8 +505,7 @@ window.downloadAppendice = async () => {
 
 window.openDocumentModal = (type) => {
   document.getElementById("generate-modal").close();
-  const id = type === "offer" ? "offer-modal" : "appendice-modal";
-  document.getElementById(id).showModal();
+  document.getElementById("offer-modal").showModal();
 };
 
 window.downloadOffer = async (type) => {

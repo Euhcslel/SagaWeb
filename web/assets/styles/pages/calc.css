@@ -154,7 +154,7 @@
 
 .tabs:has(#tab-configuration:checked) .tab-content.configuration {
   display: grid;
-  grid-template-columns: 30% minmax(18rem, 1fr);
+  grid-template-columns: 36% minmax(18rem, 1fr);
   gap: var(--spacing-xl);
 
   .configuration {
@@ -163,6 +163,7 @@
     gap: var(--spacing-s);
     overflow-y: scroll;
     max-height: 70svh;
+    padding: var(--spacing-xs) var(--spacing-s) var(--spacing-xs) var(--spacing-xs);
 
     .sizes {
       display: flex;
@@ -307,6 +308,25 @@ main {
   fill: var(--color-base-content);
   font-size: 22px;
   font-weight: 700;
+}
+
+fieldset.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  padding: var(--spacing-m) var(--spacing-l);
+  border-radius: var(--radius-box);
+  background-color: light-dark(var(--color-base-200), var(--color-base-800));
+  border: 1px solid light-dark(var(--color-base-300), var(--color-base-700));
+  font-size: inherit;
+}
+
+fieldset.fieldset .fieldset-legend {
+  justify-content: flex-start;
+  font-size: var(--font-size-s);
+  font-weight: var(--font-weight-medium);
+  padding: 0;
+  margin-bottom: 0;
 }
 
 @media (max-width: 767px) {

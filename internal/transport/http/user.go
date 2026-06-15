@@ -52,7 +52,7 @@ func GetUserDealers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]any{
-		"css":     "",
+		"css":     "dealers.css",
 		"user":    user,
 		"dealers": dealers,
 	}
@@ -194,7 +194,7 @@ func GenerateDealerContract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := service.GenerateDealerContract(user, dealerID)
+	data, contractNumber, err := service.GenerateDealerContract(user, dealerID)
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
@@ -204,7 +204,7 @@ func GenerateDealerContract(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="contract_%d.docx"`, dealerID))
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="contract_%d.docx"`, contractNumber))
 	w.Write(data)
 }
 
@@ -231,13 +231,11 @@ func AttachContractToDealer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	file, handler, err := r.FormFile("contract_file")
-	if err != nil && !errors.Is(err, http.ErrMissingFile) {
-		helpers.WriteError(w, err, http.StatusBadRequest)
+	if err != nil {
+		helpers.WriteError(w, fmt.Errorf("файл договора обязателен"), http.StatusBadRequest)
 		return
 	}
-	if file != nil {
-		defer file.Close()
-	}
+	defer file.Close()
 
 	if err := service.AttachContractToDealer(user, dealerID, r.FormValue("contract_number"), signedAt, file, handler); err != nil {
 		if errors.Is(err, errs.ErrForbidden) {

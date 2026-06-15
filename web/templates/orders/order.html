@@ -61,6 +61,7 @@
         {{else}}
         <p>Статус: {{.order.Status.Label}}</p>
         {{end}}
+        <div class="divider divider-horizontal"></div>
         <p>Дата готовности: {{if .order.ManufactureDate}}{{fmtDateDisplay .order.ManufactureDate}}{{else}}не указана{{end}}</p>
       </div>
       <!--Содержимое заказа-->
@@ -154,6 +155,7 @@
         <!-- Товары -->
         <div class="order-products" id="products">
           <h2>Товары</h2>
+          <fieldset class="fieldset">
           <ul id="product-list" data-retail-price="0" data-wholesale-price="0">
             {{range .order.Products}} {{$orderProduct := .}}
 
@@ -248,6 +250,7 @@
             </button>
           </div>
           {{end}}
+          </fieldset>
         </div>
       </div>
       <!--Модальное окно для добавления новых ворот в заказ-->
@@ -276,18 +279,18 @@
         <div class="modal-box">
           <h3>Добавление документов</h3>
           <div class="file-inputs">
-            <label>
-              КП
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">КП</legend>
               <input id="upload-offer" type="file" class="file-input" onchange="window.updateUploadButton()" />
-            </label>
-            <label>
-              Договор
+            </fieldset>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Договор</legend>
               <input id="upload-contract" type="file" class="file-input" onchange="window.updateUploadButton()" />
-            </label>
-            <label>
-              Счёт
+            </fieldset>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Счёт</legend>
               <input id="upload-bill" type="file" class="file-input" onchange="window.updateUploadButton()" />
-            </label>
+            </fieldset>
           </div>
           <div class="modal-action">
             <button id="upload-docs-btn" class="btn primary" disabled onclick="window.uploadDocuments()">
@@ -301,35 +304,12 @@
         <div class="modal-box">
           <h3>Генерация документов</h3>
           <div class="modal-action">
-            <button class="btn secondary" onclick="window.openDocumentModal('appendice')">Приложение к договору</button>
+            <button class="btn secondary" onclick="window.downloadAppendice()">Приложение к договору</button>
             <button class="btn secondary" onclick="window.openDocumentModal('offer')">Коммерческое предложение</button>
           </div>
         </div>
       </dialog>
-      <!--Модальное окно для генерации приложения к договору-->
-      <dialog id="appendice-modal" class="modal">
-        <div class="modal-box">
-          <h3>Приложение к договору</h3>
-          <div class="file-inputs">
-            <label>
-              Номер договора *
-              <input id="appendice-contract-number" type="text" class="input" placeholder="например: 48" required />
-            </label>
-            <label>
-              Номер приложения
-              <input id="appendice-number" type="number" class="input" min="1" value="1" />
-            </label>
-            <label>
-              Дата договора
-              <input id="appendice-contract-date" type="date" class="input" />
-            </label>
-          </div>
-          <div class="modal-action">
-            <button class="btn secondary" onclick="document.getElementById('appendice-modal').close()">Отмена</button>
-            <button class="btn primary" onclick="window.downloadAppendice()">Скачать PDF</button>
-          </div>
-        </div>
-      </dialog>
+
       <!--Модальное окно для генерации КП (только для дилера)-->
       <dialog id="offer-modal" class="modal">
         <div class="modal-box">

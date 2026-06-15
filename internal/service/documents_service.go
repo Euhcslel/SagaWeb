@@ -8,9 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
-
-	"github.com/Euhcslel/SagaWeb/internal/database"
+"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/docgen"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
@@ -557,39 +555,42 @@ func loadProducts(in []*generated.Product) ([]order_products.OrderProduct, error
 }
 
 // GetAppendiceForOrder загружает заказ из БД и генерирует PDF приложения к договору.
-func GetAppendiceForOrder(
-	user *users.User,
-	orderID int64,
-	appendiceNumber int,
-	contractNumber string,
-	contractDate time.Time,
-) ([]byte, error) {
+// Номер договора и дата берутся из записи dealer_contract; номер приложения — count(существующих) + 1.
+func GetAppendiceForOrder(user *users.User, orderID int64) ([]byte, int, error) {
 	if err := checkOrderAccess(user, orderID); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	orderRecord, err := repository.GetOrderWithCustomer(database.DB, orderID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	if orderRecord.DealerID != nil {
-		contract, err := repository.GetDealerContract(database.DB, *orderRecord.DealerID)
-		if err != nil {
-			return nil, err
-		}
-		if contract == nil {
-			return nil, errs.ErrNoDealerContract
-		}
+	if orderRecord.DealerID == nil {
+		return nil, 0, errs.ErrNoDealerContract
 	}
+
+	contract, err := repository.GetDealerContract(database.DB, *orderRecord.DealerID)
+	if err != nil {
+		return nil, 0, err
+	}
+	if contract == nil {
+		return nil, 0, errs.ErrNoDealerContract
+	}
+
+	existing, err := repository.GetAppendicesNumberList(database.DB, orderID)
+	if err != nil {
+		return nil, 0, err
+	}
+	appendiceNumber := len(existing) + 1
 
 	order, err := buildOrderForDoc(orderID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var customer docgen.CustomerInfo
-	if orderRecord.DealerID != nil && orderRecord.Dealer != nil {
+	if orderRecord.Dealer != nil {
 		customer.OrganizationName = orderRecord.Dealer.Company.Name
 		customer.ContactPerson = orderRecord.Dealer.User.Fullname
 		customer.Phone = orderRecord.Dealer.User.PhoneNumber
@@ -598,7 +599,8 @@ func GetAppendiceForOrder(
 		customer.Phone = orderRecord.Manager.PhoneNumber
 	}
 
-	return docgen.GenerateAppendice(&order, customer, appendiceNumber, contractNumber, contractDate)
+	pdf, err := docgen.GenerateAppendice(&order, customer, appendiceNumber, contract.ContractNumber, contract.SignedAt)
+	return pdf, appendiceNumber, err
 }
 
 // loadDriveForGate загружает привод для конкретных ворот в зависимости от типа

@@ -67,34 +67,33 @@ func AttachContractToDealer(user *users.User, dealerID int64, contractNumber str
 	}
 
 	dir := os.Getenv("CONTRACTS_DIRECTORY")
+	if dir == "" {
+		return fmt.Errorf("переменная CONTRACTS_DIRECTORY не задана")
+	}
 
 	existing, err := repository.GetDealerContract(database.DB, dealerID)
 	if err != nil {
 		return err
 	}
-	if existing != nil && existing.Path != nil && dir != "" {
+	if existing != nil && existing.Path != nil {
 		_ = os.Remove(filepath.Join(dir, *existing.Path))
 	}
 
+	dst, err := os.OpenFile(filepath.Join(dir, handler.Filename), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	if _, err = io.Copy(dst, file); err != nil {
+		return err
+	}
+
+	filename := handler.Filename
 	contract := dealer_contract.DealerContract{
 		DealerID:       dealerID,
 		ContractNumber: contractNumber,
 		SignedAt:       signedAt,
-	}
-
-	if file != nil && handler != nil {
-		if dir == "" {
-			return fmt.Errorf("переменная CONTRACTS_DIRECTORY не задана")
-		}
-		dst, err := os.OpenFile(filepath.Join(dir, handler.Filename), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-		if err != nil {
-			return err
-		}
-		defer dst.Close()
-		if _, err = io.Copy(dst, file); err != nil {
-			return err
-		}
-		contract.Path = &handler.Filename
+		Path:           &filename,
 	}
 
 	return repository.UpsertDealerContract(database.DB, contract)
@@ -165,19 +164,20 @@ func UpdateCompanyDetails(user *users.User, inn, kpp, ogrn string) error {
 	return repository.UpdateCompanyDetails(database.DB, dealer.CompanyID, inn, kpp, ogrn)
 }
 
-func GenerateDealerContract(manager *users.User, dealerID int64) ([]byte, error) {
+func GenerateDealerContract(manager *users.User, dealerID int64) ([]byte, int, error) {
 	if manager.Role != enums.ManagerRole && manager.Role != enums.AdminRole {
-		return nil, errs.ErrForbidden
+		return nil, 0, errs.ErrForbidden
 	}
 	dealer, err := repository.GetDealerWithUser(database.DB, dealerID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	contractNumber, err := repository.GetNextContractNumber(database.DB)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return docgen.GenerateContract(dealer, &dealer.User, contractNumber, time.Now())
+	data, err := docgen.GenerateContract(dealer, &dealer.User, contractNumber, time.Now())
+	return data, contractNumber, err
 }
 
 func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
