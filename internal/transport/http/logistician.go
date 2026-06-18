@@ -123,5 +123,5 @@ func ImportSizes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	http.Redirect(w, r, "/logistician/size-import", http.StatusSeeOther)
 }
