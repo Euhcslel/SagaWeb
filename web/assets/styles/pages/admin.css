@@ -87,6 +87,17 @@ form {
   max-width: 100%;
 }
 
+form.modal-backdrop {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  max-width: none;
+  gap: 0;
+}
+
 @media (max-width: 767px) {
   h1 {
     font-size: var(--font-size-m);
