@@ -210,10 +210,10 @@ function createHeaderRow(text) {
 
 window.updateUploadButton = () => {
   const hasFile =
-    document.getElementById("upload-offer").files.length > 0 ||
-    document.getElementById("upload-contract").files.length > 0 ||
-    document.getElementById("upload-bill").files.length > 0 ||
-    document.getElementById("upload-document").files.length > 0;
+    document.getElementById("upload-offer")?.files.length > 0 ||
+    document.getElementById("upload-contract")?.files.length > 0 ||
+    document.getElementById("upload-bill")?.files.length > 0 ||
+    document.getElementById("upload-document")?.files.length > 0;
   document.getElementById("upload-docs-btn").disabled = !hasFile;
 };
 
@@ -228,7 +228,7 @@ window.uploadDocuments = async () => {
 
   try {
     for (const { inputId, endpoint } of uploads) {
-      const file = document.getElementById(inputId).files[0];
+      const file = document.getElementById(inputId)?.files[0];
       if (!file) continue;
 
       const formData = new FormData();
