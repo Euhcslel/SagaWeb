@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -20,8 +21,14 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
+	"github.com/lib/pq"
 	"github.com/samborkent/uuidv7"
 )
+
+func isFKViolation(err error) bool {
+	var pqErr *pq.Error
+	return errors.As(err, &pqErr) && pqErr.Code == "23503"
+}
 
 func UploadProductImage(file multipart.File, handler *multipart.FileHeader) (string, error) {
 
@@ -276,28 +283,33 @@ func UpdateRow(tableName string, tableData any) error {
 }
 
 func DeleteRow(tableName string, rowId int64) error {
+	var err error
 	switch tableName {
 	case "colors":
-		return repository.DeleteColor(rowId)
+		err = repository.DeleteColor(rowId)
 	case "cycle_amounts":
-		return repository.DeleteCycleAmount(rowId)
+		err = repository.DeleteCycleAmount(rowId)
 	case "industrial_drives":
-		return repository.DeleteIndustrialDrive(rowId)
+		err = repository.DeleteIndustrialDrive(rowId)
 	case "lift_types":
-		return repository.DeleteLiftType(rowId)
+		err = repository.DeleteLiftType(rowId)
 	case "options":
-		return repository.DeleteOption(rowId)
+		err = repository.DeleteOption(rowId)
 	case "products":
-		return repository.DeleteProduct(rowId)
+		err = repository.DeleteProduct(rowId)
 	case "rails":
-		return repository.DeleteRail(rowId)
+		err = repository.DeleteRail(rowId)
 	case "residential_drives":
-		return repository.DeleteResidentialDrive(rowId)
+		err = repository.DeleteResidentialDrive(rowId)
 	case "users":
-		return repository.AdminDeleteUser(rowId)
+		err = repository.AdminDeleteUser(rowId)
 	case "manual_drive_prices":
-		return repository.DeleteManualDrivePrice(rowId)
+		err = repository.DeleteManualDrivePrice(rowId)
 	default:
 		return errs.ErrInvalidTableType
 	}
+	if isFKViolation(err) {
+		return errs.ErrForeignKeyViolation
+	}
+	return err
 }

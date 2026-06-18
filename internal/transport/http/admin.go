@@ -432,6 +432,10 @@ func DeleteRow(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, errs.ErrNotFound, http.StatusNotFound)
 			return
 		}
+		if errors.Is(err, errs.ErrForeignKeyViolation) {
+			helpers.WriteError(w, err, http.StatusConflict)
+			return
+		}
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}
