@@ -73,9 +73,10 @@ func UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userInfo := types.UpdatedUserInfo{
-		Fullname: r.FormValue("fullname"),
-		Email:    r.FormValue("email"),
-		Phone:    r.FormValue("phone"),
+		Fullname:    r.FormValue("fullname"),
+		Email:       r.FormValue("email"),
+		Phone:       r.FormValue("phone"),
+		NewPassword: r.FormValue("new_password"),
 	}
 
 	if user.Role == enums.DealerRole {

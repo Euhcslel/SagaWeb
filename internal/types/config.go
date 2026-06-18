@@ -64,6 +64,9 @@ type UpdatedUserInfo struct {
 
 	Company string
 	Address string
+
+	NewPassword  string
+	PasswordHash []byte
 }
 
 type ResidentialDriveRail struct {

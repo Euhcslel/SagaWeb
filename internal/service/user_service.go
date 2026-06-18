@@ -205,6 +205,14 @@ func GenerateDealerContract(manager *users.User, dealerID int64) ([]byte, int, e
 }
 
 func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
+	if userInfo.NewPassword != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(userInfo.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		userInfo.PasswordHash = hash
+	}
+
 	tx := database.DB.Begin()
 	if tx.Error != nil {
 		return tx.Error

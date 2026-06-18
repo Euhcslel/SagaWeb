@@ -112,6 +112,20 @@
               </p>
             </div>
             {{end}}
+            <!--Новый пароль-->
+            <div>
+              <label class="input validator">
+                Новый пароль
+                <input
+                  name="new_password"
+                  type="password"
+                  placeholder="Оставьте пустым, чтобы не менять"
+                  minlength="8"
+                  maxlength="64"
+                />
+              </label>
+              <p class="validator-hint">Минимум 8 символов</p>
+            </div>
             <button class="btn secondary" type="submit">
               Сохранить изменения
             </button>

@@ -69,13 +69,17 @@ func GetDealerInfo(db *gorm.DB, userID int64) (*dealers.Dealer, error) {
 }
 
 func UpdateUserInfo(db *gorm.DB, userID int64, userInfo types.UpdatedUserInfo) error {
+	updates := map[string]any{
+		"fullname":     userInfo.Fullname,
+		"email":        userInfo.Email,
+		"phone_number": userInfo.Phone,
+	}
+	if len(userInfo.PasswordHash) > 0 {
+		updates["password_hash"] = userInfo.PasswordHash
+	}
 	return db.Model(&users.User{}).
 		Where("id = ?", userID).
-		Updates(map[string]any{
-			"fullname":     userInfo.Fullname,
-			"email":        userInfo.Email,
-			"phone_number": userInfo.Phone,
-		}).Error
+		Updates(updates).Error
 }
 
 func UpdateDealerInfo(db *gorm.DB, userID int64, userInfo types.UpdatedUserInfo) error {
