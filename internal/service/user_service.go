@@ -34,7 +34,7 @@ type DealerWithContract struct {
 }
 
 func GetUserDealers(user *users.User) ([]DealerWithContract, error) {
-	if user.Role != enums.ManagerRole && user.Role != enums.AdminRole {
+	if user.Role != enums.ManagerRole {
 		return nil, errs.ErrForbidden
 	}
 
@@ -238,7 +238,7 @@ func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
 }
 
 func ConfirmDealerRegistrationRequest(manager *users.User, requestID int64) error {
-	if manager.Role != enums.ManagerRole && manager.Role != enums.AdminRole {
+	if manager.Role != enums.ManagerRole {
 		return errs.ErrForbidden
 	}
 

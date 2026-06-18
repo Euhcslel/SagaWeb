@@ -118,7 +118,7 @@
           </form>
         </div>
         <div class="card-actions">
-          {{if or (eq .user.Role "manager") (eq .user.Role "admin")}}
+          {{if eq .user.Role "manager"}}
           <a href="/user/dealers" class="btn secondary">Мои дилеры</a>
           {{end}}
           <form action="/sign_out" method="post">
