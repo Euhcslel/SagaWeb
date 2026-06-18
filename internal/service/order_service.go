@@ -566,8 +566,7 @@ func calculateOptionsPrices(tx *gorm.DB, gateOptions []*generated.Option) (*type
 }
 
 func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
-	role := user.Role
-	if role != enums.DealerRole && role != enums.ManagerRole {
+	if user.Role != enums.DealerRole {
 		return errs.ErrForbidden
 	}
 
@@ -578,24 +577,15 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	defer tx.Rollback()
 
 	// Создаем заказ
-	var order orders.Order
-	if role == enums.DealerRole {
-		managerID, err := repository.GetManagerIDByDealerID(tx, user.ID)
-		if err != nil {
-			return err
-		}
+	managerID, err := repository.GetManagerIDByDealerID(tx, user.ID)
+	if err != nil {
+		return err
+	}
 
-		order = orders.Order{
-			DealerID:  &user.ID,
-			ManagerID: managerID,
-			Status:    enums.OrderStatusPending,
-		}
-	} else {
-		order = orders.Order{
-			DealerID:  nil,
-			ManagerID: user.ID,
-			Status:    enums.OrderStatusPending,
-		}
+	order := orders.Order{
+		DealerID:  &user.ID,
+		ManagerID: managerID,
+		Status:    enums.OrderStatusPending,
 	}
 
 	if err := repository.CreateNewOrder(tx, &order); err != nil {

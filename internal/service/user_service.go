@@ -242,7 +242,7 @@ func ConfirmDealerRegistrationRequest(manager *users.User, requestID int64) erro
 		return errs.ErrForbidden
 	}
 
-	password, err := generatePassword(18)
+	password, err := generatePassword(9)
 	if err != nil {
 		return err
 	}

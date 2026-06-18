@@ -139,7 +139,7 @@
             Скачать КП
           </button>
         </div>
-        {{if and $.user (or (eq $.user.Role "dealer") (eq $.user.Role "manager"))}}
+        {{if and $.user (eq $.user.Role "dealer")}}
         <div>
           <button
             class="btn primary"

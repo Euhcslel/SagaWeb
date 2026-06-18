@@ -296,6 +296,7 @@
         <div class="modal-box">
           <h3>Добавление документов</h3>
           <div class="file-inputs">
+            {{if ne .user.Role "manager"}}
             <fieldset class="fieldset">
               <legend class="fieldset-legend">КП</legend>
               <input
@@ -314,6 +315,7 @@
                 onchange="window.updateUploadButton()"
               />
             </fieldset>
+            {{end}}
             <fieldset class="fieldset">
               <legend class="fieldset-legend">Счёт</legend>
               <input

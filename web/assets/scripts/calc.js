@@ -16,9 +16,18 @@ import {
   SizePriceSchema,
 } from "./proto_bundle.js";
 
-window.removeItem = removeItem;
-window.addGateOption = addGateOption;
-window.updateOptionsPrice = updateOptionsPrice;
+window.removeItem = (element, itemContainer) => {
+  removeItem(element, itemContainer);
+  updateOrderPrice();
+};
+window.addGateOption = (element) => {
+  addGateOption(element);
+  updateOrderPrice();
+};
+window.updateOptionsPrice = (element) => {
+  updateOptionsPrice(element);
+  updateOrderPrice();
+};
 window.addProduct = addProduct;
 window.updateProductsPrice = updateProductsPrice;
 window.updateGatePrice = (gate) => {
