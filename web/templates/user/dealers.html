@@ -63,23 +63,20 @@
 
     <dialog id="contract-modal" class="modal">
       <div class="modal-box">
-        <form id="contract-form" method="post" enctype="multipart/form-data">
-          <div>
-            <label>Номер договора
-              <input class="input" type="text" name="contract_number" required />
-            </label>
-          </div>
-          <div>
-            <label>Дата подписания
-              <input class="input" type="date" name="signed_at" required />
-            </label>
-          </div>
-          <div>
-            <label>Файл договора
-              <input type="file" name="contract_file" accept=".pdf,.doc,.docx" required />
-            </label>
-          </div>
-          <div style="display:flex;gap:0.5rem;margin-top:1rem">
+        <form id="contract-form" method="post" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:0.25rem">
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Номер договора</legend>
+            <input class="input" type="text" name="contract_number" required />
+          </fieldset>
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Дата подписания</legend>
+            <input class="input" type="date" name="signed_at" required />
+          </fieldset>
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Файл договора</legend>
+            <input class="file-input" style="width:100%" type="file" name="contract_file" accept=".pdf,.doc,.docx" required />
+          </fieldset>
+          <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
             <button class="btn primary" type="submit">Прикрепить</button>
             <button class="btn secondary" type="button" onclick="document.getElementById('contract-modal').close()">Отмена</button>
           </div>
