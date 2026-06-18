@@ -45,6 +45,7 @@ func UploadProductImage(file multipart.File, handler *multipart.FileHeader) (str
 	defer dst.Close()
 
 	if _, err = io.Copy(dst, file); err != nil {
+		os.Remove(path)
 		return "", err
 	}
 

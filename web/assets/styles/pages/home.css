@@ -37,6 +37,7 @@ section {
       height: 100%;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
 
       img {
         z-index: 1;
@@ -48,8 +49,8 @@ section {
 
     .decoration {
       position: absolute;
-      width: 24rem;
-      height: 24rem;
+      width: min(24rem, 28vw);
+      height: min(24rem, 28vw);
 
       &.top-left {
         transform: translate(-16%, -16%);
@@ -263,9 +264,10 @@ form {
     align-items: stretch;
   }
 
-  section#main .cta-block {
+  section#main .description .cta-block {
     width: 100%;
     padding: var(--spacing-xl) var(--spacing-l);
+    padding-left: var(--spacing-l);
     border-radius: var(--radius-box);
   }
 
@@ -420,6 +422,12 @@ form {
 @media (min-width: 768px) and (max-width: 1023px) {
   section#main .logo      { width: 55%; }
   section#main .description { width: 45%; }
+
+  section#main .logo img {
+    width: 32%;
+    height: auto;
+    max-height: 45%;
+  }
   section#main .cta-block {
     padding: var(--spacing-xl);
     border-radius: var(--radius-box);

@@ -441,10 +441,11 @@ func (d *Doc) drawGrandTotalSingle(order *types.Order) {
 	for _, p := range order.Products {
 		total = total.Add(p.Product.RetailPrice.Mul(decimal.NewFromInt32(p.Amount)))
 	}
-	labelW := colSingle.No + colSingle.Name + colSingle.Unit + colSingle.Price + colSingle.Amount
+	const totalSumW = 34.0
+	labelW := contentWidth - totalSumW
 	d.pdf.SetFont("DejaVu", "B", 10)
 	d.pdf.CellFormat(labelW, 8, "ИТОГО К ОПЛАТЕ:", "1", 0, "R", false, 0, "")
-	d.pdf.CellFormat(colSingle.Sum, 8, money(total), "1", 1, "R", false, 0, "")
+	d.pdf.CellFormat(totalSumW, 8, money(total), "1", 1, "R", false, 0, "")
 }
 
 func (d *Doc) drawGrandTotalDual(order *types.Order) {
@@ -460,11 +461,12 @@ func (d *Doc) drawGrandTotalDual(order *types.Order) {
 		totalRetail = totalRetail.Add(p.Product.RetailPrice.Mul(amt))
 		totalDealer = totalDealer.Add(p.Product.WholesalePrice.Mul(amt))
 	}
-	labelW := colDual.No + colDual.Name + colDual.Unit + colDual.Retail + colDual.Dealer + colDual.Amount
+	const totalDualSumW = 26.0
+	labelW := contentWidth - totalDualSumW*2
 	d.pdf.SetFont("DejaVu", "B", 10)
 	d.pdf.CellFormat(labelW, 8, "ИТОГО К ОПЛАТЕ:", "1", 0, "R", false, 0, "")
-	d.pdf.CellFormat(colDual.SumRetail, 8, money(totalRetail), "1", 0, "R", false, 0, "")
-	d.pdf.CellFormat(colDual.SumDealer, 8, money(totalDealer), "1", 1, "R", false, 0, "")
+	d.pdf.CellFormat(totalDualSumW, 8, money(totalRetail), "1", 0, "R", false, 0, "")
+	d.pdf.CellFormat(totalDualSumW, 8, money(totalDealer), "1", 1, "R", false, 0, "")
 }
 
 // ─── Общие утилиты ────────────────────────────────────────────────────────────

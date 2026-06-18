@@ -212,7 +212,8 @@ window.updateUploadButton = () => {
   const hasFile =
     document.getElementById("upload-offer").files.length > 0 ||
     document.getElementById("upload-contract").files.length > 0 ||
-    document.getElementById("upload-bill").files.length > 0;
+    document.getElementById("upload-bill").files.length > 0 ||
+    document.getElementById("upload-document").files.length > 0;
   document.getElementById("upload-docs-btn").disabled = !hasFile;
 };
 
@@ -222,6 +223,7 @@ window.uploadDocuments = async () => {
     { inputId: "upload-offer", endpoint: `/orders/${orderId}/offer` },
     { inputId: "upload-contract", endpoint: `/orders/${orderId}/contract` },
     { inputId: "upload-bill", endpoint: `/orders/${orderId}/bill` },
+    { inputId: "upload-document", endpoint: `/orders/${orderId}/document` },
   ];
 
   try {
@@ -241,6 +243,7 @@ window.uploadDocuments = async () => {
     document.getElementById("add-documents-modal").close();
     window.location.reload();
   } catch (error) {
+    document.querySelector('dialog[open]')?.close();
     Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
   }
 };
@@ -347,6 +350,7 @@ window.downloadDocument = async (button) => {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (error) {
+    document.querySelector('dialog[open]')?.close();
     Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
   }
 };
@@ -499,6 +503,7 @@ window.downloadAppendice = async () => {
 
     document.getElementById("generate-modal").close();
   } catch (error) {
+    document.querySelector('dialog[open]')?.close();
     Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
   }
 };
@@ -537,6 +542,7 @@ window.downloadOffer = async (type) => {
 
     document.getElementById("offer-modal").close();
   } catch (error) {
+    document.querySelector('dialog[open]')?.close();
     Swal.fire({ title: "Ошибка", text: error.message, icon: "error" });
   }
 };

@@ -2,7 +2,7 @@
   width: 56px;
   height: 56px;
   object-fit: cover;
-  border-radius: var(--radius-s, 4px);
+  border-radius: var(--radius-field);
 }
 
 .tables {

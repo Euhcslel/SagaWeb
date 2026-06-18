@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strconv"
 
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
@@ -118,6 +119,42 @@ func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
 }
 
+// Route: /orders/{order_id}/document
+// Method: POST
+func UploadDocumentToOrder(w http.ResponseWriter, r *http.Request) {
+	user := utils.UserFromContext(r.Context())
+
+	orderID, err := strconv.ParseInt(r.PathValue("order_id"), 10, 64)
+	if err != nil {
+		helpers.WriteError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	err = r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Error parsing multipart form", http.StatusBadRequest)
+		return
+	}
+
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	err = service.UploadDocumentToOrder(user, orderID, file, handler)
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
+		helpers.WriteError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
+}
+
 // Route: /orders/{order_id}/bill
 // Method: POST
 func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
@@ -180,7 +217,9 @@ func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileInfo.FileName))
+	ext := filepath.Ext(fileInfo.FileName)
+	displayName := documentName + ext
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, displayName))
 	http.ServeFile(w, r, fileInfo.FilePath)
 }
 

@@ -205,6 +205,10 @@ fieldset.fieldset .fieldset-legend {
 }
 
 @media (max-width: 767px) {
+  main {
+    padding-bottom: 5rem;
+  }
+
   h2 {
     font-size: var(--font-size-m);
     margin-bottom: var(--spacing-s);

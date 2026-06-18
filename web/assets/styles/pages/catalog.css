@@ -16,7 +16,7 @@
   width: 128px;
   height: 128px;
   object-fit: cover;
-  border-radius: var(--radius-s, 4px);
+  border-radius: var(--radius-field);
 }
 
 .catalog-specs {

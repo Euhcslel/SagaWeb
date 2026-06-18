@@ -198,6 +198,9 @@ func GenerateDealerContract(w http.ResponseWriter, r *http.Request) {
 	if errors.Is(err, errs.ErrForbidden) {
 		helpers.WriteError(w, err, http.StatusForbidden)
 		return
+	} else if errors.Is(err, errs.ErrIncompleteCompanyDetails) {
+		helpers.WriteError(w, err, http.StatusUnprocessableEntity)
+		return
 	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return

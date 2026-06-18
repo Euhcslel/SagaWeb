@@ -40,7 +40,10 @@
         </button>
         <!--Генерация документов — только для дилера-->
         {{if eq .user.Role "dealer"}}
-        <button class="btn secondary" onclick="document.getElementById('generate-modal').showModal()">
+        <button
+          class="btn secondary"
+          onclick="document.getElementById('generate-modal').showModal()"
+        >
           Генерация документов
         </button>
         {{end}}
@@ -62,7 +65,10 @@
         <p>Статус: {{.order.Status.Label}}</p>
         {{end}}
         <div class="divider divider-horizontal"></div>
-        <p>Дата готовности: {{if .order.ManufactureDate}}{{fmtDateDisplay .order.ManufactureDate}}{{else}}не указана{{end}}</p>
+        <p>
+          Дата готовности: {{if .order.ManufactureDate}}{{fmtDateDisplay
+          .order.ManufactureDate}}{{else}}не указана{{end}}
+        </p>
       </div>
       <!--Содержимое заказа-->
       <div class="order-content">
@@ -86,8 +92,14 @@
                   <li>Тип подъема: {{.Gate.LiftType.Name}}</li>
                   <li>Цвет: {{.Gate.ColorOut.Code}}</li>
                   <li>Количество циклов: {{.Gate.CycleAmount.Amount}}</li>
-                  <li>Цена (клиент): {{fmtPrice (mulPrice .Gate.GateRetailPrice .Gate.Amount)}}</li>
-                  <li>Цена (дилер): {{fmtPrice (mulPrice .Gate.GateWholesalePrice .Gate.Amount)}}</li>
+                  <li>
+                    Цена (клиент): {{fmtPrice (mulPrice .Gate.GateRetailPrice
+                    .Gate.Amount)}}
+                  </li>
+                  <li>
+                    Цена (дилер): {{fmtPrice (mulPrice .Gate.GateWholesalePrice
+                    .Gate.Amount)}}
+                  </li>
                 </ul>
                 <div class="card-actions">
                   <!--Перейти в детали заказа-->
@@ -156,100 +168,104 @@
         <div class="order-products" id="products">
           <h2>Товары</h2>
           <fieldset class="fieldset">
-          <ul id="product-list" data-retail-price="0" data-wholesale-price="0">
-            {{range .order.Products}} {{$orderProduct := .}}
+            <ul
+              id="product-list"
+              data-retail-price="0"
+              data-wholesale-price="0"
+            >
+              {{range .order.Products}} {{$orderProduct := .}}
 
-            <li class="product-item">
-              <select
-                class="product select"
-                name="product"
-                onchange="window.updateProductsPrice()"
-                {{if
-                ne
-                $.order.Status
-                `pending`}}disabled{{end}}
-              >
-                {{range $.products}}
-                <option
-                  value="{{.ID}}"
-                  data-retail-price="{{.RetailPrice}}"
-                  data-wholesale-price="{{.WholesalePrice}}"
+              <li class="product-item">
+                <select
+                  class="product select"
+                  name="product"
+                  onchange="window.updateProductsPrice()"
                   {{if
-                  eq
-                  .ID
-                  $orderProduct.ProductID}}selected{{end}}
+                  ne
+                  $.order.Status
+                  `pending`}}disabled{{end}}
                 >
-                  {{.Name}}
-                </option>
-                {{end}}
-              </select>
-
-              <div class="controls">
-                <label for="">
-                  Количество:
-                  <input
-                    type="number"
-                    name="amount"
-                    class="amount input"
-                    min="1"
-                    value="{{$orderProduct.Amount}}"
-                    oninput="window.updateProductsPrice()"
+                  {{range $.products}}
+                  <option
+                    value="{{.ID}}"
+                    data-retail-price="{{.RetailPrice}}"
+                    data-wholesale-price="{{.WholesalePrice}}"
                     {{if
-                    ne
-                    $.order.Status
-                    `pending`}}disabled{{end}}
-                  />
-                </label>
-
-                {{if eq $.order.Status `pending`}}
-                <button
-                  type="button"
-                  class="btn secondary"
-                  onclick="removeItem(this, '.product-item')"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    eq
+                    .ID
+                    $orderProduct.ProductID}}selected{{end}}
                   >
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                    <path d="M3 6h18" />
-                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                </button>
-                {{end}}
-              </div>
-            </li>
-            {{else}}
-            <p>Нет товаров в заказе</p>
+                    {{.Name}}
+                  </option>
+                  {{end}}
+                </select>
+
+                <div class="controls">
+                  <label for="">
+                    Количество:
+                    <input
+                      type="number"
+                      name="amount"
+                      class="amount input"
+                      min="1"
+                      value="{{$orderProduct.Amount}}"
+                      oninput="window.updateProductsPrice()"
+                      {{if
+                      ne
+                      $.order.Status
+                      `pending`}}disabled{{end}}
+                    />
+                  </label>
+
+                  {{if eq $.order.Status `pending`}}
+                  <button
+                    type="button"
+                    class="btn secondary"
+                    onclick="removeItem(this, '.product-item')"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                      <path d="M3 6h18" />
+                      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  </button>
+                  {{end}}
+                </div>
+              </li>
+              {{else}}
+              <p>Нет товаров в заказе</p>
+              {{end}}
+            </ul>
+            {{if eq $.order.Status `pending`}}
+            <div class="button-container">
+              <button
+                id="add-product"
+                type="button"
+                class="btn primary"
+                onclick="window.addProduct()"
+              >
+                Добавить
+              </button>
+              <button
+                id="save-products"
+                type="button"
+                class="btn secondary"
+                onclick="window.saveProducts()"
+              >
+                Сохранить
+              </button>
+            </div>
             {{end}}
-          </ul>
-          {{if eq $.order.Status `pending`}}
-          <div class="button-container">
-            <button
-              id="add-product"
-              type="button"
-              class="btn primary"
-              onclick="window.addProduct()"
-            >
-              Добавить
-            </button>
-            <button
-              id="save-products"
-              type="button"
-              class="btn secondary"
-              onclick="window.saveProducts()"
-            >
-              Сохранить
-            </button>
-          </div>
-          {{end}}
           </fieldset>
         </div>
       </div>
@@ -273,6 +289,7 @@
             </button>
           </div>
         </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
       </dialog>
       <!--Модальное окно для добавления документов-->
       <dialog id="add-documents-modal" class="modal">
@@ -281,33 +298,73 @@
           <div class="file-inputs">
             <fieldset class="fieldset">
               <legend class="fieldset-legend">КП</legend>
-              <input id="upload-offer" type="file" class="file-input" onchange="window.updateUploadButton()" />
+              <input
+                id="upload-offer"
+                type="file"
+                class="file-input"
+                onchange="window.updateUploadButton()"
+              />
             </fieldset>
             <fieldset class="fieldset">
               <legend class="fieldset-legend">Договор</legend>
-              <input id="upload-contract" type="file" class="file-input" onchange="window.updateUploadButton()" />
+              <input
+                id="upload-contract"
+                type="file"
+                class="file-input"
+                onchange="window.updateUploadButton()"
+              />
             </fieldset>
             <fieldset class="fieldset">
               <legend class="fieldset-legend">Счёт</legend>
-              <input id="upload-bill" type="file" class="file-input" onchange="window.updateUploadButton()" />
+              <input
+                id="upload-bill"
+                type="file"
+                class="file-input"
+                onchange="window.updateUploadButton()"
+              />
+            </fieldset>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Прочий документ</legend>
+              <input
+                id="upload-document"
+                type="file"
+                class="file-input"
+                onchange="window.updateUploadButton()"
+              />
             </fieldset>
           </div>
           <div class="modal-action">
-            <button id="upload-docs-btn" class="btn primary" disabled onclick="window.uploadDocuments()">
+            <button
+              id="upload-docs-btn"
+              class="btn primary"
+              disabled
+              onclick="window.uploadDocuments()"
+            >
               Загрузить
             </button>
           </div>
         </div>
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
       </dialog>
       <!--Модальное окно выбора типа генерируемого документа-->
       <dialog id="generate-modal" class="modal">
         <div class="modal-box">
           <h3>Генерация документов</h3>
           <div class="modal-action">
-            <button class="btn secondary" onclick="window.downloadAppendice()">Приложение к договору</button>
-            <button class="btn secondary" onclick="window.openDocumentModal('offer')">Коммерческое предложение</button>
+            <button class="btn secondary" onclick="window.downloadAppendice()">
+              Приложение к договору
+            </button>
+            <button
+              class="btn secondary"
+              onclick="window.openDocumentModal('offer')"
+            >
+              Коммерческое предложение
+            </button>
           </div>
         </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
       </dialog>
 
       <!--Модальное окно для генерации КП (только для дилера)-->
@@ -317,15 +374,36 @@
           <div class="file-inputs">
             <label>
               ФИО покупателя *
-              <input id="offer-client-name" type="text" class="input" placeholder="Иванов Иван Иванович" />
+              <input
+                id="offer-client-name"
+                type="text"
+                class="input"
+                placeholder="Иванов Иван Иванович"
+              />
             </label>
           </div>
           <div class="modal-action">
-            <button class="btn secondary" onclick="document.getElementById('offer-modal').close()">Отмена</button>
-            <button class="btn secondary" onclick="window.downloadOffer('client')">КП для покупателя</button>
-            <button class="btn secondary" onclick="window.downloadOffer('self')">КП для себя</button>
+            <button
+              class="btn secondary"
+              onclick="document.getElementById('offer-modal').close()"
+            >
+              Отмена
+            </button>
+            <button
+              class="btn secondary"
+              onclick="window.downloadOffer('client')"
+            >
+              КП для покупателя
+            </button>
+            <button
+              class="btn secondary"
+              onclick="window.downloadOffer('self')"
+            >
+              КП для себя
+            </button>
           </div>
         </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
       </dialog>
       <!--Модальное окно с документами-->
       <dialog id="documents-modal" class="modal">
@@ -333,6 +411,7 @@
           <h3>Список документов:</h3>
           <table class="table" id="documents-list"></table>
         </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
       </dialog>
       <footer class="footer footer-horizontal calc-footer dark">
         <div>

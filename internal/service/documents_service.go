@@ -8,7 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-"github.com/Euhcslel/SagaWeb/internal/database"
+
+	"github.com/samborkent/uuidv7"
+
+	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/docgen"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/industrial_gate_drives"
@@ -45,6 +48,13 @@ func UploadBillToOrder(user *users.User, orderID int64, file multipart.File, han
 	})
 }
 
+func UploadDocumentToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
+	return uploadDocument(user, orderID, file, handler, uploadConfig{
+		dirEnvKey: "DOCUMENTS_DIRECTORY",
+		attach:    repository.AttachDocumentToOrder,
+	})
+}
+
 // Структура конфигурации загружаемого файла
 // Включает в себя путь до каталога с файлом и функцию репозитория, которая прикрепляет документ к заказу
 type uploadConfig struct {
@@ -64,23 +74,28 @@ func uploadDocument(user *users.User, orderID int64,
 		return fmt.Errorf("переменная %s не задана", cfg.dirEnvKey)
 	}
 
-	path := filepath.Join(dir, handler.Filename)
+	ext := filepath.Ext(handler.Filename)
+	name := strings.TrimSuffix(handler.Filename, ext)
+	storedFilename := uuidv7.New().String() + "_" + filepath.Base(handler.Filename)
+
+	path := filepath.Join(dir, storedFilename)
 	dst, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
-		if os.IsExist(err) {
-			return fmt.Errorf("файл с именем %q уже существует", handler.Filename)
-		}
 		return err
 	}
 	defer dst.Close()
 
 	if _, err = io.Copy(dst, file); err != nil {
+		os.Remove(path)
 		return err
 	}
 
-	ext := filepath.Ext(handler.Filename)
-	name := strings.TrimSuffix(handler.Filename, ext)
-	return cfg.attach(database.DB, orderID, name, handler.Filename)
+	if err = cfg.attach(database.DB, orderID, name, storedFilename); err != nil {
+		os.Remove(path)
+		return err
+	}
+
+	return nil
 }
 
 func GetAllOrderDocuments(user *users.User, orderID int64) (*generated.DocumentsList, error) {
@@ -205,11 +220,12 @@ func DeleteOrderDocument(user *users.User, orderID int64, docType string, docNam
 		}
 	}
 
-	if err := os.Remove(filePath); err != nil {
+	if err := tx.Commit().Error; err != nil {
 		return err
 	}
 
-	return tx.Commit().Error
+	os.Remove(filePath)
+	return nil
 }
 
 func resolveDocumentPath(orderID int64, docType string, docName string) (filePath string, fileName string, err error) {
@@ -238,6 +254,10 @@ func resolveDocumentPath(orderID int64, docType string, docName string) (filePat
 
 	if err != nil {
 		return "", "", err
+	}
+
+	if fileName == "" {
+		return "", "", errs.ErrNotFound
 	}
 
 	if dir == "" {

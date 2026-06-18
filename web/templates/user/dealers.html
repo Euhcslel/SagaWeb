@@ -45,7 +45,11 @@
               <button class="btn secondary" onclick="openContractModal({{.DealerID}})">
                 {{if .Contract}}Заменить договор{{else}}Прикрепить договор{{end}}
               </button>
+              {{if and .Dealer.Company.INN .Dealer.Company.KPP .Dealer.Company.OGRN .Dealer.Address}}
               <a class="btn secondary" href="/user/dealers/{{.DealerID}}/contract/generate">Сгенерировать договор</a>
+              {{else}}
+              <button class="btn secondary" disabled title="Необходимо заполнить ИНН, КПП, ОГРН и адрес дилера">Сгенерировать договор</button>
+              {{end}}
             </td>
           </tr>
           {{else}}
@@ -81,6 +85,7 @@
           </div>
         </form>
       </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
     </dialog>
 
     <script>

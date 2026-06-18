@@ -197,7 +197,10 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = service.CreateNewOrder(user, &orderData)
-	if err != nil {
+	if errors.Is(err, errs.ErrForbidden) {
+		helpers.WriteError(w, err, http.StatusForbidden)
+		return
+	} else if err != nil {
 		helpers.WriteError(w, err, http.StatusInternalServerError)
 		return
 	}

@@ -240,8 +240,29 @@ func CreateGateOptions(db *gorm.DB, options []order_gate_options.OrderGateOption
 }
 
 func DeleteGateFromOrder(db *gorm.DB, orderID int64, rowNumber int64) error {
-	return db.Where("order_id = ? AND row_number = ?", orderID, rowNumber).
-		Delete(&order_gates.OrderGate{}).Error
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("order_id = ? AND row_number = ?", orderID, rowNumber).
+			Delete(&order_gates.OrderGate{}).Error; err != nil {
+			return err
+		}
+
+		var remaining []order_gates.OrderGate
+		if err := tx.Where("order_id = ? AND row_number > ?", orderID, rowNumber).
+			Order("row_number ASC").
+			Find(&remaining).Error; err != nil {
+			return err
+		}
+
+		for _, g := range remaining {
+			if err := tx.Model(&order_gates.OrderGate{}).
+				Where("order_id = ? AND row_number = ?", orderID, g.RowNumber).
+				Update("row_number", g.RowNumber-1).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func DeleteGateResidentialDrive(db *gorm.DB, orderID int64, gateID int64) error {

@@ -59,7 +59,13 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if tableName == "users" {
-		data["roles"] = enums.GetAllRoles()
+		var roles []enums.Role
+		for _, r := range enums.GetAllRoles() {
+			if r != enums.ClientRole {
+				roles = append(roles, r)
+			}
+		}
+		data["roles"] = roles
 	}
 
 	if err := templates.ExecuteTemplate(w, tableName+".html", data); err != nil {

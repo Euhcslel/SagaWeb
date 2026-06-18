@@ -34,6 +34,14 @@ func AttachBillToOrder(db *gorm.DB, orderID int64, billNumber string, path strin
 	}).Error
 }
 
+func AttachDocumentToOrder(db *gorm.DB, orderID int64, name string, path string) error {
+	return db.Create(&order_documents.OrderDocument{
+		OrderID: orderID,
+		Name:    name,
+		Path:    path,
+	}).Error
+}
+
 func GetBillFileName(orderID int64, billNumber string) (string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_bills.OrderBill{}).

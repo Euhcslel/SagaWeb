@@ -10,9 +10,11 @@ import (
 	"net/smtp"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/Euhcslel/SagaWeb/internal/database"
+	"github.com/samborkent/uuidv7"
 	"github.com/Euhcslel/SagaWeb/internal/docgen"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_contract"
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealer_manager_assignments"
@@ -79,16 +81,18 @@ func AttachContractToDealer(user *users.User, dealerID int64, contractNumber str
 		_ = os.Remove(filepath.Join(dir, *existing.Path))
 	}
 
-	dst, err := os.OpenFile(filepath.Join(dir, handler.Filename), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	storedFilename := uuidv7.New().String() + "_" + handler.Filename
+	dst, err := os.OpenFile(filepath.Join(dir, storedFilename), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		return err
 	}
 	defer dst.Close()
 	if _, err = io.Copy(dst, file); err != nil {
+		os.Remove(filepath.Join(dir, storedFilename))
 		return err
 	}
 
-	filename := handler.Filename
+	filename := storedFilename
 	contract := dealer_contract.DealerContract{
 		DealerID:       dealerID,
 		ContractNumber: contractNumber,
@@ -172,12 +176,32 @@ func GenerateDealerContract(manager *users.User, dealerID int64) ([]byte, int, e
 	if err != nil {
 		return nil, 0, err
 	}
+
+	if dealer.Company.INN == nil || *dealer.Company.INN == "" ||
+		dealer.Company.KPP == nil || *dealer.Company.KPP == "" ||
+		dealer.Company.OGRN == nil || *dealer.Company.OGRN == "" ||
+		dealer.Address == nil || *dealer.Address == "" {
+		return nil, 0, errs.ErrIncompleteCompanyDetails
+	}
+
 	contractNumber, err := repository.GetNextContractNumber(database.DB)
 	if err != nil {
 		return nil, 0, err
 	}
-	data, err := docgen.GenerateContract(dealer, &dealer.User, contractNumber, time.Now())
-	return data, contractNumber, err
+	now := time.Now()
+	data, err := docgen.GenerateContract(dealer, &dealer.User, contractNumber, now)
+	if err != nil {
+		return nil, 0, err
+	}
+	err = repository.UpsertDealerContract(database.DB, dealer_contract.DealerContract{
+		DealerID:       dealerID,
+		ContractNumber: strconv.Itoa(contractNumber),
+		SignedAt:       now,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	return data, contractNumber, nil
 }
 
 func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {

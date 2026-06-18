@@ -8,6 +8,10 @@ import (
 )
 
 func WriteError(w http.ResponseWriter, err error, code int) {
-	http.Error(w, http.StatusText(code), code)
 	log.Println(err)
+	msg := err.Error()
+	if code >= 500 {
+		msg = http.StatusText(code)
+	}
+	http.Error(w, msg, code)
 }

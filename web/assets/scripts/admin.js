@@ -115,6 +115,7 @@ async function updateRow(event) {
 
   if (!response.ok) {
     const text = await response.text();
+    document.querySelector('dialog[open]')?.close();
     Swal.fire({ icon: "error", title: "Ошибка", text });
     return;
   }

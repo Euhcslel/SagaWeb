@@ -249,7 +249,7 @@
         <line x1="12" x2="12" y1="3" y2="15" />
       </svg>
     </a>
-    {{end}} {{if ne .user.Role "dealer"}}
+    {{end}} {{if eq .user.Role "manager"}}
     <a
       href="/dealers/requests"
       class="btn tertiary"

@@ -36,9 +36,9 @@ func checkOrderAccess(user *users.User, orderID int64) error {
 	switch user.Role {
 	case enums.DealerRole:
 		query = query.Where("dealer_id = ?", user.ID)
-	case enums.ManagerRole, enums.AdminRole:
+	case enums.ManagerRole:
 		query = query.Where("manager_id = ?", user.ID)
-	case enums.LogisticianRole:
+	case enums.AdminRole, enums.LogisticianRole:
 		// логистик видит все заказы без фильтра
 	default:
 		return errs.ErrForbidden
@@ -59,7 +59,7 @@ func GetAllUserOrders(user *users.User) ([]orders.Order, error) {
 	switch user.Role {
 	case enums.DealerRole:
 		return repository.GetAllDealerOrders(database.DB, user)
-	case enums.LogisticianRole:
+	case enums.LogisticianRole, enums.AdminRole:
 		return repository.GetAllOrders()
 	default:
 		return repository.GetAllManagerOrders(database.DB, user)
@@ -567,6 +567,9 @@ func calculateOptionsPrices(tx *gorm.DB, gateOptions []*generated.Option) (*type
 
 func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	role := user.Role
+	if role != enums.DealerRole && role != enums.ManagerRole {
+		return errs.ErrForbidden
+	}
 
 	tx := database.DB.Begin()
 	if tx.Error != nil {
@@ -960,23 +963,32 @@ func UpdateOrderStatus(user *users.User, orderID int64, updateStatusRequest *gen
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
 	}
+	if user.Role == enums.DealerRole {
+		return errs.ErrForbidden
+	}
 
 	status, err := enums.GetOrderStatusFromProto(&updateStatusRequest.Status)
 	if err != nil {
 		return err
 	}
 
-	if err = repository.UpdateOrderStatus(database.DB, orderID, status); err != nil {
+	tx := database.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+	defer tx.Rollback()
+
+	if err = repository.UpdateOrderStatus(tx, orderID, status); err != nil {
 		return err
 	}
 
 	if status != enums.OrderStatusPending {
-		if err = repository.SetOrderFinalizedAt(database.DB, orderID); err != nil {
+		if err = repository.SetOrderFinalizedAt(tx, orderID); err != nil {
 			return err
 		}
 	}
 
-	return nil
+	return tx.Commit().Error
 }
 
 func UpdateProductsInOrder(user *users.User, orderID int64, updateProductsRequest *generated.UpdateProductsRequest) error {

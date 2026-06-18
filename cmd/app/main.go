@@ -125,6 +125,7 @@ func main() {
 	mux.Handle("POST /orders/{order_id}/offer", handlers.RequireAuth(http.HandlerFunc(handlers.UploadOfferToOrder)))
 	mux.Handle("POST /orders/{order_id}/bill", handlers.RequireAuth(http.HandlerFunc(handlers.UploadBillToOrder)))
 	mux.Handle("POST /orders/{order_id}/contract", handlers.RequireAuth(http.HandlerFunc(handlers.UploadContractToOrder)))
+	mux.Handle("POST /orders/{order_id}/document", handlers.RequireAuth(http.HandlerFunc(handlers.UploadDocumentToOrder)))
 	mux.Handle("GET /orders/{order_id}/documents/{document_type}/{document_name}", handlers.RequireAuth(http.HandlerFunc(handlers.DownloadOrderDocument)))
 	mux.Handle("DELETE /orders/{order_id}/documents/{document_type}/{document_name}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteOrderDocument)))
 	mux.Handle("POST /offer", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetOfferForOrder)))
