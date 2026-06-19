@@ -41,16 +41,16 @@ func GenerateAppendice(
 	d.pdf.Ln(5)
 
 	for i, g := range order.Gates {
-		d.drawGateSectionSingle(i+1, g)
+		d.drawGateSectionSingleWholesale(i+1, g)
 		d.pdf.Ln(4)
 	}
 
 	if len(order.Products) > 0 {
-		d.drawProductsSectionSingle(len(order.Gates)+1, order.Products)
+		d.drawProductsSectionSingleWholesale(len(order.Gates)+1, order.Products)
 		d.pdf.Ln(4)
 	}
 
-	d.drawGrandTotalSingle(order)
+	d.drawGrandTotalSingleWholesale(order)
 	d.pdf.Ln(10)
 	d.drawAppendiceSignatures(customer)
 

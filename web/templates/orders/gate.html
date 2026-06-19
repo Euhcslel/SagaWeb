@@ -334,6 +334,7 @@
                         class="select drive"
                         name="drive"
                         id="drive"
+                        onchange="window.updateGatePrice(document.querySelector('.gate-item'))"
                         {{if
                         ne
                         .orderStatus
@@ -367,6 +368,7 @@
                         class="select drive"
                         name="drive"
                         id="drive"
+                        onchange="window.updateGatePrice(document.querySelector('.gate-item'))"
                         {{if
                         ne
                         .orderStatus
@@ -400,6 +402,7 @@
                         class="select rail"
                         name="rail"
                         id="rail"
+                        onchange="window.updateGatePrice(document.querySelector('.gate-item'))"
                         {{if
                         ne
                         .orderStatus

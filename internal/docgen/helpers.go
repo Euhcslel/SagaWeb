@@ -431,6 +431,95 @@ func (d *Doc) drawProductsSectionDual(startNo int, products []order_products.Ord
 	}
 }
 
+func (d *Doc) drawGateSectionSingleWholesale(itemNo int, g types.Gate) {
+	d.pdf.SetFont("DejaVu", "B", 10)
+	d.pdf.SetFillColor(235, 235, 235)
+	d.pdf.CellFormat(contentWidth, 7, gateTitle(g.Gate), "1", 1, "L", true, 0, "")
+	d.drawTableHeaderSingle()
+
+	drivePrice := driveWholesalePrice(g.Drive)
+	optionsTotal := decimal.Zero
+	for _, opt := range g.Options {
+		optionsTotal = optionsTotal.Add(opt.WholesalePrice)
+	}
+	gateBasePrice := g.Gate.GateWholesalePrice.Sub(drivePrice).Sub(optionsTotal)
+	amount := decimal.NewFromInt32(g.Gate.Amount)
+
+	d.drawRowSingle(
+		fmt.Sprintf("%d", itemNo),
+		gateTitle(g.Gate),
+		"шт.",
+		money(gateBasePrice),
+		fmt.Sprintf("%d", g.Gate.Amount),
+		money(gateBasePrice.Mul(amount)),
+		false,
+	)
+	d.drawTextRowSingle("", fmt.Sprintf("Размер проёма (ширина х высота): %d х %d мм", g.Gate.Width, g.Gate.Height))
+	if g.Gate.Headroom > 0 {
+		d.drawTextRowSingle("", fmt.Sprintf("Притолока: %d мм", g.Gate.Headroom))
+	}
+
+	sub := 0
+	subNo := func() string { sub++; return fmt.Sprintf("%d.%d", itemNo, sub) }
+
+	d.drawTextRowSingle(subNo(), "Цвет панели (наружный): "+g.Gate.ColorOut.Code)
+	d.drawTextRowSingle(subNo(), "Тип подъёма: "+g.Gate.LiftType.Name)
+	d.drawTextRowSingle(subNo(), fmt.Sprintf("Количество циклов: %v", g.Gate.CycleAmount.Amount))
+
+	if len(g.Options) > 0 {
+		optHeader := subNo()
+		d.drawTextRowSingle(optHeader, "Опции:")
+		for i, opt := range g.Options {
+			optSum := opt.WholesalePrice.Mul(amount)
+			d.drawRowSingle(
+				fmt.Sprintf("%s.%d", optHeader, i+1),
+				"   "+opt.Name,
+				"шт.",
+				money(opt.WholesalePrice),
+				fmt.Sprintf("%d", g.Gate.Amount),
+				money(optSum),
+				false,
+			)
+		}
+	}
+
+	if g.Drive != nil && !drivePrice.IsZero() {
+		d.drawRowSingle(
+			subNo(),
+			driveDescription(g.Drive),
+			"шт.",
+			money(drivePrice),
+			fmt.Sprintf("%d", g.Gate.Amount),
+			money(drivePrice.Mul(amount)),
+			false,
+		)
+	}
+
+	labelW := colSingle.No + colSingle.Name + colSingle.Unit + colSingle.Price + colSingle.Amount
+	d.pdf.SetFont("DejaVu", "B", 8)
+	d.pdf.CellFormat(labelW, minRowHeight, "Итого ворота:", "1", 0, "R", false, 0, "")
+	d.pdf.CellFormat(colSingle.Sum, minRowHeight, money(g.Gate.GateWholesalePrice.Mul(amount)), "1", 1, "R", false, 0, "")
+}
+
+func (d *Doc) drawProductsSectionSingleWholesale(startNo int, products []order_products.OrderProduct) {
+	d.pdf.SetFont("DejaVu", "B", 10)
+	d.pdf.SetFillColor(235, 235, 235)
+	d.pdf.CellFormat(contentWidth, 7, "Дополнительные товары", "1", 1, "L", true, 0, "")
+	d.drawTableHeaderSingle()
+	for i, p := range products {
+		amount := decimal.NewFromInt32(p.Amount)
+		d.drawRowSingle(
+			fmt.Sprintf("%d", startNo+i),
+			p.Product.Name,
+			"шт.",
+			money(p.Product.WholesalePrice),
+			fmt.Sprintf("%d", p.Amount),
+			money(p.Product.WholesalePrice.Mul(amount)),
+			false,
+		)
+	}
+}
+
 // ─── Итого ────────────────────────────────────────────────────────────────────
 
 func (d *Doc) drawGrandTotalSingle(order *types.Order) {
@@ -440,6 +529,21 @@ func (d *Doc) drawGrandTotalSingle(order *types.Order) {
 	}
 	for _, p := range order.Products {
 		total = total.Add(p.Product.RetailPrice.Mul(decimal.NewFromInt32(p.Amount)))
+	}
+	const totalSumW = 34.0
+	labelW := contentWidth - totalSumW
+	d.pdf.SetFont("DejaVu", "B", 10)
+	d.pdf.CellFormat(labelW, 8, "ИТОГО К ОПЛАТЕ:", "1", 0, "R", false, 0, "")
+	d.pdf.CellFormat(totalSumW, 8, money(total), "1", 1, "R", false, 0, "")
+}
+
+func (d *Doc) drawGrandTotalSingleWholesale(order *types.Order) {
+	total := decimal.Zero
+	for _, g := range order.Gates {
+		total = total.Add(g.Gate.GateWholesalePrice.Mul(decimal.NewFromInt32(g.Gate.Amount)))
+	}
+	for _, p := range order.Products {
+		total = total.Add(p.Product.WholesalePrice.Mul(decimal.NewFromInt32(p.Amount)))
 	}
 	const totalSumW = 34.0
 	labelW := contentWidth - totalSumW
