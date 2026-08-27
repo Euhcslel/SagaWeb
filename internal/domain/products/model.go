@@ -1,3 +1,6 @@
+// Package products предоставляет модель для работы с товарами.
+// Данные о товарах хранятся в таблице products.
+
 package products
 
 import (

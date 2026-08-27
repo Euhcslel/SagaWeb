@@ -12,6 +12,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/utils"
 )
 
+// CatalogPageData описывает информацию для страницы каталога
 type CatalogPageData struct {
 	Products          []products.Product
 	Options           []options.Option
@@ -21,6 +22,7 @@ type CatalogPageData struct {
 	IsDealer          bool
 }
 
+// GetCatalogPageData возвращает данные для страницы каталога.
 func GetCatalogPageData(user *users.User) (*CatalogPageData, error) {
 	role := enums.ClientRole
 	if user != nil {

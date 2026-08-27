@@ -1,3 +1,6 @@
+// Package industrial_gate_drives предоставляет модель для работы с промышленными приводами.
+// Данные о промышленных приводах хранятся в таблице industrial_gate_drives.
+
 package industrial_gate_drives
 
 import (

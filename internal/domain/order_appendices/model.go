@@ -1,3 +1,6 @@
+// Package order_appendices предоставляет модель для работы с приложениями к договору дилера.
+// Данные о каждом приложении к договору хранятся в таблице order_appendices.
+
 package order_appendices
 
 import (

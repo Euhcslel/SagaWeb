@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// SignInForm возвращает страницу авторизации
 // Route: /sign_in
 // Method: GET
 func SignInForm(w http.ResponseWriter, r *http.Request) {
@@ -28,6 +29,7 @@ func SignInForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SignIn выполняет аутентификацию пользователя по email и паролю.
 // Route: /sign_in
 // Method: POST
 func SignIn(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +67,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user", http.StatusSeeOther)
 }
 
+// SignUpForm возвращает страницу регистрации.
 // Route: /sign_up
 // Method: GET
 func SignUpForm(w http.ResponseWriter, r *http.Request) {
@@ -83,6 +86,8 @@ func SignUpForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SignUp регистрирует нового пользователя, добавляя его в список заявок на регистрацию.
+// Пользователь может войти в аккаунт только после подтверждения заявки менеджером.
 // Route: /sign_up
 // Method: POST
 func SignUp(w http.ResponseWriter, r *http.Request) {
@@ -116,6 +121,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// SignOut выполняет выход из аккаунта пользователя: удаляет сессию и cookie.
 // Route: /sign_out
 // Method: POST
 func SignOut(w http.ResponseWriter, r *http.Request) {

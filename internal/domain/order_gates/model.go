@@ -1,3 +1,6 @@
+// Package order_gates предоставляет модель для работы с воротами в заказе.
+// Данные о воротах в заказе хранятся в таблице order_gates.
+
 package order_gates
 
 import (

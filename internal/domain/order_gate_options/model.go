@@ -1,3 +1,6 @@
+// Package order_gate_options предоставляет модель для работы с дополнительными опциями у ворот в заказе.
+// Данные хранятся в таблице order_gate_options.
+
 package order_gate_options
 
 import (

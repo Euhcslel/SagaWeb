@@ -1,3 +1,6 @@
+// Package order_gate_industrial_drives предоставляет модель для связи ворот в заказе с промышленным приводом и направляющей.
+// Данные хранятся в таблице order_gate_industrial_drives.
+
 package order_gate_industrial_drives
 
 import (

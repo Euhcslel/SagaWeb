@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// GetCalculatorForUser возвращает страницу калькулятора ворот.
 // Route: /calculator
 // Method: GET
 func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +37,9 @@ func GetCalculatorForUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetPriceBasedOnSize возвращает цены на ворота по указанным в запросе параметрам.
+// Также делит ответ на дилерскую и розничную цены. Если клиент - дилер, то возвращает обе,
+// Если клиент - не дилер, тогда возвращает только розничную.
 // Route: /sizes
 // Method: GET
 func GetPriceBasedOnSize(w http.ResponseWriter, r *http.Request) {

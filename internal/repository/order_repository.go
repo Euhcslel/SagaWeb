@@ -32,6 +32,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// GetOrderWithCustomer возвращает заказ с информацией о клиенте.
 func GetOrderWithCustomer(db *gorm.DB, orderID int64) (*orders.Order, error) {
 	var order orders.Order
 	if err := db.
@@ -45,6 +46,7 @@ func GetOrderWithCustomer(db *gorm.DB, orderID int64) (*orders.Order, error) {
 	return &order, nil
 }
 
+// GetAllDealerOrders возвращает все заказы, связанные с указанным дилером.
 func GetAllDealerOrders(db *gorm.DB, user *users.User) ([]orders.Order, error) {
 	var orders []orders.Order
 	if err := db.
@@ -58,6 +60,7 @@ func GetAllDealerOrders(db *gorm.DB, user *users.User) ([]orders.Order, error) {
 	return orders, nil
 }
 
+// GetAllManagerOrders возвращает все заказы, связанные с указанным менеджером.
 func GetAllManagerOrders(db *gorm.DB, user *users.User) ([]orders.Order, error) {
 	var orders []orders.Order
 	if err := db.
@@ -71,6 +74,7 @@ func GetAllManagerOrders(db *gorm.DB, user *users.User) ([]orders.Order, error) 
 	return orders, nil
 }
 
+// GetOrderGatesByOrderID возвращает все ворота, связанные с указанным заказом.
 func GetOrderGatesByOrderID(db *gorm.DB, orderID int64) ([]order_gates.OrderGate, error) {
 	var orderGates []order_gates.OrderGate
 	if err := db.
@@ -85,6 +89,7 @@ func GetOrderGatesByOrderID(db *gorm.DB, orderID int64) ([]order_gates.OrderGate
 	return orderGates, nil
 }
 
+// GetAllOptionsForOrder возвращает все дополнительные опции, которые были выбраны для ворот в указанном заказе.
 func GetAllOptionsForOrder(db *gorm.DB, orderID int64, gateIDs []int64) ([]order_gate_options.OrderGateOption, error) {
 	var gateOptions []order_gate_options.OrderGateOption
 	if err := db.
@@ -97,6 +102,7 @@ func GetAllOptionsForOrder(db *gorm.DB, orderID int64, gateIDs []int64) ([]order
 	return gateOptions, nil
 }
 
+// GetAllOrderProducts возвращает все товары, связанные с указанным заказом.
 func GetAllOrderProducts(db *gorm.DB, orderID int64) ([]order_products.OrderProduct, error) {
 	var products []order_products.OrderProduct
 	if err := db.Preload("Product").Where("order_id = ?", orderID).Find(&products).Error; err != nil {
@@ -106,6 +112,7 @@ func GetAllOrderProducts(db *gorm.DB, orderID int64) ([]order_products.OrderProd
 	return products, nil
 }
 
+// GetCurrentGate возвращает информацию о конкретных воротах в указанном заказе.
 func GetCurrentGate(db *gorm.DB, orderID int64, gateID int64) (*order_gates.OrderGate, error) {
 	var gate order_gates.OrderGate
 	if err := db.Model(order_gates.OrderGate{}).
@@ -120,6 +127,8 @@ func GetCurrentGate(db *gorm.DB, orderID int64, gateID int64) (*order_gates.Orde
 	return &gate, nil
 }
 
+// GetCurrentGateOptions возвращает список всех дополнительных опций,
+// связанных с конкретными воротами в указанном заказе.
 func GetCurrentGateOptions(db *gorm.DB, orderID int64, gateID int64) ([]order_gate_options.OrderGateOption, error) {
 	var options []order_gate_options.OrderGateOption
 	if err := db.
@@ -132,6 +141,7 @@ func GetCurrentGateOptions(db *gorm.DB, orderID int64, gateID int64) ([]order_ga
 	return options, nil
 }
 
+// GetIndustrialDriveForGate возвращает информацию о промышленном приводе для конкретных ворот в указанном заказе.
 func GetIndustrialDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*order_gate_industrial_drives.OrderGateIndustrialDrive, error) {
 	var drive order_gate_industrial_drives.OrderGateIndustrialDrive
 	if err := db.
@@ -143,6 +153,7 @@ func GetIndustrialDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*order
 	return &drive, nil
 }
 
+// GetResidentialDriveForGate возвращает информацию о бытовом приводе для конкретных ворот в указанном заказе.
 func GetResidentialDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*order_gate_residential_drives.OrderGateResidentialDrive, error) {
 	var drive order_gate_residential_drives.OrderGateResidentialDrive
 	if err := db.
@@ -154,6 +165,7 @@ func GetResidentialDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*orde
 	return &drive, nil
 }
 
+// GetManualDriveForGate возвращает информацию о ручном приводе для конкретных ворот в указанном заказе.
 func GetManualDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*order_gate_manual_drives.OrderGateManualDrive, error) {
 	var drive order_gate_manual_drives.OrderGateManualDrive
 	if err := db.
@@ -165,10 +177,12 @@ func GetManualDriveForGate(db *gorm.DB, orderID int64, gateID int64) (*order_gat
 	return &drive, nil
 }
 
+// DeleteOrder удаляет заказ из базы данных по его идентификатору.
 func DeleteOrder(db *gorm.DB, orderID int64) error {
 	return db.Where("id = ?", orderID).Delete(&orders.Order{}).Error
 }
 
+// CreateNewGate создает новые ворота.
 func CreateNewGate(db *gorm.DB, gate order_gates.OrderGate) (order_gates.OrderGate, error) {
 	if err := db.Clauses(clause.Returning{}).Create(&gate).Error; err != nil {
 		return order_gates.OrderGate{}, err
@@ -177,6 +191,7 @@ func CreateNewGate(db *gorm.DB, gate order_gates.OrderGate) (order_gates.OrderGa
 	return gate, nil
 }
 
+// CreateIndustrialDriveForGate создает запись о промышленном приводе для конкретных ворот в указанном заказе.
 func CreateIndustrialDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, driveID int64) error {
 	if err := db.Create(&order_gate_industrial_drives.OrderGateIndustrialDrive{
 		OrderID:   orderID,
@@ -189,6 +204,7 @@ func CreateIndustrialDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, d
 	return nil
 }
 
+// CreateResidentialDriveForGate создает запись о бытовом приводе для конкретных ворот в указанном заказе.
 func CreateResidentialDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, driveID int64, railID int64) error {
 	if err := db.Create(&order_gate_residential_drives.OrderGateResidentialDrive{
 		OrderID:   orderID,
@@ -202,6 +218,7 @@ func CreateResidentialDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, 
 	return nil
 }
 
+// CreateManualDriveForGate создает запись о ручном приводе для конкретных ворот в указанном заказе.
 func CreateManualDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, chainLength int32) error {
 	if err := db.Create(&order_gate_manual_drives.OrderGateManualDrive{
 		OrderID:     orderID,
@@ -214,6 +231,7 @@ func CreateManualDriveForGate(db *gorm.DB, orderID int64, rowNumber int64, chain
 	return nil
 }
 
+// GetManagerIDByDealerID возвращает идентификатор менеджера, связанного с указанным дилером.
 func GetManagerIDByDealerID(db *gorm.DB, dealerID int64) (int64, error) {
 	var managerID int64
 	if err := db.Model(&dealer_manager_assignments.DealerManagerAssignment{}).
@@ -227,18 +245,22 @@ func GetManagerIDByDealerID(db *gorm.DB, dealerID int64) (int64, error) {
 	return managerID, nil
 }
 
+// CreateNewOrder создает новый заказ в базе данных.
 func CreateNewOrder(db *gorm.DB, order *orders.Order) error {
 	return db.Create(&order).Error
 }
 
+// CreateOrderProducts создает записи о товарах для указанного заказа.
 func CreateOrderProducts(db *gorm.DB, products []order_products.OrderProduct) error {
 	return db.Create(&products).Error
 }
 
+// CreateGateOptions создает записи о дополнительных опциях для конкретных ворот в заказе.
 func CreateGateOptions(db *gorm.DB, options []order_gate_options.OrderGateOption) error {
 	return db.Create(&options).Error
 }
 
+// DeleteGateFromOrder удаляет ворота из указанного заказа.
 func DeleteGateFromOrder(db *gorm.DB, orderID int64, rowNumber int64) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("order_id = ? AND row_number = ?", orderID, rowNumber).
@@ -265,61 +287,72 @@ func DeleteGateFromOrder(db *gorm.DB, orderID int64, rowNumber int64) error {
 	})
 }
 
+// DeleteGateResidentialDrive удаляет запись о бытовом приводе для конкретных ворот в заказе.
 func DeleteGateResidentialDrive(db *gorm.DB, orderID int64, gateID int64) error {
 	return db.Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Delete(&order_gate_residential_drives.OrderGateResidentialDrive{}).
 		Error
 }
 
+// DeleteGateIndustrialDrive удаляет запись о промышленном приводе для конкретных ворот в заказе.
 func DeleteGateIndustrialDrive(db *gorm.DB, orderID int64, gateID int64) error {
 	return db.Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Delete(order_gate_industrial_drives.OrderGateIndustrialDrive{}).
 		Error
 }
 
+// DeleteGateManualDrive удаляет запись о ручном приводе для конкретных ворот в заказе.
 func DeleteGateManualDrive(db *gorm.DB, orderID int64, gateID int64) error {
 	return db.Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Delete(&order_gate_manual_drives.OrderGateManualDrive{}).Error
 }
 
+// UpdateGateIndustrialDrive обновляет запись о промышленном приводе для конкретных ворот в заказе.
 func UpdateGateIndustrialDrive(db *gorm.DB, orderID int64, gateID int64, driveID int64) error {
 	return db.Model(&order_gate_industrial_drives.OrderGateIndustrialDrive{}).
 		Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Update("drive_id", driveID).Error
 }
 
+// UpdateGateResidentialDrive обновляет запись о бытовом приводе для конкретных ворот в заказе.
 func UpdateGateResidentialDrive(db *gorm.DB, orderID int64, gateID int64, driveID int64, railID int64) error {
 	return db.Model(&order_gate_residential_drives.OrderGateResidentialDrive{}).
 		Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Updates(map[string]any{"drive_id": driveID, "rail_id": railID}).Error
 }
 
+// UpdateGateManualDrive обновляет запись о ручном приводе для конкретных ворот в заказе.
 func UpdateGateManualDrive(db *gorm.DB, orderID int64, gateID int64, chainLength int32) error {
 	return db.Model(&order_gate_manual_drives.OrderGateManualDrive{}).
 		Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Update("chain_length", chainLength).Error
 }
 
+// UpdateGate обновляет запись о воротах в заказе.
 func UpdateGate(db *gorm.DB, gate order_gates.OrderGate) error {
 	return db.Save(&gate).Error
 }
 
+// UpdateOrderStatus обновляет статус заказа в базе данных.
 func UpdateOrderStatus(db *gorm.DB, orderID int64, status enums.OrderStatus) error {
 	return db.Model(&orders.Order{}).Where("id = ?", orderID).Update("status", status).Error
 }
 
+// SetOrderFinalizedAt устанавливает время завершения заказа в базе данных.
 func SetOrderFinalizedAt(db *gorm.DB, orderID int64) error {
 	return db.Model(&orders.Order{}).
 		Where("id = ? AND finalized_at IS NULL", orderID).
 		Update("finalized_at", db.Raw("CURRENT_TIMESTAMP")).Error
 }
 
+// GetOrderFinalizedAt возвращает время завершения заказа из базы данных.
 func GetOrderFinalizedAt(db *gorm.DB, orderID int64) (*time.Time, error) {
 	var t *time.Time
 	err := db.Model(&orders.Order{}).Where("id = ?", orderID).Pluck("finalized_at", &t).Error
 	return t, err
 }
 
+// GetOrderManufactureDate возвращает дату производства заказа из базы данных.
 func GetOrderManufactureDate(db *gorm.DB, orderID int64) (*time.Time, error) {
 	var nt sql.NullTime
 	err := db.Model(&orders.Order{}).Where("id = ?", orderID).Pluck("manufacture_date", &nt).Error
@@ -332,6 +365,7 @@ func GetOrderManufactureDate(db *gorm.DB, orderID int64) (*time.Time, error) {
 	return &nt.Time, nil
 }
 
+// GetOrderStatus возвращает статус заказа из базы данных.
 func GetOrderStatus(orderID int64) (*string, error) {
 	var status string
 	if err := database.DB.Model(&orders.Order{}).
@@ -342,12 +376,14 @@ func GetOrderStatus(orderID int64) (*string, error) {
 	return &status, nil
 }
 
+// DeleteAllOrderProducts удаляет все товары, связанные с указанным заказом.
 func DeleteAllOrderProducts(db *gorm.DB, orderID int64) error {
 	return db.
 		Where("order_id = ?", orderID).
 		Delete(&order_products.OrderProduct{}).Error
 }
 
+// GetAllProducts возвращает все товары из базы данных.
 func GetAllProducts() ([]products.Product, error) {
 	var products []products.Product
 	if err := database.DB.Find(&products).Error; err != nil {
@@ -357,12 +393,14 @@ func GetAllProducts() ([]products.Product, error) {
 	return products, nil
 }
 
+// DeleteAllGateOptions удаляет все дополнительные опции, связанные с конкретными воротами в заказе.
 func DeleteAllGateOptions(db *gorm.DB, orderID int64, gateID int64) error {
 	return db.
 		Where("order_id = ? AND row_number = ?", orderID, gateID).
 		Delete(&order_gate_options.OrderGateOption{}).Error
 }
 
+// GetIndustrialDriveByID возвращает информацию о промышленном приводе по его идентификатору.
 func GetIndustrialDriveByID(db *gorm.DB, driveID int64) (*industrial_gate_drives.IndustrialGateDrive, error) {
 	var industrialDrive industrial_gate_drives.IndustrialGateDrive
 	if err := db.Where("id = ?", driveID).First(&industrialDrive).Error; err != nil {
@@ -372,6 +410,7 @@ func GetIndustrialDriveByID(db *gorm.DB, driveID int64) (*industrial_gate_drives
 	return &industrialDrive, nil
 }
 
+// GetResidentialDriveByID возвращает информацию о бытовом приводе по его идентификатору.
 func GetResidentialDriveByID(db *gorm.DB, driveID int64) (*residential_gate_drives.ResidentialGateDrive, error) {
 	var residentialDrive residential_gate_drives.ResidentialGateDrive
 	if err := db.Where("id = ?", driveID).First(&residentialDrive).Error; err != nil {
@@ -381,6 +420,7 @@ func GetResidentialDriveByID(db *gorm.DB, driveID int64) (*residential_gate_driv
 	return &residentialDrive, nil
 }
 
+// GetRailByID возвращает информацию о направляющей по её идентификатору.
 func GetRailByID(db *gorm.DB, railID int64) (*rails.Rail, error) {
 	var rail rails.Rail
 	if err := db.Where("id = ?", railID).First(&rail).Error; err != nil {
@@ -390,6 +430,7 @@ func GetRailByID(db *gorm.DB, railID int64) (*rails.Rail, error) {
 	return &rail, nil
 }
 
+// GetOptionsByIDs возвращает список опций по их идентификаторам.
 func GetOptionsByIDs(db *gorm.DB, optionIDs []int64) ([]options.Option, error) {
 	var optionsList []options.Option
 	if err := db.
@@ -402,6 +443,7 @@ func GetOptionsByIDs(db *gorm.DB, optionIDs []int64) ([]options.Option, error) {
 	return optionsList, nil
 }
 
+// GetLiftTypeByID возвращает информацию о типе подъема по его идентификатору.
 func GetLiftTypeByID(db *gorm.DB, liftTypeID int64) (*lift_types.LiftType, error) {
 	var liftType lift_types.LiftType
 	if err := db.Where("id = ?", liftTypeID).First(&liftType).Error; err != nil {
@@ -411,6 +453,7 @@ func GetLiftTypeByID(db *gorm.DB, liftTypeID int64) (*lift_types.LiftType, error
 	return &liftType, nil
 }
 
+// GetCycleAmountByID возвращает информацию о количестве циклов по его идентификатору.
 func GetCycleAmountByID(db *gorm.DB, cycleAmountID int64) (*cycle_amounts.CycleAmount, error) {
 	var cycleAmount cycle_amounts.CycleAmount
 	if err := db.Where("id = ?", cycleAmountID).First(&cycleAmount).Error; err != nil {
@@ -420,6 +463,7 @@ func GetCycleAmountByID(db *gorm.DB, cycleAmountID int64) (*cycle_amounts.CycleA
 	return &cycleAmount, nil
 }
 
+// GetColorByID возвращает информацию о цвете по его идентификатору.
 func GetColorByID(db *gorm.DB, colorID int64) (*colors.Color, error) {
 	var color colors.Color
 	if err := db.Where("id = ?", colorID).First(&color).Error; err != nil {
@@ -428,6 +472,7 @@ func GetColorByID(db *gorm.DB, colorID int64) (*colors.Color, error) {
 	return &color, nil
 }
 
+// GetProductByID возвращает информацию о товаре по его идентификатору.
 func GetProductByID(db *gorm.DB, productID int64) (*products.Product, error) {
 	var product products.Product
 	if err := db.Where("id = ?", productID).First(&product).Error; err != nil {
@@ -436,7 +481,7 @@ func GetProductByID(db *gorm.DB, productID int64) (*products.Product, error) {
 	return &product, nil
 }
 
-
+// GetProductHistoricalPrices вовзращает цены на товары, актуальные на указанную дату.
 func GetProductHistoricalPrices(db *gorm.DB, productIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
 	if len(productIDs) == 0 {
 		return map[int64]types.PricePair{}, nil
@@ -460,6 +505,7 @@ func GetProductHistoricalPrices(db *gorm.DB, productIDs []int64, at time.Time) (
 	return result, err
 }
 
+// GetOptionHistoricalPrices возвращает цены на дополнительные опции, актуальные на указанную дату.
 func GetOptionHistoricalPrices(db *gorm.DB, optionIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
 	if len(optionIDs) == 0 {
 		return map[int64]types.PricePair{}, nil
@@ -483,6 +529,7 @@ func GetOptionHistoricalPrices(db *gorm.DB, optionIDs []int64, at time.Time) (ma
 	return result, err
 }
 
+// GetIndustrialDriveHistoricalPrices возвращает цены на промышленные приводы, актуальные на указанную дату.
 func GetIndustrialDriveHistoricalPrices(db *gorm.DB, driveIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
 	if len(driveIDs) == 0 {
 		return map[int64]types.PricePair{}, nil
@@ -506,6 +553,7 @@ func GetIndustrialDriveHistoricalPrices(db *gorm.DB, driveIDs []int64, at time.T
 	return result, err
 }
 
+// GetResidentialDriveHistoricalPrices возвращает цены на бытовые приводы, актуальные на указанную дату.
 func GetResidentialDriveHistoricalPrices(db *gorm.DB, driveIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
 	if len(driveIDs) == 0 {
 		return map[int64]types.PricePair{}, nil
@@ -529,6 +577,7 @@ func GetResidentialDriveHistoricalPrices(db *gorm.DB, driveIDs []int64, at time.
 	return result, err
 }
 
+// GetRailHistoricalPrices возвращает цены на направляющие, актуальные на указанную дату.
 func GetRailHistoricalPrices(db *gorm.DB, railIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
 	if len(railIDs) == 0 {
 		return map[int64]types.PricePair{}, nil
@@ -552,6 +601,7 @@ func GetRailHistoricalPrices(db *gorm.DB, railIDs []int64, at time.Time) (map[in
 	return result, err
 }
 
+// GetLiftTypeHistoricalMarkups возвращает наценки на типы подъема, актуальные на указанную дату.
 func GetLiftTypeHistoricalMarkups(db *gorm.DB, liftTypeIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
 	if len(liftTypeIDs) == 0 {
 		return map[int64]types.PricePair{}, nil
@@ -575,6 +625,7 @@ func GetLiftTypeHistoricalMarkups(db *gorm.DB, liftTypeIDs []int64, at time.Time
 	return result, err
 }
 
+// GetCycleAmountHistoricalMarkups возвращает наценки на количество циклов, актуальные на указанную дату.
 func GetCycleAmountHistoricalMarkups(db *gorm.DB, cycleAmountIDs []int64, at time.Time) (map[int64]types.PricePair, error) {
 	if len(cycleAmountIDs) == 0 {
 		return map[int64]types.PricePair{}, nil

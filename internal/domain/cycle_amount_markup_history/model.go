@@ -1,3 +1,6 @@
+// Package cycle_amount_markup_history предоставляет модель для работы с историей наценок за количество циклов.
+// История наценок за количество циклов хранится в таблице cycle_amount_markup_history.
+
 package cycle_amount_markup_history
 
 import (

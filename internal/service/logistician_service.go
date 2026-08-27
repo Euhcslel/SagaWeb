@@ -15,7 +15,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-
+// UpdateOrderByLogistician обновляет дату производства заказа логистом.
 func UpdateOrderByLogistician(user *users.User, orderID int64, manufactureDate *time.Time) error {
 	if user.Role != enums.LogisticianRole {
 		return errs.ErrForbidden
@@ -23,6 +23,7 @@ func UpdateOrderByLogistician(user *users.User, orderID int64, manufactureDate *
 	return repository.UpdateOrderManufactureDate(orderID, manufactureDate)
 }
 
+// ImportSizePrices импортирует цены на размеры ворот из файлов Excel.
 func ImportSizePrices(
 	indDealerFile multipart.File,
 	indClientFile multipart.File,
@@ -38,6 +39,7 @@ func ImportSizePrices(
 	return nil
 }
 
+// updateSizes обновляет цены на размеры ворот в базе данных на основе данных из файлов Excel.
 func updateSizes(dealerFile multipart.File, clientFile multipart.File, gateType enums.GateType) error {
 	clientXlsx, err := excelize.OpenReader(clientFile)
 	if err != nil {

@@ -1,3 +1,6 @@
+// Package lift_type_markup_history предоставляет модель для работы с историей наценок за тип подъема.
+// История наценок за тип подъема хранится в таблице lift_type_markup_history.
+
 package lift_type_markup_history
 
 import (

@@ -1,3 +1,6 @@
+// Package order_gate_manual_drives предоставляет модель для работы с ручным приводом у ворот в заказе.
+// Данные хранятся в таблице order_gate_manual_drives.
+
 package order_gate_manual_drives
 
 const TableNameOrderGateManualDrive = "order_gate_manual_drives"

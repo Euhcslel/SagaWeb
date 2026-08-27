@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// GetUserDealers возвращает список дилеров, связанных с указанным идентификатором пользователя (менеджера).
 func GetUserDealers(db *gorm.DB, userID int64) ([]dealer_manager_assignments.DealerManagerAssignment, error) {
 	var result []dealer_manager_assignments.DealerManagerAssignment
 	err := db.Model(dealer_manager_assignments.DealerManagerAssignment{}).
@@ -29,10 +30,13 @@ func GetUserDealers(db *gorm.DB, userID int64) ([]dealer_manager_assignments.Dea
 	return result, nil
 }
 
+// UpsertDealerContract сохраняет или обновляет договор дилера в базе данных.
+// Если контракт с таким же dealer_id уже существует, он будет обновлен.
 func UpsertDealerContract(db *gorm.DB, contract dealer_contract.DealerContract) error {
 	return db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&contract).Error
 }
 
+// GetDealerContract возвращает договор дилера по его идентификатору.
 func GetDealerContract(db *gorm.DB, dealerID int64) (*dealer_contract.DealerContract, error) {
 	var contract dealer_contract.DealerContract
 	res := db.Where("dealer_id = ?", dealerID).Limit(1).Find(&contract)
@@ -45,6 +49,8 @@ func GetDealerContract(db *gorm.DB, dealerID int64) (*dealer_contract.DealerCont
 	return &contract, nil
 }
 
+// GetDealerContractsByDealerIDs возвращает map,
+// где ключом является dealer_id, а значением - соответствующий договор дилера.
 func GetDealerContractsByDealerIDs(db *gorm.DB, dealerIDs []int64) (map[int64]*dealer_contract.DealerContract, error) {
 	result := make(map[int64]*dealer_contract.DealerContract)
 	if len(dealerIDs) == 0 {
@@ -60,6 +66,7 @@ func GetDealerContractsByDealerIDs(db *gorm.DB, dealerIDs []int64) (map[int64]*d
 	return result, nil
 }
 
+// GetDealerInfo возвращает информацию о дилере по его id пользователя.
 func GetDealerInfo(db *gorm.DB, userID int64) (*dealers.Dealer, error) {
 	var dealer dealers.Dealer
 	if err := db.Preload("Company").Where("user_id = ?", userID).First(&dealer).Error; err != nil {
@@ -68,6 +75,7 @@ func GetDealerInfo(db *gorm.DB, userID int64) (*dealers.Dealer, error) {
 	return &dealer, nil
 }
 
+// UpdateUserInfo обновляет информацию о пользователе в базе данных.
 func UpdateUserInfo(db *gorm.DB, userID int64, userInfo types.UpdatedUserInfo) error {
 	updates := map[string]any{
 		"fullname":     userInfo.Fullname,
@@ -82,6 +90,7 @@ func UpdateUserInfo(db *gorm.DB, userID int64, userInfo types.UpdatedUserInfo) e
 		Updates(updates).Error
 }
 
+// UpdateDealerInfo обновляет информацию о дилере в базе данных.
 func UpdateDealerInfo(db *gorm.DB, userID int64, userInfo types.UpdatedUserInfo) error {
 	return db.Model(&dealers.Dealer{}).
 		Where("user_id = ?", userID).
@@ -90,6 +99,7 @@ func UpdateDealerInfo(db *gorm.DB, userID int64, userInfo types.UpdatedUserInfo)
 		}).Error
 }
 
+// GetDealerByID возвращает информацию о дилере по его идентификатору.
 func GetDealerByID(db *gorm.DB, dealerID int64) (*dealers.Dealer, error) {
 	var dealer dealers.Dealer
 	if err := db.Where("user_id = ?", dealerID).First(&dealer).Error; err != nil {
@@ -99,6 +109,7 @@ func GetDealerByID(db *gorm.DB, dealerID int64) (*dealers.Dealer, error) {
 	return &dealer, nil
 }
 
+// UpdateCompanyInfo обновляет информацию о компании в базе данных.
 func UpdateCompanyInfo(db *gorm.DB, companyID int64, userInfo types.UpdatedUserInfo) error {
 	return db.Model(&companies.Company{}).
 		Where("id = ?", companyID).
@@ -107,6 +118,7 @@ func UpdateCompanyInfo(db *gorm.DB, companyID int64, userInfo types.UpdatedUserI
 		}).Error
 }
 
+// UpdateCompanyDetails обновляет информацию о компании в базе данных.
 func UpdateCompanyDetails(db *gorm.DB, companyID int64, inn, kpp, ogrn string) error {
 	return db.Model(&companies.Company{}).
 		Where("id = ?", companyID).
@@ -117,6 +129,7 @@ func UpdateCompanyDetails(db *gorm.DB, companyID int64, inn, kpp, ogrn string) e
 		}).Error
 }
 
+// GetDealerWithUser возвращает полную информацию о дилере
 func GetDealerWithUser(db *gorm.DB, dealerID int64) (*dealers.Dealer, error) {
 	var dealer dealers.Dealer
 	if err := db.Preload("Company").Preload("User").Where("user_id = ?", dealerID).First(&dealer).Error; err != nil {
@@ -144,18 +157,19 @@ func GetNextContractNumber(db *gorm.DB) (int, error) {
 	return max + 1, nil
 }
 
+// extractNumber извлекает числовое значение из строки.
 func extractNumber(s string) int {
-	// plain integer
 	if v, err := strconv.Atoi(s); err == nil {
 		return v
 	}
-	// "contract_N" or "contractN"
+
 	s = strings.TrimPrefix(s, "contract_")
 	s = strings.TrimPrefix(s, "contract")
 	v, _ := strconv.Atoi(s)
 	return v
 }
 
+// GetRegistrationRequestByID возвращает запрос на регистрацию дилера по его идентификатору.
 func GetRegistrationRequestByID(db *gorm.DB, requestID int64) (*dealer_registration_requests.DealerRegistrationRequest, error) {
 	var request dealer_registration_requests.DealerRegistrationRequest
 	if err := db.Where("id = ?", requestID).First(&request).Error; err != nil {
@@ -165,6 +179,7 @@ func GetRegistrationRequestByID(db *gorm.DB, requestID int64) (*dealer_registrat
 	return &request, nil
 }
 
+// CreateUser создает нового пользователя в базе данных.
 func CreateUser(db *gorm.DB, user *users.User) error {
 	return db.
 		Clauses(clause.Returning{}).
@@ -172,6 +187,7 @@ func CreateUser(db *gorm.DB, user *users.User) error {
 		Error
 }
 
+// CreateDealer создает нового дилера в базе данных.
 func CreateDealer(db *gorm.DB, dealer *dealers.Dealer) error {
 	return db.
 		Clauses(clause.Returning{}).
@@ -179,6 +195,7 @@ func CreateDealer(db *gorm.DB, dealer *dealers.Dealer) error {
 		Error
 }
 
+// GetOrCreateCompanyByName возвращает компанию по названию или создает новую, если такой компании нет.
 func GetOrCreateCompanyByName(db *gorm.DB, name string) (*companies.Company, error) {
 	var company companies.Company
 	if err := db.
@@ -193,10 +210,12 @@ func GetOrCreateCompanyByName(db *gorm.DB, name string) (*companies.Company, err
 	return &company, nil
 }
 
+// AttachDealerToManager прикрепляет дилера к менеджеру в базе данных.
 func AttachDealerToManager(db *gorm.DB, dealerID int64, managerID int64) error {
 	return db.Create(&dealer_manager_assignments.DealerManagerAssignment{DealerID: dealerID, ManagerID: managerID}).Error
 }
 
+// DeleteRegistrationRequest удаляет запрос на регистрацию дилера из базы данных.
 func DeleteRegistrationRequest(db *gorm.DB, requestID int64) error {
 	return db.Where("id = ?", requestID).Delete(dealer_registration_requests.DealerRegistrationRequest{}).Error
 }

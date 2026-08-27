@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// GetAllOrders возвращает список всех заказов с предзагрузкой связанных данных.
 func GetAllOrders() ([]orders.Order, error) {
 	var result []orders.Order
 	if err := database.DB.
@@ -22,12 +23,14 @@ func GetAllOrders() ([]orders.Order, error) {
 	return result, nil
 }
 
+// UpdateOrderManufactureDate обновляет дату производства заказа.
 func UpdateOrderManufactureDate(orderID int64, manufactureDate *time.Time) error {
 	return database.DB.Model(&orders.Order{}).
 		Where("id = ?", orderID).
 		Updates(map[string]any{"manufacture_date": manufactureDate}).Error
 }
 
+// UpdateGateSizePrice обновляет цену размера ворот.
 func UpdateGateSizePrice(width, height int64, gateType enums.GateType, wholesalePrice, retailPrice decimal.Decimal) error {
 	size := gate_sizes.GateSize{
 		Width:          width,

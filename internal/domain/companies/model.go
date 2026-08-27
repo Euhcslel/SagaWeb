@@ -1,3 +1,6 @@
+// Package companies предоставляет модель для работы с компаниями.
+// Компании хранятся в таблице companies.
+
 package companies
 
 const TableNameCompany = "companies"

@@ -16,6 +16,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// GetOrderDocuments возвращает список документов для заказа.
 // Route: /orders/{order_id}/documents
 // Method: GET
 func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +48,7 @@ func GetOrderDocuments(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// UploadOfferToOrder загружает коммерческое предложение заказа.
 // Route: /orders/{order_id}/offer
 // Method: POST
 func UploadOfferToOrder(w http.ResponseWriter, r *http.Request) {
@@ -83,6 +85,7 @@ func UploadOfferToOrder(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
 }
 
+// UploadContractToOrder загружает договор заказа.
 // Route: /orders/{order_id}/contract
 // Method: POST
 func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
@@ -119,6 +122,7 @@ func UploadContractToOrder(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
 }
 
+// UploadDocumentToOrder загружает документ заказа.
 // Route: /orders/{order_id}/document
 // Method: POST
 func UploadDocumentToOrder(w http.ResponseWriter, r *http.Request) {
@@ -155,6 +159,7 @@ func UploadDocumentToOrder(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
 }
 
+// UploadBillToOrder загружает счет заказа.
 // Route: /orders/{order_id}/bill
 // Method: POST
 func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
@@ -191,6 +196,7 @@ func UploadBillToOrder(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/orders/"+fmt.Sprint(orderID), http.StatusSeeOther)
 }
 
+// DownloadOrderDocument скачивает выбранный документ заказа.
 // Route: /orders/{order_id}/documents/{document_type}/{document_name}
 // Method: GET
 func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
@@ -223,6 +229,7 @@ func DownloadOrderDocument(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, fileInfo.FilePath)
 }
 
+// DeleteOrderDocument удаляет выбранный документ заказа.
 // Route: /orders/{order_id}/documents/{document_type}/{document_name}
 // Method: DELETE
 func DeleteOrderDocument(w http.ResponseWriter, r *http.Request) {
@@ -250,6 +257,7 @@ func DeleteOrderDocument(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAppendiceForOrder возвращает приложение к договору для заказа.
 // Route: /orders/{order_id}/appendice
 // Method: GET
 func GetAppendiceForOrder(w http.ResponseWriter, r *http.Request) {
@@ -279,6 +287,7 @@ func GetAppendiceForOrder(w http.ResponseWriter, r *http.Request) {
 	w.Write(file)
 }
 
+// GetDealerOfferForClient возвращает коммерческое предложение для конечного клиента.
 // Route: /orders/{order_id}/offer/client
 // Method: GET
 // Query: client_name (string)
@@ -311,6 +320,7 @@ func GetDealerOfferForClient(w http.ResponseWriter, r *http.Request) {
 	w.Write(file)
 }
 
+// GetDealerOfferForSelf возвращает коммерческое предложение для дилера.
 // Route: /orders/{order_id}/offer/self
 // Method: GET
 // Query: client_name (string)
@@ -343,6 +353,8 @@ func GetDealerOfferForSelf(w http.ResponseWriter, r *http.Request) {
 	w.Write(file)
 }
 
+// GetOfferForOrder возвращает коммерческое предложение для заказа.
+// Используется незарегестрированным пользователем, конечным клиентом.
 // Route: /offer
 // Method: POST
 func GetOfferForOrder(w http.ResponseWriter, r *http.Request) {

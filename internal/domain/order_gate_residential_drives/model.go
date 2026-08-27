@@ -1,3 +1,6 @@
+// Package order_gate_residential_drives предоставляет модель для связи ворот в заказе с бытовым приводом и направляющей.
+// Данные хранятся в таблице order_gate_residential_drives.
+
 package order_gate_residential_drives
 
 import (

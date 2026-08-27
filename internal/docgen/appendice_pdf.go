@@ -26,10 +26,10 @@ func GenerateAppendice(
 	d.pdf.SetFont("DejaVu", "", 9)
 	d.pdf.CellFormat(0, 5, "Поставщик:", "", 1, "L", false, 0, "")
 	d.pdf.SetFont("DejaVu", "B", 9)
-	d.pdf.CellFormat(0, 5, defaultCompanyName, "", 1, "L", false, 0, "")
+	d.pdf.CellFormat(0, 5, Cfg.CompanyName, "", 1, "L", false, 0, "")
 	d.pdf.SetFont("DejaVu", "", 9)
-	if defaultCompanyINN != "" || defaultCompanyKPP != "" {
-		d.pdf.CellFormat(0, 5, "ИНН/КПП "+defaultCompanyINN+"/"+defaultCompanyKPP, "", 1, "L", false, 0, "")
+	if Cfg.CompanyINN != "" || Cfg.CompanyKPP != "" {
+		d.pdf.CellFormat(0, 5, "ИНН/КПП "+Cfg.CompanyINN+"/"+Cfg.CompanyKPP, "", 1, "L", false, 0, "")
 	}
 	d.pdf.Ln(3)
 
@@ -57,6 +57,7 @@ func GenerateAppendice(
 	return renderPDF(d)
 }
 
+// drawCustomerBlock формирует блок с информацией о клиенте.
 func (d *Doc) drawCustomerBlock(c CustomerInfo) {
 	const labelW = 72.0
 	valueW := contentWidth - labelW
@@ -73,12 +74,13 @@ func (d *Doc) drawCustomerBlock(c CustomerInfo) {
 	row("Тел.:", c.Phone)
 }
 
+// drawAppendiceSignatures формирует места для подписей в документе и информацию о гарантии.
 func (d *Doc) drawAppendiceSignatures(c CustomerInfo) {
 	sigW := contentWidth / 2
 	d.pdf.SetFont("DejaVu", "", 9)
 	supplier := "Поставщик __________________"
-	if defaultRepresentative != "" {
-		supplier = "Поставщик ____________ /" + defaultRepresentative
+	if Cfg.Representative != "" {
+		supplier = "Поставщик ____________ /" + Cfg.Representative
 	}
 	d.pdf.CellFormat(sigW, 6, supplier, "", 0, "L", false, 0, "")
 	buyer := "Покупатель __________________"
@@ -87,7 +89,7 @@ func (d *Doc) drawAppendiceSignatures(c CustomerInfo) {
 	}
 	d.pdf.CellFormat(sigW, 6, buyer, "", 1, "L", false, 0, "")
 	d.pdf.Ln(8)
-	if defaultWarrantyEquip != "" || defaultWarrantyAuto != "" {
-		d.addLine(fmt.Sprintf("Гарантия на оборудование — %s, на автоматику — %s.", defaultWarrantyEquip, defaultWarrantyAuto))
+	if Cfg.WarrantyEquip != "" || Cfg.WarrantyAuto != "" {
+		d.addLine(fmt.Sprintf("Гарантия на оборудование — %s, на автоматику — %s.", Cfg.WarrantyEquip, Cfg.WarrantyAuto))
 	}
 }

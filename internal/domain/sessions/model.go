@@ -1,3 +1,6 @@
+// Package sessions предоставляет модель для работы с сессиями.
+// Данные о сессиях хранятся в таблице sessions.
+
 package sessions
 
 import (
@@ -22,6 +25,8 @@ func (*Session) TableName() string {
 	return TableNameSession
 }
 
+// Функция-триггер, срабатывающая перед созданием новой сессии
+// Удаляет старую сессию и устанавливает дату истечения новой сессии
 func (s *Session) BeforeCreate(tx *gorm.DB) error {
 	if err := tx.Where("user_id = ?", s.UserID).Delete(&Session{}).Error; err != nil {
 		return err

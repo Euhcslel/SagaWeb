@@ -2,6 +2,7 @@ package service
 
 import "github.com/Euhcslel/SagaWeb/internal/repository"
 
+// GetDealersList возвращает список дилеров.
 func GetDealersList() ([]UserInfo, error) {
 	dealers, err := repository.GetDealersList()
 	if err != nil {

@@ -1,3 +1,6 @@
+// Package dealer_registration_requests предоставляет модель для работы с заявками на регистрацию в качестве дилера.
+// Данные о заявках хранятся в таблице dealer_registration_requests.
+
 package dealer_registration_requests
 
 import (

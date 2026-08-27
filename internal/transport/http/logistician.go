@@ -13,6 +13,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/utils"
 )
 
+// UpdateLogisticianOrder обновляет данные заказа логистом.
 // Route: /logistician/orders/{order_id}
 // Method: PUT
 func UpdateLogisticianOrder(w http.ResponseWriter, r *http.Request) {
@@ -55,6 +56,7 @@ func UpdateLogisticianOrder(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetSizeImportPage возвращает страницу для импорта размеров.
 // Route: /logistician/size-import
 // Method: GET
 func GetSizeImportPage(w http.ResponseWriter, r *http.Request) {
@@ -75,6 +77,7 @@ func GetSizeImportPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ImportSizes обрабатывает импорт размеров из файлов.
 // Route: /logistician/size-import
 // Method: POST
 func ImportSizes(w http.ResponseWriter, r *http.Request) {

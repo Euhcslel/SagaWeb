@@ -1,12 +1,14 @@
-package main
+// Package size_import необходим для первичной загрузки цен за размер ворот
+// Считывает 4 excel-файла и добавляет данные в базу данных
+package size_import
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/domain/enums"
 	"github.com/Euhcslel/SagaWeb/internal/domain/gate_sizes"
+	"log"
+	"os"
 
 	"strconv"
 
@@ -17,41 +19,52 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("error loading .env file")
+		log.Fatalln("error loading .env file")
 	}
 
-	database.InitDB()
+	if err := database.InitDB(); err != nil {
+		log.Fatalln("ошибка при попытке инициализации бд: " + err.Error())
+	}
 
+	// Получение пути файла с дилерскими ценами на промышленные ворота
 	dealerPathInd := os.Getenv("EXCEL_IMPORT_IND_DEALER_PATH")
 	if dealerPathInd == "" {
 		log.Fatal("EXCEL_IMPORT_IND_DEALER_PATH не найден в .env файле")
 	}
 
+	// Получение пути файла с розничными ценами на промышленные ворота
 	clientPathInd := os.Getenv("EXCEL_IMPORT_IND_CLIENT_PATH")
 	if clientPathInd == "" {
 		log.Fatal("EXCEL_IMPORT_IND_CLIENT_PATH не найден в .env файле")
 	}
 
+	// Получение пути файла с дилерскими ценами на бытовые ворота
 	dealerPathRes := os.Getenv("EXCEL_IMPORT_RES_DEALER_PATH")
 	if dealerPathRes == "" {
 		log.Fatal("EXCEL_IMPORT_RES_DEALER_PATH не найден в .env файле")
 	}
 
+	// Получение пути файла с розничными ценами на бытовые ворота
 	clientPathRes := os.Getenv("EXCEL_IMPORT_RES_CLIENT_PATH")
 	if clientPathRes == "" {
 		log.Fatal("EXCEL_IMPORT_RES_CLIENT_PATH не найден в .env файле")
 	}
 
+	// Добавление размеров и цен для промышленных ворот
 	if err := createSizes(dealerPathInd, clientPathInd, enums.GateTypeInd); err != nil {
 		log.Printf("Ошибка при попытке добавить цены для промышленных ворот: %v", err)
 	}
 
+	// Добавление размеров и цен для бытовых ворот
 	if err := createSizes(dealerPathRes, clientPathRes, enums.GateTypeRes); err != nil {
 		log.Printf("Ошибка при попытке добавить цены для бытовых ворот: %v", err)
 	}
 }
 
+// Функция, принимающая пути до файлов с розничными и дилерскими ценами на указаный тип ворот
+// Считывает каждую ячейку с ценой по размерам и добавляет в базу данных новую запись
 func createSizes(dealerPath string, clientPath string, gateType enums.GateType) (err error) {
+	// Чтение файла с розничными ценами
 	clientPricesFile, err := excelize.OpenFile(clientPath)
 	if err != nil {
 		return fmt.Errorf("Ошибка при чтении файла с клиентскими ценами: %w", err)
@@ -62,6 +75,7 @@ func createSizes(dealerPath string, clientPath string, gateType enums.GateType) 
 		}
 	}()
 
+	// Чтение файла с дилерскими ценами
 	dealerPricesFile, err := excelize.OpenFile(dealerPath)
 	if err != nil {
 		return fmt.Errorf("Ошибка при чтении файла с дилерскими ценами: %w", err)
@@ -72,6 +86,7 @@ func createSizes(dealerPath string, clientPath string, gateType enums.GateType) 
 		}
 	}()
 
+	// Список всех записей с размерами
 	sizeList := []gate_sizes.GateSize{}
 
 	clientRows, err := clientPricesFile.GetRows("Лист1")

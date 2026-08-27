@@ -15,7 +15,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// Middleware для проверки аутентификации
+// RequireAuth проверяет наличие аутентифицированного пользователя в контексте запроса.
 func RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := utils.GetUserBySessionToken(r)
@@ -30,7 +30,7 @@ func RequireAuth(next http.Handler) http.Handler {
 	})
 }
 
-// Middleware для необязательной аутентификации
+// WithOptionalAuth добавляет необязательную аутентификацию к обработчику
 func WithOptionalAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, _ := utils.GetUserBySessionToken(r)
@@ -43,7 +43,7 @@ func WithOptionalAuth(next http.Handler) http.Handler {
 	})
 }
 
-// Middleware для управления кэшированием HTTP-ответов
+// CacheControl устанавливает заголовок Cache-Control для всех ответов.
 func CacheControl(value string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func CacheControl(value string) func(http.Handler) http.Handler {
 	}
 }
 
-// Middleware, который добавляет базовые security-заголовки ко всем HTTP-ответам
+// SecurityHeaders добавляет базовые security-заголовки ко всем HTTP-ответам.
 func SecurityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -65,6 +65,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 	})
 }
 
+// ipLimiter хранит лимитер и время последнего запроса от IP-адреса.
 type ipLimiter struct {
 	limiter  *rate.Limiter
 	lastSeen time.Time
@@ -75,6 +76,7 @@ var (
 	limiters = map[string]*ipLimiter{}
 )
 
+// init запускает горутину для очистки лимитеров, которые не использовались более 30 минут.
 func init() {
 	go func() {
 		ticker := time.NewTicker(10 * time.Minute)
@@ -91,7 +93,7 @@ func init() {
 	}()
 }
 
-// Функция для получения лимитера по IP-адресу
+// getLimiter вовзращает лимитер по IP-адресу.
 func getLimiter(ip string) *rate.Limiter {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -104,7 +106,7 @@ func getLimiter(ip string) *rate.Limiter {
 	return l.limiter
 }
 
-// Middleware, ограничивающий количество запросов от одного IP-адреса
+// RateLimit ограничивает количество запросов от одного IP-адреса.
 func RateLimit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip, _, _ := net.SplitHostPort(r.RemoteAddr)

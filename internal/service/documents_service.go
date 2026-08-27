@@ -27,6 +27,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// UploadOfferToOrder загружает КП и прикрепляет его к заказу.
 func UploadOfferToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
 	return uploadDocument(user, orderID, file, handler, uploadConfig{
 		dirEnvKey: "OFFERS_DIRECTORY",
@@ -34,6 +35,7 @@ func UploadOfferToOrder(user *users.User, orderID int64, file multipart.File, ha
 	})
 }
 
+// UploadContractToOrder загружает договор и прикрепляет его к заказу.
 func UploadContractToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
 	return uploadDocument(user, orderID, file, handler, uploadConfig{
 		dirEnvKey: "CONTRACTS_DIRECTORY",
@@ -41,6 +43,7 @@ func UploadContractToOrder(user *users.User, orderID int64, file multipart.File,
 	})
 }
 
+// UploadBillToOrder загружает счёт и прикрепляет его к заказу.
 func UploadBillToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
 	return uploadDocument(user, orderID, file, handler, uploadConfig{
 		dirEnvKey: "BILLS_DIRECTORY",
@@ -48,6 +51,7 @@ func UploadBillToOrder(user *users.User, orderID int64, file multipart.File, han
 	})
 }
 
+// UploadDocumentToOrder загружает документ и прикрепляет его к заказу.
 func UploadDocumentToOrder(user *users.User, orderID int64, file multipart.File, handler *multipart.FileHeader) error {
 	return uploadDocument(user, orderID, file, handler, uploadConfig{
 		dirEnvKey: "DOCUMENTS_DIRECTORY",
@@ -55,13 +59,14 @@ func UploadDocumentToOrder(user *users.User, orderID int64, file multipart.File,
 	})
 }
 
-// Структура конфигурации загружаемого файла
-// Включает в себя путь до каталога с файлом и функцию репозитория, которая прикрепляет документ к заказу
+// uploadConfig - структура конфигурации загружаемого файла.
+// Включает в себя путь до каталога с файлом и функцию репозитория, которая прикрепляет документ к заказу.
 type uploadConfig struct {
 	dirEnvKey string
 	attach    func(db *gorm.DB, orderID int64, name, filename string) error
 }
 
+// uploadDocument загружает файл и прикрепляет его к заказу.
 func uploadDocument(user *users.User, orderID int64,
 	file multipart.File, handler *multipart.FileHeader, cfg uploadConfig) error {
 
@@ -98,6 +103,7 @@ func uploadDocument(user *users.User, orderID int64,
 	return nil
 }
 
+// GetAllOrderDocuments возвращает список всех документов, прикрепленных к заказу.
 func GetAllOrderDocuments(user *users.User, orderID int64) (*generated.DocumentsList, error) {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return nil, err
@@ -163,13 +169,14 @@ func GetAllOrderDocuments(user *users.User, orderID int64) (*generated.Documents
 	return resp, nil
 }
 
-// Структура, описывающая файл
-// Включает имя и путь до файла
+// FileInfo описывающает файл.
+// Включает имя и путь до файла.
 type FileInfo struct {
 	FilePath string
 	FileName string
 }
 
+// GetFileInfo возвращает информацию о файле документа, прикрепленного к заказу.
 func GetFileInfo(user *users.User, orderID int64, docType string, docName string) (*FileInfo, error) {
 	err := checkOrderAccess(user, orderID)
 	if err != nil {
@@ -185,6 +192,7 @@ func GetFileInfo(user *users.User, orderID int64, docType string, docName string
 	return &fileInfo, nil
 }
 
+// DeleteOrderDocument удаляет документ, прикрепленный к заказу.
 func DeleteOrderDocument(user *users.User, orderID int64, docType string, docName string) error {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
@@ -228,6 +236,7 @@ func DeleteOrderDocument(user *users.User, orderID int64, docType string, docNam
 	return nil
 }
 
+// resolveDocumentPath возвращает путь до файла документа и его имя в зависимости от типа документа.
 func resolveDocumentPath(orderID int64, docType string, docName string) (filePath string, fileName string, err error) {
 	var dir string
 
@@ -267,6 +276,7 @@ func resolveDocumentPath(orderID int64, docType string, docName string) (filePat
 	return filepath.Join(dir, fileName), fileName, nil
 }
 
+// GetOfferForOrder генерирует КП для заказа на основе данных, переданных в запросе.
 func GetOfferForOrder(
 	user *users.User,
 	orderData *generated.OrderRequest,
@@ -376,7 +386,7 @@ func GetOfferForOrder(
 		})
 	}
 
-	// --- товары ---
+	// товары
 	products, err := loadProducts(orderData.Products)
 	if err != nil {
 		return nil, err

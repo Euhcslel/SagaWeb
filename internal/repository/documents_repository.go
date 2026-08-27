@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/Euhcslel/SagaWeb/internal/database"
-	"github.com/Euhcslel/SagaWeb/internal/domain/manual_drive_prices"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_bills"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_appendices"
 	"github.com/Euhcslel/SagaWeb/internal/domain/order_documents"
@@ -10,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// AttachOfferToOrder прикрепляет коммерческое предложение к заказу в базе данных.
 func AttachOfferToOrder(db *gorm.DB, orderID int64, offerNumber string, path string) error {
 	return db.Create(&order_offers.OrderOffer{
 		OrderID:     orderID,
@@ -18,6 +18,7 @@ func AttachOfferToOrder(db *gorm.DB, orderID int64, offerNumber string, path str
 	}).Error
 }
 
+// AttachAppendiceToOrder прикрепляет приложение к договору к заказу в базе данных.
 func AttachAppendiceToOrder(db *gorm.DB, orderID int64, appendiceNumber string, path string) error {
 	return db.Create(&order_appendices.OrderAppendix{
 		OrderID:        orderID,
@@ -26,6 +27,7 @@ func AttachAppendiceToOrder(db *gorm.DB, orderID int64, appendiceNumber string, 
 	}).Error
 }
 
+// AttachBillToOrder прикрепляет счет к заказу в базе данных.
 func AttachBillToOrder(db *gorm.DB, orderID int64, billNumber string, path string) error {
 	return db.Create(&order_bills.OrderBill{
 		OrderID:    orderID,
@@ -34,6 +36,7 @@ func AttachBillToOrder(db *gorm.DB, orderID int64, billNumber string, path strin
 	}).Error
 }
 
+// AttachDocumentToOrder прикрепляет документ к заказу в базе данных.
 func AttachDocumentToOrder(db *gorm.DB, orderID int64, name string, path string) error {
 	return db.Create(&order_documents.OrderDocument{
 		OrderID: orderID,
@@ -42,6 +45,7 @@ func AttachDocumentToOrder(db *gorm.DB, orderID int64, name string, path string)
 	}).Error
 }
 
+// GetBillFileName возвращает название файла счета по номеру счета и идентификатору заказа.
 func GetBillFileName(orderID int64, billNumber string) (string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_bills.OrderBill{}).
@@ -53,6 +57,7 @@ func GetBillFileName(orderID int64, billNumber string) (string, error) {
 	return fileName, nil
 }
 
+// GetOfferFileName возвращает название файла коммерческого предложения по номеру предложения и идентификатору заказа.
 func GetOfferFileName(orderID int64, offerNumber string) (string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_offers.OrderOffer{}).
@@ -64,6 +69,7 @@ func GetOfferFileName(orderID int64, offerNumber string) (string, error) {
 	return fileName, nil
 }
 
+// GetAppendiceFileName возвращает название файла приложения к договору по номеру приложения и идентификатору заказа.
 func GetAppendiceFileName(orderID int64, appendiceNumber string) (string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_appendices.OrderAppendix{}).
@@ -75,6 +81,7 @@ func GetAppendiceFileName(orderID int64, appendiceNumber string) (string, error)
 	return fileName, nil
 }
 
+// GetDocumentFileName возвращает название файла документа по имени документа и идентификатору заказа.
 func GetDocumentFileName(orderID int64, documentName string) (string, error) {
 	var fileName string
 	if err := database.DB.Model(&order_documents.OrderDocument{}).
@@ -86,6 +93,7 @@ func GetDocumentFileName(orderID int64, documentName string) (string, error) {
 	return fileName, nil
 }
 
+// DeleteOrderBill удаляет запись о счете из базы данных по номеру счета и идентификатору заказа.
 func DeleteOrderBill(db *gorm.DB, orderID int64, billNumber string) error {
 	return db.
 		Where("bill_number = ? AND order_id = ?", billNumber, orderID).
@@ -93,6 +101,7 @@ func DeleteOrderBill(db *gorm.DB, orderID int64, billNumber string) error {
 		Error
 }
 
+// DeleteOrderOffer удаляет запись о коммерческом предложении из базы данных по номеру предложения и идентификатору заказа.
 func DeleteOrderOffer(db *gorm.DB, orderID int64, offerNumber string) error {
 	return db.
 		Where("offer_number = ? AND order_id = ?", offerNumber, orderID).
@@ -100,6 +109,7 @@ func DeleteOrderOffer(db *gorm.DB, orderID int64, offerNumber string) error {
 		Error
 }
 
+// DeleteOrderAppendice удаляет запись о приложении к договору из базы данных по номеру приложения и идентификатору заказа.
 func DeleteOrderAppendice(db *gorm.DB, orderID int64, appendiceNumber string) error {
 	return db.
 		Where("appendice_number = ? AND order_id = ?", appendiceNumber, orderID).
@@ -107,6 +117,7 @@ func DeleteOrderAppendice(db *gorm.DB, orderID int64, appendiceNumber string) er
 		Error
 }
 
+// DeleteOrderDocument удаляет запись о документе из базы данных по имени документа и идентификатору заказа.
 func DeleteOrderDocument(db *gorm.DB, orderID int64, documentName string) error {
 	return db.
 		Where("name = ? AND order_id = ?", documentName, orderID).
@@ -114,6 +125,7 @@ func DeleteOrderDocument(db *gorm.DB, orderID int64, documentName string) error 
 		Error
 }
 
+// GetDocumentsNameList возвращает список имен документов, связанных с указанным идентификатором заказа.
 func GetDocumentsNameList(db *gorm.DB, orderID int64) ([]string, error) {
 	var documentsNameList []string
 	if err := db.Model(&order_documents.OrderDocument{}).
@@ -125,6 +137,7 @@ func GetDocumentsNameList(db *gorm.DB, orderID int64) ([]string, error) {
 	return documentsNameList, nil
 }
 
+// GetOffersNumberList возвращает список номеров коммерческих предложений, связанных с указанным идентификатором заказа.
 func GetOffersNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	var offersNumberList []string
 	if err := db.Model(&order_offers.OrderOffer{}).
@@ -136,6 +149,7 @@ func GetOffersNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	return offersNumberList, nil
 }
 
+// GetAppendicesNumberList возвращает список номеров приложений к договорам, связанных с указанным идентификатором заказа.
 func GetAppendicesNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	var appendicesNumberList []string
 	if err := db.Model(&order_appendices.OrderAppendix{}).
@@ -147,6 +161,7 @@ func GetAppendicesNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	return appendicesNumberList, nil
 }
 
+// GetBillsNumberList возвращает список номеров счетов, связанных с указанным идентификатором заказа.
 func GetBillsNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	var billsNumberList []string
 	if err := db.Model(&order_bills.OrderBill{}).
@@ -156,12 +171,4 @@ func GetBillsNumberList(db *gorm.DB, orderID int64) ([]string, error) {
 	}
 
 	return billsNumberList, nil
-}
-
-func GetManualDrivePrice(db *gorm.DB) (*manual_drive_prices.ManualDrivePrice, error) {
-	var manualDrivePrice manual_drive_prices.ManualDrivePrice
-	if err := db.First(&manualDrivePrice).Error; err != nil {
-		return nil, err
-	}
-	return &manualDrivePrice, nil
 }

@@ -1,3 +1,6 @@
+// Package residential_gate_drive_price_history предоставляет модель для работы с историей цен за бытовые привода.
+// История цен за бытовые привода хранится в таблице residential_gate_drive_price_history.
+
 package residential_gate_drive_price_history
 
 import (

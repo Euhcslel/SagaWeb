@@ -1,3 +1,6 @@
+// Package errors является пакетом с кастомными ошибками.
+// Содержит константы, описывающие соответствующие ошибки.
+
 package errors
 
 import "errors"
@@ -15,4 +18,6 @@ var (
 	ErrNoDealerContract         = errors.New("У дилера отсутствует договор")
 	ErrIncompleteCompanyDetails = errors.New("Необходимо заполнить реквизиты компании: ИНН, КПП, ОГРН и адрес")
 	ErrForeignKeyViolation      = errors.New("Невозможно удалить: запись используется в существующих заказах")
+	ErrEnvVariableNotFound      = errors.New("переменная в .env не найдена")
+	ErrParseStringToInt         = errors.New("не удалось преобразовать строку в число")
 )

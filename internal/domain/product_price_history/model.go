@@ -1,3 +1,6 @@
+// Package product_price_history предоставляет модель для работы с историей цен за товары.
+// История цен за товары хранится в таблице product_price_history.
+
 package product_price_history
 
 import (

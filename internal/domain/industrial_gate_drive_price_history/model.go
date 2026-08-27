@@ -1,3 +1,6 @@
+// Package industrial_gate_drive_price_history предоставляет модель для работы с историей цен за промышленные привода.
+// История цен за промышленные привода хранится в таблице industrial_gate_drive_price_history.
+
 package industrial_gate_drive_price_history
 
 import (

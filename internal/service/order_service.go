@@ -28,7 +28,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Функция для проверки доступа к заказу
+// checkOrderAccess проверяет доступ к заказу.
 func checkOrderAccess(user *users.User, orderID int64) error {
 	var order orders.Order
 	query := database.DB.Where("id = ?", orderID)
@@ -54,8 +54,8 @@ func checkOrderAccess(user *users.User, orderID int64) error {
 	return nil
 }
 
+// GetAllUserOrders возвращает все заказы пользователя в зависимости от его роли.
 func GetAllUserOrders(user *users.User) ([]orders.Order, error) {
-	// Вернуть limit потом
 	switch user.Role {
 	case enums.DealerRole:
 		return repository.GetAllDealerOrders(database.DB, user)
@@ -66,12 +66,13 @@ func GetAllUserOrders(user *users.User) ([]orders.Order, error) {
 	}
 }
 
-// Структура, описывающая данные необходимые для страницы заказа
+// orderPageData описывает данные необходимые для страницы заказа.
 type orderPageData struct {
 	Order    types.Order
 	Products []products.Product
 }
 
+// GetOrderPageData возвращает данные для страницы заказа.
 func GetOrderPageData(user *users.User, orderID int64) (*orderPageData, error) {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return nil, err
@@ -174,7 +175,7 @@ func GetOrderPageData(user *users.User, orderID int64) (*orderPageData, error) {
 	return pageData, nil
 }
 
-// Структура, описывающая данные необходимые для страницы ворот в заказе
+// CurrentGatePageData описывает данные необходимые для страницы ворот в заказе.
 type CurrentGatePageData struct {
 	Gate    *order_gates.OrderGate
 	Options []order_gate_options.OrderGateOption
@@ -187,6 +188,7 @@ type CurrentGatePageData struct {
 	OrderStatus   enums.OrderStatus
 }
 
+// GetCurrentGatePageData возвращает данные для страницы ворот в заказе.
 func GetCurrentGatePageData(user *users.User, orderID int64, gateID int64) (CurrentGatePageData, error) {
 	err := checkOrderAccess(user, orderID)
 	if err != nil {
@@ -251,6 +253,7 @@ func GetCurrentGatePageData(user *users.User, orderID int64, gateID int64) (Curr
 	return pageData, nil
 }
 
+// applyHistoricalConfigPrices обновляет цены в конфигурации на основе исторических данных.
 func applyHistoricalConfigPrices(db *gorm.DB, cfg *types.Config, at time.Time) error {
 	// Опции
 	if len(cfg.Options) > 0 {
@@ -363,6 +366,7 @@ func applyHistoricalConfigPrices(db *gorm.DB, cfg *types.Config, at time.Time) e
 	return nil
 }
 
+// DeleteUserOrder удаляет заказ пользователя.
 func DeleteUserOrder(user *users.User, orderID int64) error {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
@@ -375,7 +379,7 @@ func DeleteUserOrder(user *users.User, orderID int64) error {
 	return nil
 }
 
-
+// AddNewGateInOrder добавляет новые ворота в заказ.
 func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*order_gates.OrderGate, error) {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return nil, err
@@ -484,6 +488,7 @@ func AddNewGateInOrder(user *users.User, orderID int64, formGateType string) (*o
 	}
 }
 
+// calculateGatePrice рассчитывает цену ворот на основе заданных параметров.
 func calculateGatePrice(width, height int64, gateType enums.GateType,
 	drivePrices types.PricePair, liftType lift_types.LiftType,
 	cycleAmount cycle_amounts.CycleAmount, optionsPrices types.PricePair) (*types.PricePair, error) {
@@ -565,6 +570,7 @@ func calculateOptionsPrices(tx *gorm.DB, gateOptions []*generated.Option) (*type
 	return &optionsPrices, nil
 }
 
+// CreateNewOrder создает новый заказ.
 func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	if user.Role != enums.DealerRole {
 		return errs.ErrForbidden
@@ -750,6 +756,7 @@ func CreateNewOrder(user *users.User, orderData *generated.OrderRequest) error {
 	return tx.Commit().Error
 }
 
+// DeleteGateFromOrder удаляет ворота из заказа.
 func DeleteGateFromOrder(user *users.User, orderID int64, rowNumber int64) error {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
@@ -762,6 +769,7 @@ func DeleteGateFromOrder(user *users.User, orderID int64, rowNumber int64) error
 	return nil
 }
 
+// UpdateGateInOrder обновляет ворота в заказе.
 func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *generated.GateConfig) error {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
@@ -949,6 +957,7 @@ func UpdateGateInOrder(user *users.User, orderID int64, gateID int64, gateData *
 	return tx.Commit().Error
 }
 
+// UpdateOrderStatus обновляет статус заказа.
 func UpdateOrderStatus(user *users.User, orderID int64, updateStatusRequest *generated.UpdateOrderStatusRequest) error {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return err
@@ -981,6 +990,7 @@ func UpdateOrderStatus(user *users.User, orderID int64, updateStatusRequest *gen
 	return tx.Commit().Error
 }
 
+// UpdateProductsInOrder обновляет список товаров в заказе.
 func UpdateProductsInOrder(user *users.User, orderID int64, updateProductsRequest *generated.UpdateProductsRequest) error {
 	if err := checkOrderAccess(user, orderID); err != nil {
 		return err

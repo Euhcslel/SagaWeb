@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -21,15 +20,10 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 	errs "github.com/Euhcslel/SagaWeb/internal/errors"
 	"github.com/Euhcslel/SagaWeb/internal/repository"
-	"github.com/lib/pq"
 	"github.com/samborkent/uuidv7"
 )
 
-func isFKViolation(err error) bool {
-	var pqErr *pq.Error
-	return errors.As(err, &pqErr) && pqErr.Code == "23503"
-}
-
+// UploadProductImage загружает изображение товара на сервер и возвращает имя файла.
 func UploadProductImage(file multipart.File, handler *multipart.FileHeader) (string, error) {
 
 	dir := os.Getenv("IMAGES_DIRECTORY")
@@ -59,6 +53,7 @@ func UploadProductImage(file multipart.File, handler *multipart.FileHeader) (str
 	return filename, nil
 }
 
+// AddNewDataBaseTableRow добавляет новую строку в указанную таблицу базы данных.
 func AddNewDataBaseTableRow(tableName string, tableData any) error {
 	switch tableName {
 	case "colors":
@@ -158,6 +153,7 @@ func AddNewDataBaseTableRow(tableName string, tableData any) error {
 	return nil
 }
 
+// GetTablePageData возвращает данные для указанной таблицы базы данных.
 func GetTablePageData(tableName string) (any, error) {
 	switch tableName {
 	case "colors":
@@ -185,6 +181,7 @@ func GetTablePageData(tableName string) (any, error) {
 	}
 }
 
+// UpdateRow обновляет строку в указанной таблице базы данных.
 func UpdateRow(tableName string, tableData any) error {
 	switch tableName {
 	case "colors":
@@ -282,6 +279,7 @@ func UpdateRow(tableName string, tableData any) error {
 	return nil
 }
 
+// DeleteRow удаляет строку из указанной таблицы базы данных.
 func DeleteRow(tableName string, rowId int64) error {
 	var err error
 	switch tableName {
@@ -308,8 +306,6 @@ func DeleteRow(tableName string, rowId int64) error {
 	default:
 		return errs.ErrInvalidTableType
 	}
-	if isFKViolation(err) {
-		return errs.ErrForeignKeyViolation
-	}
+
 	return err
 }

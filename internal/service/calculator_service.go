@@ -16,13 +16,14 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Структура, описывающая данные необходимые для страницы калькулятора
+// calculatorPageData описывает данные необходимые для страницы калькулятора.
 type calculatorPageData struct {
 	IndustrialConfiguration  any
 	ResidentialConfiguration any
 	IsDealer                 bool
 }
 
+// GetCalculatorPageData возвращает данные для страницы калькулятора.
 func GetCalculatorPageData(user *users.User) (*calculatorPageData, error) {
 	role := enums.ClientRole
 	if user != nil {
@@ -48,6 +49,7 @@ func GetCalculatorPageData(user *users.User) (*calculatorPageData, error) {
 	}, nil
 }
 
+// GetPriceBasedOnSize возвращает цену на ворота в зависимости от размеров и типа ворот.
 func GetPriceBasedOnSize(width, height int64, gateType enums.GateType, user *users.User) (*generated.SizePrice, error) {
 	role := enums.ClientRole
 	if user != nil {
@@ -83,6 +85,7 @@ func GetPriceBasedOnSize(width, height int64, gateType enums.GateType, user *use
 	return resp, nil
 }
 
+// GetGateCfg возвращает конфигурацию ворот в зависимости от типа ворот и роли пользователя.
 func GetGateCfg(gateType enums.GateType, isDealer bool) (*types.Config, error) {
 	cfg := &types.Config{
 		LiftTypes:    []lift_types.LiftType{},

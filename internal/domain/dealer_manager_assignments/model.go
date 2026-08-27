@@ -1,3 +1,6 @@
+// Package dealer_manager_assignments предоставляет модель для связи менеджера с дилером.
+// Данные хранятся в таблице dealer_manager_assignments.
+
 package dealer_manager_assignments
 
 import (

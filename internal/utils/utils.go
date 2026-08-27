@@ -1,3 +1,5 @@
+// Package utils содержит вспомогательные функции для работы с пользователями, сессиями и контекстом.
+
 package utils
 
 import (
@@ -14,7 +16,7 @@ import (
 	"github.com/samborkent/uuidv7"
 )
 
-// Функция для получения пользователя по токену сессии
+// GetUserBySessionToken возвращает пользователя по токену сессии
 func GetUserBySessionToken(r *http.Request) (*users.User, error) {
 	sessionToken, err := r.Cookie("session_token")
 	if err != nil {
@@ -34,7 +36,7 @@ func GetUserBySessionToken(r *http.Request) (*users.User, error) {
 	return &session.User, nil
 }
 
-// Функция для установки сессии и создания cookie
+// SetSession устанавливает сессию и создает cookie
 // Срок действия сессии - 30 дней
 func SetSession(w http.ResponseWriter, userID int64) error {
 	token := uuidv7.New().String()
@@ -60,7 +62,7 @@ func SetSession(w http.ResponseWriter, userID int64) error {
 	return nil
 }
 
-// Функция для получения пользователя из контекста
+// UserFromContext возвращает пользователя из контекста
 func UserFromContext(ctx context.Context) *users.User {
 	user, ok := ctx.Value(types.UserContextKey).(*users.User)
 	if !ok {
@@ -69,7 +71,7 @@ func UserFromContext(ctx context.Context) *users.User {
 	return user
 }
 
-// Функция для проверки доступа к дилерским функциям
+// HasDealerAccess проверяет доступ к дилерским функциям
 func HasDealerAccess(role enums.Role) bool {
 	return role == enums.DealerRole || role == enums.AdminRole || role == enums.ManagerRole || role == enums.LogisticianRole
 }

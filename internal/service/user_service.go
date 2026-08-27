@@ -28,11 +28,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// DealerWithContract описывает дилера с прикрепленным договором.
 type DealerWithContract struct {
 	dealer_manager_assignments.DealerManagerAssignment
 	Contract *dealer_contract.DealerContract
 }
 
+// GetUserDealers возвращает список дилеров, прикрепленных к менеджеру, вместе с их договорами.
 func GetUserDealers(user *users.User) ([]DealerWithContract, error) {
 	if user.Role != enums.ManagerRole {
 		return nil, errs.ErrForbidden
@@ -63,6 +65,7 @@ func GetUserDealers(user *users.User) ([]DealerWithContract, error) {
 	return result, nil
 }
 
+// AttachContractToDealer прикрепляет договор к дилеру.
 func AttachContractToDealer(user *users.User, dealerID int64, contractNumber string, signedAt time.Time, file multipart.File, handler *multipart.FileHeader) error {
 	if user.Role != enums.ManagerRole && user.Role != enums.AdminRole {
 		return errs.ErrForbidden
@@ -103,6 +106,7 @@ func AttachContractToDealer(user *users.User, dealerID int64, contractNumber str
 	return repository.UpsertDealerContract(database.DB, contract)
 }
 
+// UserInfo описывает информацию о пользователе.
 type UserInfo struct {
 	ID       int64
 	Fullname string
@@ -114,6 +118,7 @@ type UserInfo struct {
 	Dealer *DealerInfo
 }
 
+// DealerInfo описывает информацию о дилере.
 type DealerInfo struct {
 	CompanyName string
 	Address     string
@@ -122,6 +127,7 @@ type DealerInfo struct {
 	OGRN        string
 }
 
+// GetUserInfo возвращает информацию о пользователе, включая информацию о дилере, если пользователь является дилером.
 func GetUserInfo(user *users.User) (*UserInfo, error) {
 	userInfo := &UserInfo{
 		ID:       user.ID,
@@ -150,6 +156,7 @@ func GetUserInfo(user *users.User) (*UserInfo, error) {
 	return userInfo, nil
 }
 
+// ptrVal возвращает значение строки, на которую указывает указатель, или пустую строку, если указатель равен nil.
 func ptrVal(s *string) string {
 	if s == nil {
 		return ""
@@ -157,6 +164,7 @@ func ptrVal(s *string) string {
 	return *s
 }
 
+// UpdateCompanyDetails обновляет данные компании дилера.
 func UpdateCompanyDetails(user *users.User, inn, kpp, ogrn string) error {
 	if user.Role != enums.DealerRole {
 		return errs.ErrForbidden
@@ -168,6 +176,7 @@ func UpdateCompanyDetails(user *users.User, inn, kpp, ogrn string) error {
 	return repository.UpdateCompanyDetails(database.DB, dealer.CompanyID, inn, kpp, ogrn)
 }
 
+// GenerateDealerContract генерирует договор для дилера и сохраняет его в базе данных.
 func GenerateDealerContract(manager *users.User, dealerID int64) ([]byte, int, error) {
 	if manager.Role != enums.ManagerRole && manager.Role != enums.AdminRole {
 		return nil, 0, errs.ErrForbidden
@@ -204,6 +213,7 @@ func GenerateDealerContract(manager *users.User, dealerID int64) ([]byte, int, e
 	return data, contractNumber, nil
 }
 
+// UpdateUserInfo обновляет информацию о пользователе, включая пароль, если он был изменен.
 func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
 	if userInfo.NewPassword != "" {
 		hash, err := bcrypt.GenerateFromPassword([]byte(userInfo.NewPassword), bcrypt.DefaultCost)
@@ -245,6 +255,7 @@ func UpdateUserInfo(user *users.User, userInfo types.UpdatedUserInfo) error {
 	return nil
 }
 
+// ConfirmDealerRegistrationRequest подтверждает заявку на регистрацию дилера, создавая нового пользователя и дилера в системе, а также отправляет временный пароль на указанный email.
 func ConfirmDealerRegistrationRequest(manager *users.User, requestID int64) error {
 	if manager.Role != enums.ManagerRole {
 		return errs.ErrForbidden
@@ -315,6 +326,7 @@ func ConfirmDealerRegistrationRequest(manager *users.User, requestID int64) erro
 	return nil
 }
 
+// generatePassword генерирует случайный пароль заданной длины в байтах и возвращает его в виде строки, закодированной в base64.
 func generatePassword(byteLength int) (string, error) {
 	b := make([]byte, byteLength)
 
@@ -325,6 +337,7 @@ func generatePassword(byteLength int) (string, error) {
 	return base64.RawURLEncoding.EncodeToString(b), nil
 }
 
+// sendPasswordEmail отправляет email с временным паролем пользователю.
 func sendPasswordEmail(toEmail, name, password string) error {
 	smtpHost := os.Getenv("SMTP_HOST")
 	smtpPort := os.Getenv("SMTP_PORT")
@@ -364,6 +377,7 @@ func sendPasswordEmail(toEmail, name, password string) error {
 	)
 }
 
+// buildEmailMessage формирует текст email-сообщения с указанными параметрами.
 func buildEmailMessage(from, to, subject, body string) string {
 	return fmt.Sprintf(
 		"From: %s\r\n"+
@@ -382,6 +396,7 @@ func buildEmailMessage(from, to, subject, body string) string {
 	)
 }
 
+// RejectDealerRegistrationRequest отклоняет заявку на регистрацию дилера, удаляя ее из базы данных.
 func RejectDealerRegistrationRequest(requestID int64) error {
 	return repository.DeleteRegistrationRequest(database.DB, requestID)
 }

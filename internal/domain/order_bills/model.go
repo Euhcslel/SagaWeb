@@ -1,3 +1,6 @@
+// Package order_bills предоставляет модель для работы с счетами на оплату.
+// Данные о каждом счете хранятся в таблице order_bills.
+
 package order_bills
 
 import (

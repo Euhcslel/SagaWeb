@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// SignIn проверяет учетные данные пользователя и возвращает его идентификатор, если они верны.
 func SignIn(email, password string) (int64, error) {
 	user, err := repository.GetUserByEmail(email)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -30,6 +31,7 @@ func SignIn(email, password string) (int64, error) {
 	return userID, nil
 }
 
+// SignUp создает новую заявку на регистрацию дилера с указанными данными.
 func SignUp(fullname, company, phone, email string) error {
 	if strings.TrimSpace(fullname) == "" || strings.TrimSpace(email) == "" || strings.TrimSpace(phone) == "" {
 		return errs.ErrBadRequest
@@ -46,10 +48,12 @@ func SignUp(fullname, company, phone, email string) error {
 	return repository.CreateDealerRegistrationRequest(request)
 }
 
+// SignOut удаляет сессию пользователя по указанному токену сессии.
 func SignOut(sessionToken string) error {
 	return repository.DeleteSession(sessionToken)
 }
 
+// GetDealersRegistrationRequests возвращает все заявки на регистрацию дилеров.
 func GetDealersRegistrationRequests() ([]dealer_registration_requests.DealerRegistrationRequest, error) {
 	return repository.GetAllDealerRegistrationRequests()
 }

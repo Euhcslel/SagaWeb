@@ -1,3 +1,6 @@
+// Package gate_size_price_history предоставляет модель для работы с историей цен за размер у ворот.
+// История цен за размеры хранится в таблице gate_size_price_history.
+
 package gate_size_price_history
 
 import (

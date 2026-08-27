@@ -1,3 +1,6 @@
+// Package rail_price_history предоставляет модель для работы с историей цен за направляющие.
+// История цен за направляющие хранится в таблице rail_price_history.
+
 package rail_price_history
 
 import (

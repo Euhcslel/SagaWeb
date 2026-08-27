@@ -1,3 +1,5 @@
+// Package enums содержит перечисления, используемые в базе данных.
+
 package enums
 
 import (
@@ -229,6 +231,7 @@ const (
 	LogisticianRole Role = "logistician"
 )
 
+// Функция для получения всех ролей
 func GetAllRoles() []Role {
 	return []Role{
 		ClientRole,
@@ -239,6 +242,7 @@ func GetAllRoles() []Role {
 	}
 }
 
+// Функция для получения наименования роли
 func (r Role) Label() string {
 	switch r {
 	case ClientRole:
@@ -266,6 +270,7 @@ const (
 	OtherDocumentType    DocumentType = "other"
 )
 
+// Функция для получения типа документа по строке
 func GetDocumentTypeFromString(docType string) (DocumentType, error) {
 	switch DocumentType(docType) {
 	case ContractDocumentType:

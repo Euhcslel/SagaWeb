@@ -1,3 +1,6 @@
+// Package dealers предоставляет модель для работы с дилерами.
+// Данные каждого дилера хранятся в таблице dealers.
+
 package dealers
 
 import (

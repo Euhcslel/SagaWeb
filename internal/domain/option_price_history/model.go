@@ -1,3 +1,6 @@
+// Package option_price_history предоставляет модель для работы с историей цен за дополнительные опции.
+// История цен за дополнительные опции хранится в таблице option_price_history.
+
 package option_price_history
 
 import (

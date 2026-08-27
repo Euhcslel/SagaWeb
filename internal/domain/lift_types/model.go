@@ -1,3 +1,6 @@
+// Package lift_types предоставляет модель для работы с типами подъема.
+// Данные о типах подъема хранятся в таблице lift_types.
+
 package lift_types
 
 import "github.com/shopspring/decimal"

@@ -16,6 +16,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// GetAllUserOrders возвращает страницу со списком всех заказов пользователя.
 // Route: /orders
 // Method: GET
 func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +41,7 @@ func GetAllUserOrders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetUserOrderById возвращает страницу с информацией о выбранном заказе.
 // Route: /orders/{order_id}
 // Method: GET
 func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +79,7 @@ func GetUserOrderById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetGateInOrder возвращает страницу с информацией о выбранных воротах в заказе.
 // Route: /orders/{order_id}/{gate_id}
 // Method: GET
 func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
@@ -121,6 +124,7 @@ func GetGateInOrder(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeleteUserOrder удаляет выбранный заказ.
 // Route: /orders/{order_id}
 // Method: DELETE
 func DeleteUserOrder(w http.ResponseWriter, r *http.Request) {
@@ -144,6 +148,7 @@ func DeleteUserOrder(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/orders", http.StatusSeeOther)
 }
 
+// AddNewGateInOrder добавляет новые ворота в заказ.
 // Route: /orders/{order_id}
 // Method: POST
 func AddNewGateInOrder(w http.ResponseWriter, r *http.Request) {
@@ -178,6 +183,7 @@ func AddNewGateInOrder(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// CreateNewOrder создает новый заказ для пользователя.
 // Route: /orders
 // Method: POST
 func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
@@ -208,6 +214,7 @@ func CreateNewOrder(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// UpdateProductList обновляет список товаров в заказе.
 // Route: /orders/{order_id}/products
 // Method: PUT
 func UpdateProductList(w http.ResponseWriter, r *http.Request) {
@@ -238,6 +245,7 @@ func UpdateProductList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UpdateOrderStatus обновляет статус заказа.
 // Route: /orders/{order_id}/status
 // Method: PUT
 func UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
@@ -275,6 +283,7 @@ func UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeleteGateFromOrder удаляет выбранные ворота из заказа.
 // Route: /orders/{order_id}/{gate_id}
 // Method: DELETE
 func DeleteGateFromOrder(w http.ResponseWriter, r *http.Request) {
@@ -302,6 +311,7 @@ func DeleteGateFromOrder(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UpdateGateInOrder обновляет информацию о выбранных воротах в заказе.
 // Route: /orders/{order_id}/{gate_id}
 // Method: PUT
 func UpdateGateInOrder(w http.ResponseWriter, r *http.Request) {

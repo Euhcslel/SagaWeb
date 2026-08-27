@@ -1,3 +1,6 @@
+// Package manual_drive_prices предоставляет модель для работы с ценами за ручной тип подъема.
+// Данные о ценах за ручной тип подъема хранятся в таблице manual_drive_prices.
+
 package manual_drive_prices
 
 import (

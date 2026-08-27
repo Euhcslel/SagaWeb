@@ -5,11 +5,12 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/dealers"
 )
 
+// GetDealersList возвращает список всех дилеров.
 func GetDealersList() ([]dealers.Dealer, error) {
 	var dealersList []dealers.Dealer
 	if err := database.DB.Preload("User").Preload("Company").Find(&dealersList).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return dealersList, nil
 }

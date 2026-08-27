@@ -15,6 +15,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/utils"
 )
 
+// GetUserInfo возвращает страницу с информацией о текущем пользователе.
 // Route: /user
 // Method: GET
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
@@ -37,6 +38,7 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetUserDealers возвращает странницу со списком дилеров пользователя.
 // Route: /user/dealers
 // Method: GET
 func GetUserDealers(w http.ResponseWriter, r *http.Request) {
@@ -62,6 +64,7 @@ func GetUserDealers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UpdateUserInfo обновляет информацию о пользователе.
 // Route: /user
 // Method: POST
 func UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +95,7 @@ func UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user", http.StatusSeeOther)
 }
 
+// GetDealersRegRequests возвращает страницу с заявками на регистрацию от дилеров.
 // Route: /dealers/requests
 // Method: GET
 func GetDealersRegRequests(w http.ResponseWriter, r *http.Request) {
@@ -119,6 +123,7 @@ func GetDealersRegRequests(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ConfirmDealerRegRequest подтверждает указаннную заявку на регистрацию от дилера.
 // Route: /dealers/requests/{request_id}/confirm
 // Method: POST
 func ConfirmDealerRegRequest(w http.ResponseWriter, r *http.Request) {
@@ -140,6 +145,7 @@ func ConfirmDealerRegRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// RejectDealerRegRequest отклоняет указаннную заявку на регистрацию от дилера.
 // Route: /dealers/requests/{request_id}/reject
 // Method: POST
 func RejectDealerRegRequest(w http.ResponseWriter, r *http.Request) {
@@ -162,6 +168,7 @@ func RejectDealerRegRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UpdateCompanyDetails обновляет информацию о компании пользователя.
 // Route: /user/company
 // Method: POST
 func UpdateCompanyDetails(w http.ResponseWriter, r *http.Request) {
@@ -184,6 +191,7 @@ func UpdateCompanyDetails(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user", http.StatusSeeOther)
 }
 
+// GenerateDealerContract подставляет в шаблон данные о дилере и возвращает сгенерированный договор.
 // Route: /user/dealers/{dealer_id}/contract/generate
 // Method: GET
 func GenerateDealerContract(w http.ResponseWriter, r *http.Request) {
@@ -212,6 +220,7 @@ func GenerateDealerContract(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// AttachContractToDealer прикрепляет файл договора к указанному дилеру.
 // Route: /user/dealers/{dealer_id}/contract
 // Method: POST
 func AttachContractToDealer(w http.ResponseWriter, r *http.Request) {

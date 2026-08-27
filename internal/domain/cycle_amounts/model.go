@@ -1,3 +1,6 @@
+// Package cycle_amounts предоставляет модель для работы с количествами циклов работы ворот.
+// Количества циклов хранятся в таблице cycle_amounts.
+
 package cycle_amounts
 
 import "github.com/shopspring/decimal"

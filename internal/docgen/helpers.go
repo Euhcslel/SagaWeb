@@ -47,7 +47,7 @@ type Doc struct {
 	pdf *fpdf.Fpdf
 }
 
-// Функция, создающая новый PDF-документ. Настраивает шрифты, поля и страницу
+// newDoc создает новый PDF-документ. Настраивает шрифты, поля и страницу
 func newDoc() *Doc {
 	pdf := fpdf.New("P", "mm", "A4", "")
 	pdf.SetMargins(marginX, 14, marginX)
@@ -58,17 +58,20 @@ func newDoc() *Doc {
 	return &Doc{pdf: pdf}
 }
 
+// addLine добавляет обычную строку текста в документ
 func (d *Doc) addLine(s string) {
 	d.pdf.SetFont("DejaVu", "", 9)
 	d.pdf.CellFormat(0, 6, s, "", 1, "L", false, 0, "")
 }
 
+// addTitle добавляет заголовок в документ
 func (d *Doc) addTitle(s string, size float64) {
 	d.pdf.SetFont("DejaVu", "B", size)
 	d.pdf.CellFormat(0, 8, s, "", 1, "C", false, 0, "")
 }
 
-// Функция, форматирующая decimal в строку вида «12 345,67»
+// money форматирует decimal.Decimal в строку с разделением тысяч пробелами
+// и десятичной запятой. Пример: 12345.67 → "12 345,67".
 func money(v decimal.Decimal) string {
 	s := v.StringFixed(2)
 	parts := strings.SplitN(s, ".", 2)
@@ -137,8 +140,7 @@ func driveWholesalePrice(drive any) decimal.Decimal {
 	return decimal.Zero
 }
 
-// ─── Таблица с одной ценой ────────────────────────────────────────────────────
-
+// drawTableHeaderSingle рисует заголовок таблицы с одной колонкой цен (розничной).
 func (d *Doc) drawTableHeaderSingle() {
 	d.pdf.SetFont("DejaVu", "B", 8)
 	d.pdf.SetFillColor(245, 245, 245)
@@ -150,6 +152,15 @@ func (d *Doc) drawTableHeaderSingle() {
 	d.pdf.CellFormat(colSingle.Sum, 8, "Сумма, ₽", "1", 1, "R", true, 0, "")
 }
 
+// drawRowSingle рисует одну строку таблицы с одной колонкой цен.
+// Принимает параметры:
+// no - номер строки;
+// name - наименование;
+// unit - единица измерения;
+// price - цена за единицу;
+// qty - количество;
+// sum - итоговая сумма;
+// bold - жирный шрифт (если true).
 func (d *Doc) drawRowSingle(no, name, unit, price, qty, sum string, bold bool) {
 	style := ""
 	if bold {
@@ -179,12 +190,12 @@ func (d *Doc) drawRowSingle(no, name, unit, price, qty, sum string, bold bool) {
 	d.pdf.SetY(yStart + rowH)
 }
 
+// drawTextRowSingle это обёртка над drawRowSingle с пустыми значениями для unit, price, qty, sum=.
 func (d *Doc) drawTextRowSingle(no, name string) {
 	d.drawRowSingle(no, name, "", "", "", "", false)
 }
 
-// ─── Таблица с двумя ценами ───────────────────────────────────────────────────
-
+// drawTableHeaderDual рисует заголовок таблицы с двумя колонками цен (розница + дилерская).
 func (d *Doc) drawTableHeaderDual() {
 	d.pdf.SetFont("DejaVu", "B", 7)
 	d.pdf.SetFillColor(245, 245, 245)
@@ -198,6 +209,7 @@ func (d *Doc) drawTableHeaderDual() {
 	d.pdf.CellFormat(colDual.SumDealer, 8, "Сумма дил.", "1", 1, "R", true, 0, "")
 }
 
+// drawRowDual рисует строку таблицы с двумя колонками цен (розница + дилерская).
 func (d *Doc) drawRowDual(no, name, unit, retail, dealer, qty, sumRetail, sumDealer string, bold bool) {
 	style := ""
 	if bold {
@@ -229,11 +241,10 @@ func (d *Doc) drawRowDual(no, name, unit, retail, dealer, qty, sumRetail, sumDea
 	d.pdf.SetY(yStart + rowH)
 }
 
+// drawTextRowDual это обёртка над drawRowDual с пустыми значениями для unit, retail, dealer, qty, sumRetail, sumDealer.
 func (d *Doc) drawTextRowDual(no, name string) {
 	d.drawRowDual(no, name, "", "", "", "", "", "", false)
 }
-
-// ─── Секция ворот ─────────────────────────────────────────────────────────────
 
 // Функция, рисующая секцию ворот для КП с одной колонкой цен
 func (d *Doc) drawGateSectionSingle(itemNo int, g types.Gate) {
@@ -389,8 +400,7 @@ func (d *Doc) drawGateSectionDual(itemNo int, g types.Gate) {
 	d.pdf.CellFormat(colDual.SumDealer, minRowHeight, money(g.Gate.GateWholesalePrice.Mul(amount)), "1", 1, "R", false, 0, "")
 }
 
-// ─── Секция товаров ───────────────────────────────────────────────────────────
-
+// drawProductsSectionSingle рисует таблицу дополнительных товаров с одной колонкой цен.
 func (d *Doc) drawProductsSectionSingle(startNo int, products []order_products.OrderProduct) {
 	d.pdf.SetFont("DejaVu", "B", 10)
 	d.pdf.SetFillColor(235, 235, 235)
@@ -410,6 +420,7 @@ func (d *Doc) drawProductsSectionSingle(startNo int, products []order_products.O
 	}
 }
 
+// drawProductsSectionDual рисует таблицу дополнительных товаров с двумя колонками цен.
 func (d *Doc) drawProductsSectionDual(startNo int, products []order_products.OrderProduct) {
 	d.pdf.SetFont("DejaVu", "B", 10)
 	d.pdf.SetFillColor(235, 235, 235)
@@ -431,6 +442,7 @@ func (d *Doc) drawProductsSectionDual(startNo int, products []order_products.Ord
 	}
 }
 
+// drawGateSectionSingleWholesale рисует секцию ворот для КП с одной колонкой дилерских (оптовых) цен.
 func (d *Doc) drawGateSectionSingleWholesale(itemNo int, g types.Gate) {
 	d.pdf.SetFont("DejaVu", "B", 10)
 	d.pdf.SetFillColor(235, 235, 235)
@@ -501,6 +513,7 @@ func (d *Doc) drawGateSectionSingleWholesale(itemNo int, g types.Gate) {
 	d.pdf.CellFormat(colSingle.Sum, minRowHeight, money(g.Gate.GateWholesalePrice.Mul(amount)), "1", 1, "R", false, 0, "")
 }
 
+// drawProductsSectionSingleWholesale рисует таблицу дополнительных товаров с одной колонкой дилерских цен.
 func (d *Doc) drawProductsSectionSingleWholesale(startNo int, products []order_products.OrderProduct) {
 	d.pdf.SetFont("DejaVu", "B", 10)
 	d.pdf.SetFillColor(235, 235, 235)
@@ -520,8 +533,7 @@ func (d *Doc) drawProductsSectionSingleWholesale(startNo int, products []order_p
 	}
 }
 
-// ─── Итого ────────────────────────────────────────────────────────────────────
-
+// drawGrandTotalSingle выводит итоговую сумму по заказу для розничных цен (одна колонка).
 func (d *Doc) drawGrandTotalSingle(order *types.Order) {
 	total := decimal.Zero
 	for _, g := range order.Gates {
@@ -573,17 +585,17 @@ func (d *Doc) drawGrandTotalDual(order *types.Order) {
 	d.pdf.CellFormat(totalDualSumW, 8, money(totalDealer), "1", 1, "R", false, 0, "")
 }
 
-// ─── Общие утилиты ────────────────────────────────────────────────────────────
-
 var ruMonths = [...]string{
 	"января", "февраля", "марта", "апреля", "мая", "июня",
 	"июля", "августа", "сентября", "октября", "ноября", "декабря",
 }
 
+// formatDateRu форматирует дату на русском языке в формате: «день» месяц год г.
 func formatDateRu(t time.Time) string {
 	return fmt.Sprintf("«%d» %s %d г.", t.Day(), ruMonths[t.Month()-1], t.Year())
 }
 
+// ptrOrEmpty возвращает строку, на которую указывает указатель.
 func ptrOrEmpty(s *string) string {
 	if s == nil {
 		return ""

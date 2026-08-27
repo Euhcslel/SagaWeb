@@ -25,6 +25,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// GetDataBaseRedactor возвращает страницу для управления указанной таблицей базы данных.
 // Route: /tables/{table_name}
 // Method: GET
 func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
@@ -73,6 +74,7 @@ func GetDataBaseRedactor(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UpdateRow обновляет запись указанной таблицы.
 // Route: /tables/{table_name}
 // Method: PUT
 func UpdateRow(w http.ResponseWriter, r *http.Request) {
@@ -404,6 +406,7 @@ func UpdateRow(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// DeleteRow удаляет указанную запись из таблицы.
 // Route: /tables/{table_name}/{row_id}
 // Method: DELETE
 func DeleteRow(w http.ResponseWriter, r *http.Request) {
@@ -441,6 +444,7 @@ func DeleteRow(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetDataBaseTableList возвращает страницу со списком таблиц базы данных.
 // Route: /tables
 // Method: GET
 func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
@@ -462,6 +466,7 @@ func GetDataBaseTableList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// AddNewDataBaseTableRow создает новую запись в указанной таблице.
 // Route: /tables/{table_name}
 // Method: POST
 func AddNewDataBaseTableRow(w http.ResponseWriter, r *http.Request) {

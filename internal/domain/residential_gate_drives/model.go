@@ -1,3 +1,6 @@
+// Package residential_gate_drives предоставляет модель для работы с бытовыми приводами.
+// Данные о бытовых приводах хранятся в таблице residential_gate_drives.
+
 package residential_gate_drives
 
 import (

@@ -15,9 +15,9 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/domain/users"
 )
 
-// Функция, генерирующая договор на основе DOCX шаблона и данных дилера
+// GenerateContract генерирует договор на основе DOCX шаблона и данных дилера.
 func GenerateContract(dealer *dealers.Dealer, dealerUser *users.User, contractNumber int, date time.Time) ([]byte, error) {
-	templateData, err := os.ReadFile("data/contract_template/contract_template.docx")
+	templateData, err := os.ReadFile(Cfg.ContractTemplatePath)
 	if err != nil {
 		return nil, fmt.Errorf("открытие шаблона договора: %w", err)
 	}
@@ -40,7 +40,6 @@ func GenerateContract(dealer *dealers.Dealer, dealerUser *users.User, contractNu
 }
 
 // fillDocxTemplate открывает DOCX как ZIP и заменяет плейсхолдеры в XML.
-// Не использует внешние библиотеки — обрабатывает разбитые runs самостоятельно.
 func fillDocxTemplate(docxData []byte, replacements map[string]string) ([]byte, error) {
 	r, err := zip.NewReader(bytes.NewReader(docxData), int64(len(docxData)))
 	if err != nil {
@@ -99,6 +98,7 @@ func replaceSplitPlaceholder(xmlContent, placeholder, replacement string) string
 	return re.ReplaceAllString(xmlContent, replacement)
 }
 
+// readZipEntry открывает файл zip-архива и читает его содержимое в байтовый слайс.
 func readZipEntry(f *zip.File) ([]byte, error) {
 	rc, err := f.Open()
 	if err != nil {
@@ -108,10 +108,12 @@ func readZipEntry(f *zip.File) ([]byte, error) {
 	return io.ReadAll(rc)
 }
 
+// isWordXML проверяет является ли файл xml-документом из папки word.
 func isWordXML(name string) bool {
 	return strings.HasPrefix(name, "word/") && strings.HasSuffix(name, ".xml")
 }
 
+// xmlEscape заменяет специальные символы.
 func xmlEscape(s string) string {
 	s = strings.ReplaceAll(s, "&", "&amp;")
 	s = strings.ReplaceAll(s, "<", "&lt;")

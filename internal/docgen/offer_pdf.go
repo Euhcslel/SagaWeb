@@ -27,7 +27,7 @@ func GenerateClientOffer(order *types.Order) ([]byte, error) {
 
 	d.drawGrandTotalSingle(order)
 	d.pdf.Ln(6)
-	d.addLine(fmt.Sprintf("КП действительно %d дней", offerValidityDays()))
+	d.addLine(fmt.Sprintf("КП действительно %d дней", Cfg.OfferValidityDays))
 
 	return renderPDF(d)
 }
@@ -56,13 +56,12 @@ func GenerateDealerOfferForClient(
 
 	d.drawGrandTotalSingle(order)
 	d.pdf.Ln(6)
-	d.addLine(fmt.Sprintf("КП действительно %d дней", offerValidityDays()))
+	d.addLine(fmt.Sprintf("КП действительно %d дней", Cfg.OfferValidityDays))
 
 	return renderPDF(d)
 }
 
 // GenerateDealerOfferForSelf генерирует КП дилера для себя (розничные + дилерские цены).
-// orderID — номер заказа; если nil, номер в заголовок не включается.
 func GenerateDealerOfferForSelf(
 	order *types.Order,
 	orderID *int64,
@@ -86,7 +85,7 @@ func GenerateDealerOfferForSelf(
 
 	d.drawGrandTotalDual(order)
 	d.pdf.Ln(6)
-	d.addLine(fmt.Sprintf("КП действительно %d дней", offerValidityDays()))
+	d.addLine(fmt.Sprintf("КП действительно %d дней", Cfg.OfferValidityDays))
 
 	return renderPDF(d)
 }

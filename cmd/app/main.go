@@ -1,4 +1,7 @@
-package main
+// Package app настраивает и запускает сервер.
+// Сервер слушает порт :8080.
+
+package app
 
 import (
 	"io"
@@ -10,6 +13,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/database"
 	"github.com/Euhcslel/SagaWeb/internal/docgen"
 	"github.com/Euhcslel/SagaWeb/internal/domain/sessions"
+
 	handlers "github.com/Euhcslel/SagaWeb/internal/transport/http"
 
 	"github.com/joho/godotenv"
@@ -17,13 +21,17 @@ import (
 )
 
 func main() {
-	err_load := godotenv.Load()
-	if err_load != nil {
-		log.Fatal("error loading .env file")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalln("error loading .env file")
 	}
 
-	docgen.Init()
+	// Инициализация базовых параметров компании
+	if err := docgen.Init(); err != nil {
+		log.Fatalln("не удалось загрузить базовые параметры компании" + err.Error())
+	}
 
+	// Создание файла для хранения логов
 	logFile, err := os.OpenFile("logs/error.log",
 		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
 		0600)
@@ -37,19 +45,24 @@ func main() {
 	log.SetOutput(mw)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	database.InitDB()
+	if err := database.InitDB(); err != nil {
+		log.Fatalln("ошибка при попытке инициализировать бд: " + err.Error())
+	}
 
-	// Запускаем фоновую задачу для очистки просроченных сессий
+	// Запускаем горутину для очистки просроченных сессий
 	go func() {
 		ticker := time.NewTicker(24 * time.Hour)
 		defer ticker.Stop()
 		for range ticker.C {
-			database.DB.Where("expires_at < ?", time.Now()).Delete(&sessions.Session{})
+			if err := database.DB.Where("expires_at < ?", time.Now()).Delete(&sessions.Session{}); err != nil {
+				log.Println("ошибка при попытке удалить просроченные сессии: ", err)
+			}
 		}
 	}()
 
 	mux := http.NewServeMux()
 
+	// Раздача статических файлов из папки /web/assets
 	assets := http.StripPrefix(
 		"/web/assets/",
 		http.FileServer(http.Dir("./web/assets")),
@@ -60,6 +73,7 @@ func main() {
 		assets.ServeHTTP(w, r)
 	}))
 
+	// Раздача статических файлов из папки /api/proto
 	protoAssets := http.StripPrefix(
 		"/api/proto/",
 		http.FileServer(http.Dir("./api/proto")),
@@ -70,6 +84,7 @@ func main() {
 		protoAssets.ServeHTTP(w, r)
 	}))
 
+	// Раздача статических файлов из папки /data/images
 	productImages := http.StripPrefix(
 		"/data/images/",
 		http.FileServer(http.Dir("./data/images")),
@@ -108,14 +123,18 @@ func main() {
 	mux.Handle("GET /orders", handlers.RequireAuth(http.HandlerFunc(handlers.GetAllUserOrders)))
 	mux.Handle("POST /orders", handlers.RequireAuth(http.HandlerFunc(handlers.CreateNewOrder)))
 
+	// Конкретный заказ
 	mux.Handle("GET /orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.GetUserOrderById)))
 	mux.Handle("POST /orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.AddNewGateInOrder)))
 	mux.Handle("DELETE /orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteUserOrder)))
 
+	// Товары в заказе
 	mux.Handle("PUT /orders/{order_id}/products", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateProductList)))
 
+	// Статус заказа
 	mux.Handle("PUT /orders/{order_id}/status", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateOrderStatus)))
 
+	// Конкретные ворота в заказе
 	mux.Handle("GET /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.GetGateInOrder)))
 	mux.Handle("DELETE /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteGateFromOrder)))
 	mux.Handle("PUT /orders/{order_id}/{gate_id}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateGateInOrder)))
@@ -133,9 +152,13 @@ func main() {
 	mux.Handle("GET /orders/{order_id}/offer/client", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealerOfferForClient)))
 	mux.Handle("GET /orders/{order_id}/offer/self", handlers.RequireAuth(http.HandlerFunc(handlers.GetDealerOfferForSelf)))
 
+	// Калькулятор
 	mux.Handle("GET /calculator", handlers.CacheControl("private, max-age=300")(handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCalculatorForUser))))
+
+	// Каталог
 	mux.Handle("GET /catalog", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetCatalog)))
 
+	// Цена за размер
 	mux.Handle("GET /sizes", handlers.WithOptionalAuth(http.HandlerFunc(handlers.GetPriceBasedOnSize)))
 
 	// Логистик
@@ -144,13 +167,13 @@ func main() {
 	mux.Handle("PUT /logistician/orders/{order_id}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateLogisticianOrder)))
 
 	// Администратор
+	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
 	mux.Handle("GET /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseRedactor)))
 	mux.Handle("POST /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.AddNewDataBaseTableRow)))
 	mux.Handle("PUT /tables/{table_name}", handlers.RequireAuth(http.HandlerFunc(handlers.UpdateRow)))
 	mux.Handle("DELETE /tables/{table_name}/{row_id}", handlers.RequireAuth(http.HandlerFunc(handlers.DeleteRow)))
 
-	mux.Handle("GET /tables", handlers.RequireAuth(http.HandlerFunc(handlers.GetDataBaseTableList)))
-
+	// Запуск сервера
 	err = http.ListenAndServe(":8080", http.NewCrossOriginProtection().Handler(handlers.SecurityHeaders(mux)))
 	log.Fatal(err)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/Euhcslel/SagaWeb/internal/utils"
 )
 
+// GetCatalog возвращает страницу каталога.
 // Route: /catalog
 // Method: GET
 func GetCatalog(w http.ResponseWriter, r *http.Request) {

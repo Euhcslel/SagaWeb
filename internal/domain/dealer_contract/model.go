@@ -1,3 +1,6 @@
+// Package dealer_contract предоставляет модель для работы с договорами дилеров.
+// Данные о договоре каждого дилера хранятся в таблице dealer_contract.
+
 package dealer_contract
 
 import (

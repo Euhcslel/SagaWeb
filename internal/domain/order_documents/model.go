@@ -1,3 +1,6 @@
+// Package order_documents предоставляет модель для работы с различными документами.
+// Данные о каждом документе хранятся в таблице order_documents.
+
 package order_documents
 
 import (

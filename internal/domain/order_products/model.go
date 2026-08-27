@@ -1,3 +1,6 @@
+// Package order_products предоставляет модель для работы с товарами заказа.
+// Данные о товарах заказа хранятся в таблице order_products.
+
 package order_products
 
 import (

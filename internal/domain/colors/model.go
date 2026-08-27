@@ -1,3 +1,6 @@
+// Package colors предоставляет модель для работы с цветами.
+// Цвета хранятся в таблице colors.
+
 package colors
 
 const TableNameColor = "colors"
