@@ -29,54 +29,73 @@
 - Client: HTML+CSS+JS
 - DB: PostgreSQL
 
+## Запуск через Docker
+
+Рекомендуемый способ развёртывания — **Docker Compose**.
+Все зависимости (Go, Bun, protoc, goose) устанавливаются автоматически внутри контейнеров.
+
+### Подготовка
+
+1. Установите [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+
+2. Клонируйте репозиторий и перейдите в папку проекта:
+
+   ```bash
+   git clone <адрес_репозитория>
+   cd <папка_проекта>
+   ```
+3. Поместите Excel-файлы с размерами в папку data/sizes_import:
+
+ - prom_dealer_sizes.xlsx
+
+ - prom_client_sizes.xlsx
+
+ - home_dealer_sizes.xlsx
+
+ - home_client_sizes.xlsx
+
+Важно: без этих файлов сервис size_import завершится с ошибкой.
+
+4. При необходимости отредактируйте файл .env.docker.
+Параметры базы данных изменять не требуется — они уже настроены под PostgreSQL внутри Docker Compose.
+
 ## Архитектура проекта
 
 ```
 project/
-├── .vscode/
-├── api/
-│   └── proto/               # proto-файлы
-│
 ├── cmd/
 │   ├── app/                 # точка входа приложения
-│   └── size_import/         # импорт данных
+│   └── size_import/         # утилита импорта размеров
 │
-├── docs/                    # документация / ресурсы для README
-│
-├── internal/
-│   ├── database/            # работа с БД
-│   ├── domain/              # GORM-модели
+├── internal/                # внутренние пакеты
+│   ├── database/            # подключение к БД
+│   ├── docgen/              # генерация документов (PDF, DOCX)
+│   ├── domain/              # GORM-модели (структуры таблиц)
 │   ├── errors/              # кастомные ошибки
-│   ├── generated/           # сгенерированный код
+│   ├── generated/           # сгенерированный код (protobuf)
 │   ├── helpers/             # вспомогательные функции
 │   ├── repository/          # слой доступа к данным
 │   ├── service/             # бизнес-логика
-│   ├── transport/
-│   │   └── http/            # HTTP-слой: хендлеры, middleware
-│   ├── types/               # кастомные типы
+│   ├── transport/http/      # HTTP-хендлеры и middleware
+│   ├── types/               # общие типы
 │   └── utils/               # утилиты
-│
-├── logs/                    # логи
-├── migrations/              # миграции БД
 │
 ├── web/
 │   ├── assets/
-│   │   ├── images/          # картинки
-│   │   ├── scripts/         # JS-файлы
-│   │   └── styles/          # CSS-файлы
-│   │
-│   └── templates/
-│       ├── admin/           # админка
-│       ├── auth/            # авторизация и регистрация
-│       ├── calculator/      # калькулятор
-│       ├── components/      # переиспользуемые шаблонные компоненты
-│       ├── home/            # главная страница
-│       ├── orders/          # заказы
-│       └── user/            # кабинет пользователя
+│   │   ├── images/          # изображения
+│   │   ├── scripts/         # JavaScript-файлы
+│   │   └── styles/          # CSS-файлы (библиотека + страницы)
+│   └── templates/           # HTML-шаблоны (по разделам)
 │
-├── .env
-├── .gitignore
-├── go.mod
-├── go.sum
+├── migrations/              # SQL-миграции
+├── data/                    # пользовательские данные (документы, изображения)
+├── docs/                    # диаграммы и документация
+├── logs/                    # логи приложения
+├── api/proto/               # protobuf-спецификации
+│
+├── .env                     # переменные окружения
+├── docker-compose.yml       # запуск через Docker
+├── Dockerfile               # сборка образа
+├── go.mod / go.sum          # зависимости Go
 └── README.md
 ```
